@@ -7,6 +7,8 @@
 
 #include "RuntimeProvider.h"
 
+#include <functional>
+
 class QGraphicsScene;
 
 namespace Ui {
@@ -27,6 +29,7 @@ namespace Keywords
     const QString KW_IN = "in";                // foreach p in something do ... done
     const QString KW_DO = "do";                // foreach p in something do ... done
     const QString KW_DONE = "done";              // foreach p in something do ... done
+    const QString KW_RANGE = "range";              // foreach p in something do ... done
 };
 
 class Function;
@@ -62,11 +65,37 @@ struct Sett : public Statement
 
 struct Done : public Statement
 {
-    bool execute(MainWindow* mw) override {}
+    bool execute(MainWindow* mw) override { return true; }
     QString keyword() const override
     {
         return Keywords::KW_DONE;
     }
+};
+
+struct LoopTarget
+{
+    QString name;
+
+    using LooperCallback = std::function<void()>;
+
+    virtual bool loop(LooperCallback) = 0;
+};
+
+struct RangeIteratorLoopTarget : public LoopTarget
+{
+    bool loop(LooperCallback lp) override;
+
+    double start = -1.0;
+    double end = 1.0;
+};
+
+struct FunctionIteratorLoopTarget : public LoopTarget
+{
+    bool loop(LooperCallback) override
+    {
+        return true;
+    }
+
 };
 
 struct Loop : public Statement
@@ -78,8 +107,7 @@ struct Loop : public Statement
     }
 
     QString loop_variable;
-    QString loop_target;
-
+    QSharedPointer<LoopTarget> loop_target;
     QVector<QSharedPointer<Statement>> body;
 };
 
@@ -167,6 +195,7 @@ private slots:
 
 private:
     void drawCoordinateSystem();
+    void consumeSpace(QString&);
 
     int sceneX(double x);
     int sceneY(double y);

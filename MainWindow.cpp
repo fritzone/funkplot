@@ -8,6 +8,29 @@
 #include <QDebug>
 #include <QSharedPointer>
 
+#include <functional>
+
+namespace detail
+{
+template <typename F>
+struct function_traits : public function_traits<decltype(&F::operator())> {};
+
+template <typename R, typename C, typename... Args>
+struct function_traits<R (C::*)(Args...) const>
+{
+    using function_type = std::function<R (Args...)>;
+};
+}
+
+template <typename F>
+using function_type_t = typename detail::function_traits<F>::function_type;
+
+template <typename F>
+function_type_t<F> to_function(F & lambda)
+{
+    return static_cast<function_type_t<F>>(lambda);
+}
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -98,23 +121,57 @@ QSharedPointer<Statement> MainWindow::createLoop(const QString &codeline, QStrin
 
         // see what are we looping through
         QString loop_over;
-        while(!l_decl.isEmpty() && !l_decl[0].isSpace())
+        while(!l_decl.isEmpty() && !l_decl[0].isSpace() && !(l_decl[0] == '(') && !(l_decl[0] == '['))
         {
             loop_over += l_decl[0];
             l_decl = l_decl.mid(1);
         }
-
         // skip the space
-        l_decl = l_decl.mid(1);
+        consumeSpace(l_decl);
+
+        // create the correct loop object
+        result.reset(new Loop);
+        result->loop_variable = loop_variable;
+        if(loop_over == Keywords::KW_RANGE && (l_decl[0] == '(' || l_decl[0] == '['))
+        {
+            result->loop_target.reset(new RangeIteratorLoopTarget());
+            l_decl = l_decl.mid(1);
+            QString range_start = "";
+            while(!l_decl.isEmpty() && !l_decl[0].isSpace() && !(l_decl[0] == ','))
+            {
+                range_start += l_decl[0];
+                l_decl = l_decl.mid(1);
+            }
+            consumeSpace(l_decl);
+            if(l_decl[0] == ',')
+            {
+                l_decl = l_decl.mid(1);
+                consumeSpace(l_decl);
+            }
+            QString range_end = "";
+            while(!l_decl.isEmpty() && !l_decl[0].isSpace() && !(l_decl[0] == ')' || l_decl[0] == ']'))
+            {
+                range_end += l_decl[0];
+                l_decl = l_decl.mid(1);
+            }
+            if(l_decl[0] == ')')
+            {
+                l_decl = l_decl.mid(1);
+            }
+            consumeSpace(l_decl);
+        }
+        else
+        {
+            result->loop_target = QSharedPointer<LoopTarget>(new FunctionIteratorLoopTarget());
+            result->loop_target->name = loop_over;
+        }
+
         if(!l_decl.startsWith(Keywords::KW_DO))
         {
             throw syntax_error_exception("foreach does not contain the do keyword");
         }
 
-        result.reset(new Loop);
 
-        result->loop_variable = loop_variable;
-        result->loop_target = loop_over;
 
         bool done = false;
         while(!codelines.isEmpty() && !done)
@@ -301,6 +358,14 @@ void MainWindow::drawCoordinateSystem()
     }
 }
 
+void MainWindow::consumeSpace(QString &s)
+{
+    while(!s.isEmpty() && s[0].isSpace())
+    {
+        s = s.mid(1);
+    }
+}
+
 int MainWindow::sceneX(double x)
 {
     int zeroX = sc->sceneRect().width() / 2;
@@ -357,9 +422,10 @@ QSharedPointer<Statement> MainWindow::createPlot(const QString& codeline)
 
     plot_body = plot_body.mid(1);
     // over keyword
-    if(plot_body.startsWith(STR_OVER))
+    if(plot_body.startsWith(Keywords::KW_OVER))
     {
-        plot_body = plot_body.mid(STR_OVER.length());
+        plot_body = plot_body.mid(Keywords::KW_OVER.length());
+        consumeSpace(plot_body);
         if(!plot_body.startsWith("(") || !plot_body.startsWith("["))
         {
             char close_char = plot_body[0].toLatin1() == '(' ? ')' : ']';
@@ -477,9 +543,11 @@ QSharedPointer<Statement> MainWindow::resolveObjectAssignment(const QString &cod
     // TODO: This is identical to plot, refactor it
     assignment_body = assignment_body.mid(1);
     // over keyword
-    if(assignment_body.startsWith(STR_OVER))
+    if(assignment_body.startsWith(Keywords::KW_OVER))
     {
-        assignment_body = assignment_body.mid(STR_OVER.length());
+        assignment_body = assignment_body.mid(Keywords::KW_OVER.length());
+        consumeSpace(assignment_body);
+
         if(!assignment_body.startsWith("(") || !assignment_body.startsWith("["))
         {
             char close_char = assignment_body[0].toLatin1() == '(' ? ')' : ']';
@@ -573,7 +641,7 @@ void MainWindow::drawPlot(QSharedPointer<Plot> plot)
         {
             if(! assignment->start)
             {
-                reportError("Invalid plotting interval. There is no clear start value defined for it.");
+                reportError("Invalid plotting interval for " + assignment->varName + ". There is no clear start value defined for it.");
                 return;
             }
             else
@@ -602,7 +670,7 @@ void MainWindow::drawPlot(QSharedPointer<Plot> plot)
         {
             plotEnd = plot->end->Calculate(&rp);
         }
-        continuous = assignment->continuous;
+        continuous = assignment->continuous || plot->continuous;
     }
     else
     {
@@ -827,6 +895,36 @@ bool Sett::execute(MainWindow *mw)
 
 bool Loop::execute(MainWindow *mw)
 {
+
+    auto looper = [&mw, this]()
+    {
+        try
+        {
+            for(const auto& stmt : qAsConst(body))
+            {
+                stmt->execute(mw);
+            }
+        }
+        catch(std::exception& ex)
+        {
+            mw->reportError(ex.what());
+
+        }
+    };
+
+    loop_target->loop(looper);
+
     return true;
 }
 
+
+bool RangeIteratorLoopTarget::loop(LooperCallback lp)
+{
+    double v = start;
+    while(v < end)
+    {
+        lp();
+        v += 0.1;
+    }
+    return true;
+}
