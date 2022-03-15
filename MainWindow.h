@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QPen>
 #include <QMap>
+#include <QSet>
 
 #include "RuntimeProvider.h"
 
@@ -37,8 +38,15 @@ class MainWindow;
 
 struct Statement
 {
+    explicit Statement(const QString& s) : statement(s) {}
+    Statement() = delete;
+
+    QString statement;
+    QSharedPointer<Statement> parent = nullptr;
+    RuntimeProvider* runtimeProvider; // this is the "scope" of the running piece of code
+
     // executes this statement
-    virtual bool execute(MainWindow* mw) = 0;
+    virtual bool execute(RuntimeProvider* mw) = 0;
 
     // return the keyword this statement represents
     virtual QString keyword() const = 0;
@@ -53,7 +61,10 @@ struct Stepped
 
 struct Sett : public Statement
 {
-    bool execute(MainWindow* mw) override;
+
+    explicit Sett(const QString& s) : Statement(s) {}
+
+    bool execute(RuntimeProvider* rp) override;
     QString keyword() const override
     {
         return Keywords::KW_SET;
@@ -65,33 +76,46 @@ struct Sett : public Statement
 
 struct Done : public Statement
 {
-    bool execute(MainWindow* mw) override { return true; }
+    explicit Done(const QString& s) : Statement(s) {}
+
+    bool execute(RuntimeProvider* mw) override { return true; }
     QString keyword() const override
     {
         return Keywords::KW_DONE;
     }
 };
 
-struct LoopTarget
+class Loop;
+struct LoopTarget : public Stepped
 {
+
+    QSharedPointer<Loop> theLoop;
     QString name;
 
     using LooperCallback = std::function<void()>;
 
-    virtual bool loop(LooperCallback) = 0;
+    virtual bool loop(LooperCallback, RuntimeProvider*) = 0;
 };
 
 struct RangeIteratorLoopTarget : public LoopTarget
 {
-    bool loop(LooperCallback lp) override;
+    explicit RangeIteratorLoopTarget(QSharedPointer<Loop>);
+    RangeIteratorLoopTarget() = delete;
 
-    double start = -1.0;
-    double end = 1.0;
+    bool loop(LooperCallback lp, RuntimeProvider*) override;
+
+    QString startSt;
+    QString endSt;
+    QString stepSt;
+
+    QSharedPointer<Function> startFun;
+    QSharedPointer<Function> endFun;
+    QSharedPointer<Function> stepFun;
 };
 
 struct FunctionIteratorLoopTarget : public LoopTarget
 {
-    bool loop(LooperCallback) override
+    bool loop(LooperCallback, RuntimeProvider*) override
     {
         return true;
     }
@@ -100,11 +124,16 @@ struct FunctionIteratorLoopTarget : public LoopTarget
 
 struct Loop : public Statement
 {
-    bool execute(MainWindow* mw) override;
+
+    explicit Loop(const QString& s) : Statement(s) {}
+
+    bool execute(RuntimeProvider* rp) override;
     QString keyword() const override
     {
         return Keywords::KW_FOREACH;
     }
+
+    void updateLoopVariable(double);
 
     QString loop_variable;
     QSharedPointer<LoopTarget> loop_target;
@@ -113,6 +142,9 @@ struct Loop : public Statement
 
 struct Plot : public Stepped, public Statement, public QEnableSharedFromThis<Plot>
 {
+
+    explicit Plot(const QString& s) : Statement(s){}
+
     QSharedPointer<Function> start;
     QSharedPointer<Function> end;
     QString theFunction;
@@ -127,11 +159,13 @@ struct Plot : public Stepped, public Statement, public QEnableSharedFromThis<Plo
         return sharedFromThis();
     }
 
-    bool execute(MainWindow* mw) override;
+    bool execute(RuntimeProvider* rp) override;
 };
 
 struct Assignment : public Stepped, public Statement
 {
+    explicit Assignment(const QString& s) : Statement(s) {}
+
     QString varName;                    // the name of the object we will refer to in later code (such as: plot assignedStuff)
     QString targetProperties;           // the name of the properties of the assigned objects, such as: points. If targetProperties is "arythmetic" then a new function is created and evaluated at run time
     QString ofWhat;                     // can be a function for now (or a circle, etc... later)
@@ -140,7 +174,7 @@ struct Assignment : public Stepped, public Statement
 
     QSharedPointer<Function> arythmetic;       // if this is an arythmetic assignment this is the function
 
-    bool execute(MainWindow* mw) override;
+    bool execute(RuntimeProvider* rp) override;
 
     QString keyword() const override
     {
@@ -150,9 +184,11 @@ struct Assignment : public Stepped, public Statement
 
 struct FunctionDefinition : public Statement
 {
+    explicit FunctionDefinition(QString a) : Statement(a) {}
+
     QSharedPointer<Function> f;
 
-    bool execute(MainWindow* mw) override;
+    bool execute(RuntimeProvider* mw) override;
     QString keyword() const override
     {
         return Keywords::KW_FUNCTION;
@@ -187,8 +223,10 @@ public:
     void reportError(QString err);
     void drawPlot(QSharedPointer<Plot>);
     
-    QSharedPointer<Statement> resolveCodeline(QStringList &codelines, QVector<QSharedPointer<Statement> > &statements);
-    
+    QSharedPointer<Statement> resolveCodeline(QStringList &codelines, QVector<QSharedPointer<Statement> > &statements, QSharedPointer<Statement> parentScope);
+
+    void setCurrentStatement(const QString &newCurrentStatement);
+
 private slots:
     void on_splitter_splitterMoved(int pos, int index);
     void on_toolButton_clicked();
@@ -196,6 +234,10 @@ private slots:
 private:
     void drawCoordinateSystem();
     void consumeSpace(QString&);
+    QString getDelimitedId(QString&, QSet<char>, char &delim);
+    QString getDelimitedId(QString&, QSet<char> = {' '});
+
+    static int nextNumber();
 
     int sceneX(double x);
     int sceneY(double y);
@@ -224,7 +266,6 @@ private:
     QVector<QSharedPointer<Sett>> m_setts;
 
     QVector<QSharedPointer<Statement>> statements;
-    QMap<QString, double> variables;
 
     // in case we resize/zoom/scroll the window, these objects will be used to redraw the scene
     QVector<DrawnLine> drawnLines;
@@ -232,7 +273,7 @@ private:
     friend class Sett;
     friend class Assignment;
     QPen drawingPen;
-
+    QString currentStatement;
     RuntimeProvider rp;
 
 };

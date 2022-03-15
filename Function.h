@@ -3,6 +3,7 @@
 
 #include "util.h"
 
+#include <QString>
 #include <map>
 
 class RuntimeProvider;
@@ -46,6 +47,8 @@ private:
     std::string m_name;
     //the variables of the function. Ex: "x" -> 12
     std::map<std::string, double> vars;
+
+    QString funBody;
 
 	//the tree of the function
 	tree* root;

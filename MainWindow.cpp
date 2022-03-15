@@ -10,33 +10,13 @@
 
 #include <functional>
 
-namespace detail
-{
-template <typename F>
-struct function_traits : public function_traits<decltype(&F::operator())> {};
-
-template <typename R, typename C, typename... Args>
-struct function_traits<R (C::*)(Args...) const>
-{
-    using function_type = std::function<R (Args...)>;
-};
-}
-
-template <typename F>
-using function_type_t = typename detail::function_traits<F>::function_type;
-
-template <typename F>
-function_type_t<F> to_function(F & lambda)
-{
-    return static_cast<function_type_t<F>>(lambda);
-}
-
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow),
-    rp(&variables)
+    ui(new Ui::MainWindow)
 {
+
+    rp.setWindow(this);
+
     ui->setupUi(this);
     sc = new QGraphicsScene(ui->graphicsView->rect());
     ui->graphicsView->setScene(sc);
@@ -52,7 +32,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::reportError(QString err)
 {
-    ui->errorText->setText(err);
+    ui->errorText->setText(err + " <b>[" + currentStatement + "]</b>");
 
     qWarning() << err;
 }
@@ -62,7 +42,7 @@ QSharedPointer<Statement> MainWindow::createFunction(const QString &codeline)
     QString f_body = codeline.mid(STR_FUNCTION.length());
     Function* f = new Function(f_body.toLocal8Bit().data());
     QSharedPointer<FunctionDefinition> fd;
-    fd.reset(new FunctionDefinition);
+    fd.reset(new FunctionDefinition(codeline) );
     fd->f = QSharedPointer<Function>(f);
     functions.push_back(fd);
 
@@ -91,7 +71,7 @@ QSharedPointer<Statement> MainWindow::createSett(const QString &codeline)
         to_what += s_body[0];
         s_body = s_body.mid(1);
     }
-    QSharedPointer<Sett> sett(new Sett);
+    QSharedPointer<Sett> sett(new Sett(codeline));
     sett->what = what;
     sett->value = to_what;
     return sett;
@@ -130,11 +110,12 @@ QSharedPointer<Statement> MainWindow::createLoop(const QString &codeline, QStrin
         consumeSpace(l_decl);
 
         // create the correct loop object
-        result.reset(new Loop);
+        result.reset(new Loop(codeline));
         result->loop_variable = loop_variable;
         if(loop_over == Keywords::KW_RANGE && (l_decl[0] == '(' || l_decl[0] == '['))
         {
-            result->loop_target.reset(new RangeIteratorLoopTarget());
+            auto ritl = new RangeIteratorLoopTarget(result);
+            result->loop_target.reset(ritl);
             l_decl = l_decl.mid(1);
             QString range_start = "";
             while(!l_decl.isEmpty() && !l_decl[0].isSpace() && !(l_decl[0] == ','))
@@ -148,17 +129,42 @@ QSharedPointer<Statement> MainWindow::createLoop(const QString &codeline, QStrin
                 l_decl = l_decl.mid(1);
                 consumeSpace(l_decl);
             }
+
+            ritl->startSt = "rsf_" +QString::number(nextNumber()) + "($) = " + range_start;
+            ritl->startFun = QSharedPointer<Function>(new Function(ritl->startSt.toLocal8Bit().data()));
+
             QString range_end = "";
             while(!l_decl.isEmpty() && !l_decl[0].isSpace() && !(l_decl[0] == ')' || l_decl[0] == ']'))
             {
                 range_end += l_decl[0];
                 l_decl = l_decl.mid(1);
             }
+
+            ritl->endSt = "ref_" +QString::number(nextNumber()) + "($) = " + range_end;
+            ritl->endFun = QSharedPointer<Function>(new Function(ritl->endSt.toLocal8Bit().data()));
+
             if(l_decl[0] == ')')
             {
                 l_decl = l_decl.mid(1);
             }
             consumeSpace(l_decl);
+            // do we have a step
+            if(l_decl.startsWith(Keywords::KW_STEP))
+            {
+                l_decl = l_decl.mid(STR_STEP.length());
+                consumeSpace(l_decl);
+                QString step;
+                while(!l_decl.isEmpty() && !l_decl[0].isSpace())
+                {
+                    step += l_decl[0];
+                    l_decl = l_decl.mid(1);
+                }
+
+                ritl->stepSt = "rpf_" +QString::number(nextNumber()) + "($) = " + step;
+                ritl->stepFun = QSharedPointer<Function>(new Function(ritl->stepSt.toLocal8Bit().data()));
+
+                consumeSpace(l_decl);
+            }
         }
         else
         {
@@ -171,8 +177,6 @@ QSharedPointer<Statement> MainWindow::createLoop(const QString &codeline, QStrin
             throw syntax_error_exception("foreach does not contain the do keyword");
         }
 
-
-
         bool done = false;
         while(!codelines.isEmpty() && !done)
         {
@@ -180,7 +184,7 @@ QSharedPointer<Statement> MainWindow::createLoop(const QString &codeline, QStrin
 
             try
             {
-                st = resolveCodeline(codelines, result->body);
+                st = resolveCodeline(codelines, result->body, result);
             }
             catch(...)
             {
@@ -227,7 +231,7 @@ QSharedPointer<Function> MainWindow::getFunction(const QString &name)
     return nullptr;
 }
 
-QSharedPointer<Statement> MainWindow::resolveCodeline(QStringList& codelines, QVector<QSharedPointer<Statement>>& statements)
+QSharedPointer<Statement> MainWindow::resolveCodeline(QStringList& codelines, QVector<QSharedPointer<Statement>>& statements, QSharedPointer<Statement> parentScope)
 {
     QString codeline = codelines[0];
     codelines.pop_front();
@@ -235,29 +239,38 @@ QSharedPointer<Statement> MainWindow::resolveCodeline(QStringList& codelines, QV
 
     try
     {
+
+        QSharedPointer<Statement> createdStatement;
+
         if(codeline.startsWith(STR_FUNCTION))
         {
-            statements.append(createFunction(codeline));
+            statements.append(createdStatement = createFunction(codeline));
         }
         if(codeline.startsWith(STR_PLOT))
         {
-            statements.append(createPlot(codeline));
+            statements.append(createdStatement = createPlot(codeline));
         }
         if(codeline.startsWith(STR_LET)) // variable assignment
         {
-            statements.append(resolveObjectAssignment(codeline));
+            statements.append(createdStatement = resolveObjectAssignment(codeline));
         }
         if(codeline.startsWith(STR_SET)) // setting the color, line width, rotation, etc ...
         {
-            statements.append(createSett(codeline));
+            statements.append(createdStatement = createSett(codeline));
         }
         if(codeline.startsWith(STR_FOREACH)) // looping over a set of points or something else
         {
-            statements.append(createLoop(codeline, codelines));
+            statements.append(createdStatement = createLoop(codeline, codelines));
         }
         if(codeline.startsWith(Keywords::KW_DONE)) // looping over a set of points or something else
         {
-            statements.append(QSharedPointer<Done>(new Done));
+            statements.append(createdStatement = QSharedPointer<Done>(new Done(codeline)));
+        }
+
+        if(createdStatement)
+        {
+            createdStatement->parent = parentScope;
+            createdStatement->runtimeProvider = &rp;
         }
 
     }
@@ -282,12 +295,12 @@ void MainWindow::on_toolButton_clicked()
     assignments.clear();
     m_setts.clear();
     statements.clear();
-    variables.clear();
+    rp.variables().clear();
 
     QStringList codelines = ui->textEdit->toPlainText().split("\n");
     while(!codelines.empty())
     {
-        resolveCodeline(codelines, statements);
+        resolveCodeline(codelines, statements, nullptr);
     }
 
     drawnLines.clear();
@@ -298,7 +311,8 @@ void MainWindow::on_toolButton_clicked()
     {
         for(const auto& stmt : qAsConst(statements))
         {
-            stmt->execute(this);
+            currentStatement = stmt->statement;
+            stmt->execute(&this->rp);
         }
     }
     catch(std::exception& ex)
@@ -366,6 +380,37 @@ void MainWindow::consumeSpace(QString &s)
     }
 }
 
+QString MainWindow::getDelimitedId(QString &s, QSet<char> delims, char& delim)
+{
+    QString result;
+    consumeSpace(s);
+    // name of the assigned variable
+    while(!s.isEmpty() && !delims.contains(s[0].toLatin1()))
+    {
+        result += s[0];
+        s = s.mid(1);
+    }
+    delim = s[0].toLatin1();
+    // skip the delimiter
+    s = s.mid(1);
+    // and the space folowing that
+    consumeSpace(s);
+
+    return result;
+}
+
+QString MainWindow::getDelimitedId(QString& s, QSet<char> delim)
+{
+    char d;
+    return getDelimitedId(s, delim, d);
+}
+
+int MainWindow::nextNumber()
+{
+    static int nr = 0;
+    return nr++;
+}
+
 int MainWindow::sceneX(double x)
 {
     int zeroX = sc->sceneRect().width() / 2;
@@ -408,7 +453,7 @@ double MainWindow::zoomFactor()
 QSharedPointer<Statement> MainWindow::createPlot(const QString& codeline)
 {
     QSharedPointer<Plot> plotData;
-    plotData.reset(new Plot);
+    plotData.reset(new Plot(codeline));
 
     QString plot_body = codeline.mid(STR_PLOT.length());
     // function name
@@ -459,8 +504,8 @@ QSharedPointer<Statement> MainWindow::createPlot(const QString& codeline)
                 plotData->step = stp;
             }
 
-            QString fakeFunSt = "fpds" + QString::number(plots.size()) + "(t) = " + first_par;
-            QString fakeFunEn = "fpde" + QString::number(plots.size()) + "(t) = " + second_par;
+            QString fakeFunSt = "fpds" + QString::number(plots.size()) + "($) = " + first_par;
+            QString fakeFunEn = "fpde" + QString::number(plots.size()) + "($) = " + second_par;
 
             plotData->start = QSharedPointer<Function>(new Function(fakeFunSt.toLocal8Bit().data()));
             plotData->end = QSharedPointer<Function>(new Function(fakeFunEn.toLocal8Bit().data()));
@@ -478,62 +523,54 @@ QSharedPointer<Statement> MainWindow::createPlot(const QString& codeline)
 QSharedPointer<Statement> MainWindow::resolveObjectAssignment(const QString &codeline)
 {
     QSharedPointer<Assignment> assignmentData;
-    assignmentData.reset(new Assignment);
+    assignmentData.reset(new Assignment(codeline));
 
+    // let keyword
     QString assignment_body = codeline.mid(STR_LET.length());
+    consumeSpace(assignment_body);
 
-    // name of the assigned variable
-    while(!assignment_body[0].isSpace())
-    {
-        assignmentData->varName += assignment_body[0];
-        assignment_body = assignment_body.mid(1);
-    }
+    // variable
+    assignmentData->varName = getDelimitedId(assignment_body);
 
     // assignment operator
-    assignment_body = assignment_body.mid(1);
     if(assignment_body[0] != '=')
     {
         throw syntax_error_exception("Invalid assignment: %s (missing assignment operator)", codeline.toStdString().c_str());
     }
-    // skip "= "
-    assignment_body = assignment_body.mid(2);
 
-    // what feature do we want to fetch
-    while(!assignment_body.isEmpty() && !assignment_body[0].isSpace())
-    {
-        assignmentData->targetProperties += assignment_body[0];
-        assignment_body = assignment_body.mid(1);
-    }
+    // skip "= "
+    assignment_body = assignment_body.mid(1);
+    consumeSpace(assignment_body);
+
+    // what feature do we want to assign to
+    assignmentData->targetProperties = getDelimitedId(assignment_body);
 
     // if it's not points, for the moment it is an arythmetic calculation
     if(assignmentData->targetProperties != "points")
     {
-//        throw syntax_error_exception("Unsupported assignment object: %s", assignmentData->targetProperties.toStdString().c_str());
         QString expression = assignmentData->targetProperties;
         assignmentData->targetProperties = "arythmetic";
         expression += assignment_body;
-        QString fakeFunSt = "xafpds" + QString::number(assignments.size()) + "(t) = " + expression;
+        QString fakeFunSt = "xafpds" + QString::number(assignments.size()) + "($) = " + expression;
         assignmentData->arythmetic = QSharedPointer<Function>(new Function(fakeFunSt.toLocal8Bit().data()));
         assignments.append(assignmentData);
         return assignmentData;
     }
 
+    // here we are sure we want the points of s plot
 
     // of keyword
-    assignment_body = assignment_body.mid(1);
     if(!assignment_body.startsWith(STR_OF))
     {
         throw syntax_error_exception("Invalid assignment: %s (missing of keyword)", codeline.toStdString().c_str());
     }
 
+    // skipping the of keyword
     assignment_body = assignment_body.mid(STR_OF.length());
+    consumeSpace(assignment_body);
 
-    // what object
-    while(!assignment_body.isEmpty() && !assignment_body[0].isSpace())
-    {
-        assignmentData->ofWhat += assignment_body[0];
-        assignment_body = assignment_body.mid(1);
-    }
+    // what object do we want the points of
+    assignmentData->ofWhat = getDelimitedId(assignment_body);
 
     if(!getFunction(assignmentData->ofWhat))
     {
@@ -581,8 +618,8 @@ QSharedPointer<Statement> MainWindow::resolveObjectAssignment(const QString &cod
                 assignmentData->step = stp;
             }
 
-            QString fakeFunSt = "afpds" + QString::number(assignments.size()) + "(t) = " + first_par;
-            QString fakeFunEn = "afpde" + QString::number(assignments.size()) + "(t) = " + second_par;
+            QString fakeFunSt = "afpds" + QString::number(assignments.size()) + "($) = " + first_par;
+            QString fakeFunEn = "afpde" + QString::number(assignments.size()) + "($) = " + second_par;
 
             assignmentData->start = QSharedPointer<Function>(new Function(fakeFunSt.toLocal8Bit().data()));
             assignmentData->end = QSharedPointer<Function>(new Function(fakeFunEn.toLocal8Bit().data()));
@@ -685,11 +722,16 @@ void MainWindow::drawPlot(QSharedPointer<Plot> plot)
         double cx, cy;
         bool first = true;
 
+        qDebug() << "aa start:" << plotStart << "end:" << plotEnd;
+
+
         for(double x=plotStart; x<plotEnd; x+= plot->step)
         {
 
             funToUse->SetVariable(pars[0].c_str(), x);
             double y = funToUse->Calculate(&rp);
+
+            //qDebug() << "x=" << x << "y=" << y;
 
             if(continuous)
             {
@@ -719,7 +761,7 @@ void MainWindow::drawPlot(QSharedPointer<Plot> plot)
         reportError("Invalid function to plot: " + plot->theFunction + ". Multidomain functions are not supported yet");
         return;
     }
-
+    qDebug() << sc->items().count() << "lines";
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event)
@@ -747,6 +789,11 @@ void MainWindow::redrawEverything()
 
 }
 
+void MainWindow::setCurrentStatement(const QString &newCurrentStatement)
+{
+    currentStatement = newCurrentStatement;
+}
+
 
 void MainWindow::on_splitter_splitterMoved(int pos, int index)
 {
@@ -755,24 +802,24 @@ void MainWindow::on_splitter_splitterMoved(int pos, int index)
     redrawEverything();
 }
 
-bool Plot::execute(MainWindow *mw)
+bool Plot::execute(RuntimeProvider *rp)
 {
-    mw->drawPlot(this->sharedFromThis());
+    rp->window()->drawPlot(this->sharedFromThis());
     return true;
 }
 
-bool Assignment::execute(MainWindow *mw)
+bool Assignment::execute(RuntimeProvider *rp)
 {
     if(arythmetic)
     {
-        double v = arythmetic->Calculate(&mw->rp);
-        mw->variables[varName] = v;
+        double v = arythmetic->Calculate(rp);
+        rp->variables()[varName] = v;
     }
 
     return true;
 }
 
-bool FunctionDefinition::execute(MainWindow *mw)
+bool FunctionDefinition::execute(RuntimeProvider *mw)
 {
     return true;
 }
@@ -802,7 +849,7 @@ static int hex2int( QChar hexchar )
     return v;
 }
 
-bool Sett::execute(MainWindow *mw)
+bool Sett::execute(RuntimeProvider *rp)
 {
     if(what == "color")
     {
@@ -812,14 +859,14 @@ bool Sett::execute(MainWindow *mw)
         {
             uint32_t cui = Colors::colormap.at(s);
             QColor c = Colors::QColorFromUint32(cui);
-            mw->drawingPen = QPen(c);
+            rp->window()->drawingPen = QPen(c);
         }
         else // is this an RGB color?
         if(value.startsWith("#"))
         {
             QColor c;
             c.setNamedColor(value);
-            mw->drawingPen = QPen(c);
+            rp->window()->drawingPen = QPen(c);
         }
         else // what remains is a list of RGB values
         {
@@ -829,25 +876,25 @@ bool Sett::execute(MainWindow *mw)
             {
                 case 4: // R,G,B,A
                 {
-                    QString fakeFunA = "clr_red_f(t) = " + values[3].simplified();
+                    QString fakeFunA = "clr_red_f($) = " + values[3].simplified();
                     QSharedPointer<Function> fa(new Function(fakeFunA.toLocal8Bit().data()));
-                    a = fa->Calculate(&mw->rp);
+                    a = fa->Calculate(rp);
                 }
                 [[fallthrough]];
 
                 case 3: // R,G,B
                 {
-                    QString fakeFunR = "clr_red_f(t) = " + values[0].simplified();
-                    QString fakeFunG = "clr_red_f(t) = " + values[1].simplified();
-                    QString fakeFunB = "clr_red_f(t) = " + values[2].simplified();
+                    QString fakeFunR = "clr_red_f($) = " + values[0].simplified();
+                    QString fakeFunG = "clr_red_f($) = " + values[1].simplified();
+                    QString fakeFunB = "clr_red_f($) = " + values[2].simplified();
 
                     QSharedPointer<Function> fr(new Function(fakeFunR.toLocal8Bit().data()));
                     QSharedPointer<Function> fg(new Function(fakeFunG.toLocal8Bit().data()));
                     QSharedPointer<Function> fb(new Function(fakeFunB.toLocal8Bit().data()));
 
-                    qreal r = fr->Calculate(&mw->rp);
-                    qreal g = fg->Calculate(&mw->rp);
-                    qreal b = fb->Calculate(&mw->rp);
+                    qreal r = fr->Calculate(rp);
+                    qreal g = fg->Calculate(rp);
+                    qreal b = fb->Calculate(rp);
 
                     QColor c;
 
@@ -875,7 +922,7 @@ bool Sett::execute(MainWindow *mw)
 
                     c.setRgb(static_cast<int>(finalR), static_cast<int>(finalG),
                              static_cast<int>(finalB), static_cast<int>(finalA));
-                    mw->drawingPen = QPen(c);
+                    rp->window()->drawingPen = QPen(c);
                     break;
                 }
                 case 2: // colorname,A
@@ -893,38 +940,55 @@ bool Sett::execute(MainWindow *mw)
     return true;
 }
 
-bool Loop::execute(MainWindow *mw)
+bool Loop::execute(RuntimeProvider *rp)
 {
 
-    auto looper = [&mw, this]()
+    auto looper = [&rp, this]()
     {
         try
         {
             for(const auto& stmt : qAsConst(body))
             {
-                stmt->execute(mw);
+                rp->window()->setCurrentStatement(stmt->statement);
+                stmt->execute(rp);
             }
         }
         catch(std::exception& ex)
         {
-            mw->reportError(ex.what());
+            rp->window()->reportError(ex.what());
 
         }
     };
 
-    loop_target->loop(looper);
+    loop_target->loop(looper, rp);
 
     return true;
 }
 
-
-bool RangeIteratorLoopTarget::loop(LooperCallback lp)
+void Loop::updateLoopVariable(double v)
 {
-    double v = start;
-    while(v < end)
+    runtimeProvider->setValue(loop_variable, v);
+}
+
+
+RangeIteratorLoopTarget::RangeIteratorLoopTarget(QSharedPointer<Loop> l)
+{
+    theLoop = l;
+}
+
+bool RangeIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider* rp)
+{
+    double v = startFun->Calculate(rp);
+    double e = endFun->Calculate(rp);
+    qDebug() << "v=" << v << "e=" << e;
+    while(v < e)
     {
+        theLoop->updateLoopVariable(v);
         lp();
-        v += 0.1;
+        double stepv = stepFun->Calculate(rp);
+        v += stepv;
+        qDebug() << "v=" << v << "e=" << e;
+
     }
     return true;
 }

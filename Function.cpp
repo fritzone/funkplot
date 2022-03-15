@@ -6,7 +6,7 @@
 #include <string.h>
 #include <memory>
 
-Function::Function(const char *expr)
+Function::Function(const char *expr) : funBody(expr)
 {
     const char* eqp_chr = strchr(expr, '=');
     if(!eqp_chr)
@@ -246,7 +246,7 @@ double Function::calc(tree* node, RuntimeProvider* rp)
         }
         else
         {
-            throw syntax_error_exception("Posible error in formula statement: %s is not understood.", node->info);
+            throw syntax_error_exception("Possible error in formula statement: %s is not understood.", node->info);
         }
     }
 }
