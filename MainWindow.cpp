@@ -463,7 +463,7 @@ QSharedPointer<Statement> MainWindow::createPlot(const QString& codeline)
         funToPlot += plot_body[0];
         plot_body = plot_body.mid(1);
     }
-    plotData->theFunction = funToPlot;
+    plotData->plotTarget = funToPlot;
 
     plot_body = plot_body.mid(1);
     // over keyword
@@ -522,15 +522,14 @@ QSharedPointer<Statement> MainWindow::createPlot(const QString& codeline)
 
 QSharedPointer<Statement> MainWindow::resolveObjectAssignment(const QString &codeline)
 {
-    QSharedPointer<Assignment> assignmentData;
-    assignmentData.reset(new Assignment(codeline));
+
 
     // let keyword
     QString assignment_body = codeline.mid(STR_LET.length());
     consumeSpace(assignment_body);
 
     // variable
-    assignmentData->varName = getDelimitedId(assignment_body);
+    QString varName = getDelimitedId(assignment_body);
 
     // assignment operator
     if(assignment_body[0] != '=')
@@ -543,21 +542,54 @@ QSharedPointer<Statement> MainWindow::resolveObjectAssignment(const QString &cod
     consumeSpace(assignment_body);
 
     // what feature do we want to assign to
-    assignmentData->targetProperties = getDelimitedId(assignment_body);
+    QString targetProperties = getDelimitedId(assignment_body);
 
     // if it's not points, for the moment it is an arythmetic calculation
-    if(assignmentData->targetProperties != "points")
+    if(targetProperties != "points")
     {
-        QString expression = assignmentData->targetProperties;
-        assignmentData->targetProperties = "arythmetic";
-        expression += assignment_body;
-        QString fakeFunSt = "xafpds" + QString::number(assignments.size()) + "($) = " + expression;
-        assignmentData->arythmetic = QSharedPointer<Function>(new Function(fakeFunSt.toLocal8Bit().data()));
-        assignments.append(assignmentData);
-        return assignmentData;
+        if(targetProperties == "point") // or just a simple point
+        {
+            QString nextWord = getDelimitedId(assignment_body);
+            if(nextWord != "at")
+            {
+                throw syntax_error_exception("Invalid point assignment: %s (missing at keyword)", codeline.toStdString().c_str());
+            }
+            QString px = getDelimitedId(assignment_body, {','});
+            QString py = getDelimitedId(assignment_body);
+
+            QString fakeFunStx = "xafpds" + QString::number(assignments.size()) + "($) = " + px;
+            QString fakeFunSty = "yafpds" + QString::number(assignments.size()) + "($) = " + py;
+
+            QSharedPointer<PointDefinitionAssignment> assignmentData;
+            assignmentData.reset(new PointDefinitionAssignment(codeline));
+
+            assignmentData->x = QSharedPointer<Function>(new Function(fakeFunStx.toLocal8Bit().data()));
+            assignmentData->y = QSharedPointer<Function>(new Function(fakeFunSty.toLocal8Bit().data()));
+            assignmentData->varName = varName;
+            assignments.append(assignmentData);
+
+            return assignmentData;
+        }
+        else
+        {
+            QSharedPointer<ArythmeticAssignment> assignmentData;
+            assignmentData.reset(new ArythmeticAssignment(codeline));
+
+            QString expression = targetProperties;
+            expression += assignment_body;
+            QString fakeFunSt = "xafpds" + QString::number(assignments.size()) + "($) = " + expression;
+            assignmentData->arythmetic = QSharedPointer<Function>(new Function(fakeFunSt.toLocal8Bit().data()));
+            assignments.append(assignmentData);
+
+            assignmentData->varName = varName;
+            assignments.append(assignmentData);
+
+            return assignmentData;
+
+        }
     }
 
-    // here we are sure we want the points of s plot
+    // here we are sure we want the points of a plot
 
     // of keyword
     if(!assignment_body.startsWith(STR_OF))
@@ -565,9 +597,17 @@ QSharedPointer<Statement> MainWindow::resolveObjectAssignment(const QString &cod
         throw syntax_error_exception("Invalid assignment: %s (missing of keyword)", codeline.toStdString().c_str());
     }
 
+
+
     // skipping the of keyword
     assignment_body = assignment_body.mid(STR_OF.length());
     consumeSpace(assignment_body);
+
+    QSharedPointer<PointsOfObjectAssignment> assignmentData;
+    assignmentData.reset(new PointsOfObjectAssignment(codeline));
+
+    assignmentData->varName = varName;
+    assignmentData->targetProperties = targetProperties;
 
     // what object do we want the points of
     assignmentData->ofWhat = getDelimitedId(assignment_body);
@@ -577,8 +617,6 @@ QSharedPointer<Statement> MainWindow::resolveObjectAssignment(const QString &cod
         throw syntax_error_exception("Invalid assignment: %s. No such function: %s", codeline.toStdString().c_str(), assignmentData->ofWhat.toStdString().c_str());
     }
 
-    // TODO: This is identical to plot, refactor it
-    assignment_body = assignment_body.mid(1);
     // over keyword
     if(assignment_body.startsWith(Keywords::KW_OVER))
     {
@@ -632,15 +670,17 @@ QSharedPointer<Statement> MainWindow::resolveObjectAssignment(const QString &cod
 
 void MainWindow::drawPlot(QSharedPointer<Plot> plot)
 {
+
     bool drawingAnAssignment = false;
     QSharedPointer<Assignment> assignment;
     bool continuous = true;
 
+    // first test: see if this is a function we need to plot
     Function* funToUse = nullptr;
     bool funFound = false;
     for(const auto& fdef : qAsConst(functions))
     {
-        if(fdef->f->get_name() == plot->theFunction.toStdString())
+        if(fdef->f->get_name() == plot->plotTarget.toStdString())
         {
             funToUse = fdef->f.get();
             funFound = true;
@@ -650,22 +690,46 @@ void MainWindow::drawPlot(QSharedPointer<Plot> plot)
 
     if(!funFound)
     {
+        // second: or an assignment bound to a function
         for(const auto& adef : qAsConst(assignments))
         {
-            auto f = getFunction(adef->ofWhat);
-            if(f)
+            if(!adef->providedFunction().isEmpty())
             {
-                funToUse = f.get();
-                funFound = true;
-                drawingAnAssignment = true;
-                assignment = adef;
+                auto f = getFunction(adef->providedFunction());
+                if(f)
+                {
+                    funToUse = f.get();
+                    funFound = true;
+                    drawingAnAssignment = true;
+                    assignment = adef;
+                }
             }
         }
     }
 
     if(!funFound)
     {
-        reportError("Invalid function to plot: " + plot->theFunction);
+        // third: or maybe a point, we'll handle that here
+        for(const auto& adef : qAsConst(assignments))
+        {
+            if(plot->plotTarget == adef->varName)
+            {
+                auto fcp = adef->fullCoordProvider();
+                if( std::get<0>(fcp) && std::get<1>(fcp) )
+                {
+                    double x = std::get<0>(fcp)->Calculate(&rp);
+                    double y = std::get<0>(fcp)->Calculate(&rp);
+                    sc->addEllipse(sceneX(x), sceneY(y), 1.0, 1.0, drawingPen);
+                    drawnPoints.append({x, y});
+                    return;
+                }
+            }
+        }
+    }
+
+    if(!funFound)
+    {
+        reportError("Invalid data to plot: " + plot->plotTarget);
         return;
     }
 
@@ -676,14 +740,14 @@ void MainWindow::drawPlot(QSharedPointer<Plot> plot)
     {
         if(!plot->start)
         {
-            if(! assignment->start)
+            if(! assignment->startValueProvider())
             {
                 reportError("Invalid plotting interval for " + assignment->varName + ". There is no clear start value defined for it.");
                 return;
             }
             else
             {
-                plotStart = assignment->start->Calculate(&rp);
+                plotStart = assignment->startValueProvider()->Calculate(&rp);
             }
         }
         else
@@ -693,14 +757,14 @@ void MainWindow::drawPlot(QSharedPointer<Plot> plot)
 
         if(!plot->end)
         {
-            if(! assignment->end)
+            if(! assignment->endValueProvider())
             {
                 reportError("Invalid plotting interval. There is no clear end value defined for it.");
                 return;
             }
             else
             {
-                plotEnd = assignment->end->Calculate(&rp);
+                plotEnd = assignment->endValueProvider()->Calculate(&rp);
             }
         }
         else
@@ -758,7 +822,7 @@ void MainWindow::drawPlot(QSharedPointer<Plot> plot)
     }
     else
     {
-        reportError("Invalid function to plot: " + plot->theFunction + ". Multidomain functions are not supported yet");
+        reportError("Invalid function to plot: " + plot->plotTarget + ". Multidomain functions are not supported yet");
         return;
     }
     qDebug() << sc->items().count() << "lines";
@@ -808,7 +872,7 @@ bool Plot::execute(RuntimeProvider *rp)
     return true;
 }
 
-bool Assignment::execute(RuntimeProvider *rp)
+bool ArythmeticAssignment::execute(RuntimeProvider *rp)
 {
     if(arythmetic)
     {
@@ -927,7 +991,44 @@ bool Sett::execute(RuntimeProvider *rp)
                 }
                 case 2: // colorname,A
                 {
+                    if(Colors::colormap.count( values[0].simplified().toStdString() ))
+                    {
+                        uint32_t cui = Colors::colormap.at(s);
+                        QColor c = Colors::QColorFromUint32(cui);
 
+                        QString fakeFunA = "clr_f($) = " + values[1].simplified();
+                        QSharedPointer<Function> fa(new Function(fakeFunA.toLocal8Bit().data()));
+                        a = fa->Calculate(rp);
+                        qreal finalA = a;
+
+                        if(a <= 1.0)
+                        {
+                            finalA = 255.0 * a;
+                        }
+
+                        c.setAlpha(static_cast<int>(finalA));
+                        rp->window()->drawingPen = QPen(c);
+                    }
+                    else // is this an RGB color?
+                        if(value.startsWith("#"))
+                        {
+                            QColor c;
+                            c.setNamedColor(value);
+                            QString fakeFunA = "clr_f($) = " + values[1].simplified();
+                            QSharedPointer<Function> fa(new Function(fakeFunA.toLocal8Bit().data()));
+                            a = fa->Calculate(rp);
+                            qreal finalA = a;
+
+                            if(a <= 1.0)
+                            {
+                                finalA = 255.0 * a;
+                            }
+
+                            c.setAlpha(static_cast<int>(finalA));
+
+
+                            rp->window()->drawingPen = QPen(c);
+                        }
                 }
                 default:
                 {
@@ -960,7 +1061,15 @@ bool Loop::execute(RuntimeProvider *rp)
         }
     };
 
-    loop_target->loop(looper, rp);
+    try
+    {
+        rp->window()->setCurrentStatement(this->statement);
+        loop_target->loop(looper, rp);
+    }
+    catch(std::exception& ex)
+    {
+        rp->window()->reportError(ex.what());
+    }
 
     return true;
 }
@@ -981,14 +1090,44 @@ bool RangeIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider* rp)
     double v = startFun->Calculate(rp);
     double e = endFun->Calculate(rp);
     qDebug() << "v=" << v << "e=" << e;
-    while(v < e)
+
+    double stepv = stepFun->Calculate(rp);
+
+    if(v < e && stepv < 0.0 || v > e && stepv > 0.0)
+    {
+        throw syntax_error_exception("Infinite loop detected, check your range");
+    }
+
+    do
     {
         theLoop->updateLoopVariable(v);
         lp();
-        double stepv = stepFun->Calculate(rp);
+        stepv = stepFun->Calculate(rp);
         v += stepv;
         qDebug() << "v=" << v << "e=" << e;
 
+        if(stepv < 0.0 && v < e)
+        {
+            break;
+        }
+
+        if(stepv > 0.0 && v > e)
+        {
+            break;
+        }
+
+
     }
+    while(true);
+    return true;
+}
+
+bool PointsOfObjectAssignment::execute(RuntimeProvider *rp)
+{
+    return true;
+}
+
+bool PointDefinitionAssignment::execute(RuntimeProvider *rp)
+{
     return true;
 }

@@ -22,7 +22,7 @@ namespace Keywords
     const QString KW_PLOT = "plot";            // plot f over (-2, 2) [continuous]
     const QString KW_OVER = "over";            // plot f over (-2, 2) [continuous]
     const QString KW_CONTINUOUS = "continuous";// plot f over (-2, 2) [continuous|step<cnt=0.01>]
-    const QString KW_LET = "let";              // let something = points of f over (-2, 2) [continuous|step<cnt|0.01>]
+    const QString KW_LET = "let";              // let something = points of f over (-2, 2) [continuous|step<cnt|0.01>] or let something = point at x, y or let something = a + b + c
     const QString KW_OF  = "of";               // let something = points of f over (-2, 2) [continuous|step<cnt|0.01>]
     const QString KW_STEP = "step";            // plot f over (-2, 2) [continuous|step<cnt|0.01>]
     const QString KW_FOREACH = "foreach";      // foreach p in something do ... done
@@ -147,7 +147,7 @@ struct Plot : public Stepped, public Statement, public QEnableSharedFromThis<Plo
 
     QSharedPointer<Function> start;
     QSharedPointer<Function> end;
-    QString theFunction;
+    QString plotTarget;
 
     QString keyword() const override
     {
@@ -168,18 +168,84 @@ struct Assignment : public Stepped, public Statement
 
     QString varName;                    // the name of the object we will refer to in later code (such as: plot assignedStuff)
     QString targetProperties;           // the name of the properties of the assigned objects, such as: points. If targetProperties is "arythmetic" then a new function is created and evaluated at run time
-    QString ofWhat;                     // can be a function for now (or a circle, etc... later)
-    QSharedPointer<Function> start;     // the start of the observation interval. if not found, the plot will fill in
-    QSharedPointer<Function> end;       // the end of the same
 
-    QSharedPointer<Function> arythmetic;       // if this is an arythmetic assignment this is the function
+    virtual QString providedFunction()
+    {
+        return "";
+    }
 
-    bool execute(RuntimeProvider* rp) override;
+    virtual QSharedPointer<Function> startValueProvider()
+    {
+        return nullptr;
+    }
+
+    virtual QSharedPointer<Function> endValueProvider()
+    {
+        return nullptr;
+    }
 
     QString keyword() const override
     {
         return Keywords::KW_LET;
     }
+
+
+    virtual std::tuple<QSharedPointer<Function>, QSharedPointer<Function>> fullCoordProvider()
+    {
+        return {nullptr, nullptr};
+    }
+};
+
+struct PointsOfObjectAssignment : public Assignment
+{
+    explicit PointsOfObjectAssignment(const QString& s) : Assignment(s) {}
+    QString ofWhat;                     // can be a function for now (or a circle, etc... later)
+
+    QSharedPointer<Function> start;     // the start of the observation interval. if not found, the plot will fill in
+    QSharedPointer<Function> end;       // the end of the same
+    bool execute(RuntimeProvider* rp) override;
+    QString providedFunction() override
+    {
+        return ofWhat;
+    }
+
+    QSharedPointer<Function> startValueProvider() override
+    {
+        return start;
+    }
+
+    QSharedPointer<Function> endValueProvider() override
+    {
+        return end;
+    }
+
+
+};
+
+struct ArythmeticAssignment : public Assignment
+{
+    explicit ArythmeticAssignment(const QString& s) : Assignment(s) {}
+
+    QSharedPointer<Function> arythmetic;       // if this is an arythmetic assignment this is the function
+
+    bool execute(RuntimeProvider* rp) override;
+
+
+};
+
+struct PointDefinitionAssignment : public Assignment
+{
+    explicit PointDefinitionAssignment(const QString& s) : Assignment(s) {}
+
+    QSharedPointer<Function> x;       // x position
+    QSharedPointer<Function> y;       // y position
+
+    bool execute(RuntimeProvider* rp) override;
+    std::tuple<QSharedPointer<Function>, QSharedPointer<Function>> fullCoordProvider() override
+    {
+        return {x, y};
+    }
+
 };
 
 struct FunctionDefinition : public Statement
