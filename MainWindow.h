@@ -6,6 +6,7 @@
 #include <QMap>
 #include <QSet>
 
+#include "Function.h"
 #include "RuntimeProvider.h"
 
 #include <functional>
@@ -18,19 +19,19 @@ class MainWindow;
 
 namespace Keywords
 {
-    const QString KW_FUNCTION = "function";    // function f(x) = x * 2 + 5
-    const QString KW_PLOT = "plot";            // plot f over (-2, 2) [continuous]
-    const QString KW_OVER = "over";            // plot f over (-2, 2) [continuous]
-    const QString KW_CONTINUOUS = "continuous";// plot f over (-2, 2) [continuous|step<cnt=0.01>]
-    const QString KW_LET = "let";              // let something = points of f over (-2, 2) [continuous|step<cnt|0.01>] or let something = point at x, y or let something = a + b + c
-    const QString KW_OF  = "of";               // let something = points of f over (-2, 2) [continuous|step<cnt|0.01>]
-    const QString KW_STEP = "step";            // plot f over (-2, 2) [continuous|step<cnt|0.01>]
-    const QString KW_FOREACH = "foreach";      // foreach p in something do ... done
-    const QString KW_SET = "set";              // set color name, set color #RGB, set color #RRGGBB, set color #RRGGBBAA, set color R,G,B[,A], set color name,alpha
-    const QString KW_IN = "in";                // foreach p in something do ... done
-    const QString KW_DO = "do";                // foreach p in something do ... done
-    const QString KW_DONE = "done";              // foreach p in something do ... done
-    const QString KW_RANGE = "range";              // foreach p in something do ... done
+const QString KW_FUNCTION = "function";    // function f(x) = x * 2 + 5
+const QString KW_PLOT = "plot";            // plot f over (-2, 2) [continuous]
+const QString KW_OVER = "over";            // plot f over (-2, 2) [continuous]
+const QString KW_CONTINUOUS = "continuous";// plot f over (-2, 2) [continuous|step<cnt=0.01>]
+const QString KW_LET = "let";              // let something = points of f over (-2, 2) [continuous|step<cnt|0.01>] or let something = point at x, y or let something = a + b + c
+const QString KW_OF  = "of";               // let something = points of f over (-2, 2) [continuous|step<cnt|0.01>]
+const QString KW_STEP = "step";            // plot f over (-2, 2) [continuous|step<cnt|0.01>]
+const QString KW_FOREACH = "foreach";      // foreach p in something do ... done
+const QString KW_SET = "set";              // set color name, set color #RGB, set color #RRGGBB, set color #RRGGBBAA, set color R,G,B[,A], set color name,alpha
+const QString KW_IN = "in";                // foreach p in something do ... done
+const QString KW_DO = "do";                // foreach p in something do ... done
+const QString KW_DONE = "done";              // foreach p in something do ... done
+const QString KW_RANGE = "range";              // foreach p in something do ... done
 };
 
 class Function;
@@ -43,7 +44,7 @@ struct Statement
 
     QString statement;
     QSharedPointer<Statement> parent = nullptr;
-    RuntimeProvider* runtimeProvider; // this is the "scope" of the running piece of code
+    RuntimeProvider* runtimeProvider = nullptr; // this is the "scope" of the running piece of code
 
     // executes this statement
     virtual bool execute(RuntimeProvider* mw) = 0;
@@ -115,10 +116,10 @@ struct RangeIteratorLoopTarget : public LoopTarget
 
 struct FunctionIteratorLoopTarget : public LoopTarget
 {
-    bool loop(LooperCallback, RuntimeProvider*) override
-    {
-        return true;
-    }
+    explicit FunctionIteratorLoopTarget(QSharedPointer<Loop>);
+    FunctionIteratorLoopTarget() = delete;
+
+    bool loop(LooperCallback, RuntimeProvider*) override;
 
 };
 
@@ -134,6 +135,7 @@ struct Loop : public Statement
     }
 
     void updateLoopVariable(double);
+    void updateLoopVariable(QPointF v);
 
     QString loop_variable;
     QSharedPointer<LoopTarget> loop_target;
@@ -200,7 +202,7 @@ struct PointsOfObjectAssignment : public Assignment
 {
     explicit PointsOfObjectAssignment(const QString& s) : Assignment(s) {}
     QString ofWhat;                     // can be a function for now (or a circle, etc... later)
-
+    QSharedPointer<Function> ofWhatFun;
     QSharedPointer<Function> start;     // the start of the observation interval. if not found, the plot will fill in
     QSharedPointer<Function> end;       // the end of the same
     bool execute(RuntimeProvider* rp) override;
@@ -293,6 +295,11 @@ public:
 
     void setCurrentStatement(const QString &newCurrentStatement);
 
+    QSharedPointer<Function> getFunction(const QString& name, QSharedPointer<Assignment> &assignment);
+    QSharedPointer<Assignment> providePointsOfDefinition(const QString &codeline, QString assignment_body, const QString &varName, const QString &targetProperties);
+
+    QVector<QSharedPointer<Assignment> > &get_assignments();
+
 private slots:
     void on_splitter_splitterMoved(int pos, int index);
     void on_toolButton_clicked();
@@ -318,10 +325,129 @@ private:
     QSharedPointer<Statement> createFunction(const QString& codeline);
     QSharedPointer<Statement> createSett(const QString &codeline);
     QSharedPointer<Statement> createLoop(const QString &codeline, QStringList& codelines);
-    QSharedPointer<Function> getFunction(const QString& name);
+
+    template<class E>
+    void genericFunctionIterator(QSharedPointer<Function> plot, QSharedPointer<Assignment> assignment, E executor)
+    {
+
+    }
+
+    template<class E>
+    void genericPlotIterator(QSharedPointer<Plot> plot, E executor)
+    {
+        QSharedPointer<Assignment> assignment(nullptr);
+        bool continuous = true;
+
+        // first test: see if this is a function we need to plot
+        QSharedPointer<Function> funToUse = getFunction(plot->plotTarget, assignment);
+
+        if(!funToUse)
+        {
+            // third: or maybe a point, we'll handle that here
+            for(const auto& adef : qAsConst(assignments))
+            {
+                if(plot->plotTarget == adef->varName)
+                {
+                    auto fcp = adef->fullCoordProvider();
+                    if( std::get<0>(fcp) && std::get<1>(fcp) )
+                    {
+                        drawPoint(fcp);
+                        return;
+                    }
+                }
+            }
+
+            // here the situation is hopeless, no function, no assignment, no point, giving up
+            reportError("Invalid data to plot: " + plot->plotTarget);
+            return;
+        }
+
+        double plotStart = std::numeric_limits<double>::quiet_NaN();
+        double plotEnd = std::numeric_limits<double>::quiet_NaN();
+
+        if(assignment)
+        {
+            if(!plot->start)
+            {
+                if(! assignment->startValueProvider())
+                {
+                    reportError("Invalid plotting interval for " + assignment->varName + ". There is no clear start value defined for it.");
+                    return;
+                }
+                else
+                {
+                    plotStart = assignment->startValueProvider()->Calculate(&rp);
+                }
+            }
+            else
+            {
+                plotStart = plot->start->Calculate(&rp);
+            }
+
+            if(!plot->end)
+            {
+                if(! assignment->endValueProvider())
+                {
+                    reportError("Invalid plotting interval. There is no clear end value defined for it.");
+                    return;
+                }
+                else
+                {
+                    plotEnd = assignment->endValueProvider()->Calculate(&rp);
+                }
+            }
+            else
+            {
+                plotEnd = plot->end->Calculate(&rp);
+            }
+            continuous = assignment->continuous || plot->continuous;
+        }
+        else
+        {
+            continuous = plot->continuous;
+            if(plot->start)
+            {
+                plotStart = plot->start->Calculate(&rp);
+            }
+            else
+            {
+                plotStart = -1.0;
+            }
+
+            if(plot->end)
+            {
+                plotEnd = plot->end->Calculate(&rp);
+            }
+            else
+            {
+                plotEnd = 1.0;
+            }
+        }
+
+        auto pars = funToUse->get_domain_variables();
+        if(pars.size() == 1)
+        {
+            for(double x=plotStart; x<plotEnd; x+= plot->step)
+            {
+
+                funToUse->SetVariable(pars[0].c_str(), x);
+                double y = funToUse->Calculate(&rp);
+
+                executor(x, y, continuous);
+
+            }
+        }
+        else
+        {
+            reportError("Invalid function to plot: " + plot->plotTarget + ". Multidomain functions are not supported yet");
+            return;
+        }
+
+    }
 
     void resizeEvent(QResizeEvent* event);
     void redrawEverything();
+    void drawPoint(std::tuple<QSharedPointer<Function>, QSharedPointer<Function>>);
 
     Ui::MainWindow *ui;
     QGraphicsScene* sc = nullptr;

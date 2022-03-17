@@ -30,6 +30,12 @@ void RuntimeProvider::setValue(const QString &s, double v)
     m_vars[s] = v;
 }
 
+void RuntimeProvider::setValue(const QString &s, QPointF v)
+{
+    m_points[s] = v;
+}
+
+
 QMap<QString, double> &RuntimeProvider::variables()
 {
     return m_vars;
