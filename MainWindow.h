@@ -5,6 +5,7 @@
 #include <QPen>
 #include <QMap>
 #include <QSet>
+#include <QDebug>
 
 #include "Function.h"
 #include "RuntimeProvider.h"
@@ -26,12 +27,15 @@ const QString KW_CONTINUOUS = "continuous";// plot f over (-2, 2) [continuous|st
 const QString KW_LET = "let";              // let something = points of f over (-2, 2) [continuous|step<cnt|0.01>] or let something = point at x, y or let something = a + b + c
 const QString KW_OF  = "of";               // let something = points of f over (-2, 2) [continuous|step<cnt|0.01>]
 const QString KW_STEP = "step";            // plot f over (-2, 2) [continuous|step<cnt|0.01>]
+const QString KW_COUNTS = "counts";        // plot f over (-2, 2) [continuous|step<cnt|0.01>|counts<X[points|segments]> ]
 const QString KW_FOREACH = "foreach";      // foreach p in something do ... done
 const QString KW_SET = "set";              // set color name, set color #RGB, set color #RRGGBB, set color #RRGGBBAA, set color R,G,B[,A], set color name,alpha
 const QString KW_IN = "in";                // foreach p in something do ... done
 const QString KW_DO = "do";                // foreach p in something do ... done
-const QString KW_DONE = "done";              // foreach p in something do ... done
-const QString KW_RANGE = "range";              // foreach p in something do ... done
+const QString KW_DONE = "done";            // foreach p in something do ... done
+const QString KW_RANGE = "range";          // foreach p in range (0, 1) do ... done
+const QString KW_SEGMENTS = "segments";    // plot f over (-2, 2) [continuous|step<cnt|0.01>|counts<X[points|segments]> ]
+const QString KW_POINTS = "points";        // plot f over (-2, 2) [continuous|step<cnt|0.01>|counts<X[points|segments]> ]
 };
 
 class Function;
@@ -55,8 +59,11 @@ struct Statement
 
 struct Stepped
 {
+    Stepped() noexcept;
+
     bool continuous = false;
-    double step = 0.01;
+    QSharedPointer<Function> step;
+    bool counted = false;
 
 };
 
@@ -104,10 +111,6 @@ struct RangeIteratorLoopTarget : public LoopTarget
     RangeIteratorLoopTarget() = delete;
 
     bool loop(LooperCallback lp, RuntimeProvider*) override;
-
-    QString startSt;
-    QString endSt;
-    QString stepSt;
 
     QSharedPointer<Function> startFun;
     QSharedPointer<Function> endFun;
@@ -279,6 +282,7 @@ class MainWindow : public QMainWindow
     const QString STR_LET = Keywords::KW_LET + " ";              // let something = points of f over (-2, 2) [continuous|step<cnt|0.01>]
     const QString STR_OF  = Keywords::KW_OF + " ";               // let something = points of f over (-2, 2) [continuous|step<cnt|0.01>]
     const QString STR_STEP = Keywords::KW_STEP + " ";            // plot f over (-2, 2) [continuous|step<cnt|0.01>]
+    const QString STR_COUNTS = Keywords::KW_COUNTS + " ";
     const QString STR_FOREACH = Keywords::KW_FOREACH + " ";      // foreach p in something do ... done
     const QString STR_SET = Keywords::KW_SET + " ";              // set color red
     const QString STR_IN = Keywords::KW_IN + " ";                // foreach p in something do ... done
@@ -362,8 +366,8 @@ private:
             return;
         }
 
-        double plotStart = std::numeric_limits<double>::quiet_NaN();
-        double plotEnd = std::numeric_limits<double>::quiet_NaN();
+        double plotStart = -1.0;
+        double plotEnd = 1.0;
 
         if(assignment)
         {
@@ -409,25 +413,31 @@ private:
             {
                 plotStart = plot->start->Calculate(&rp);
             }
-            else
-            {
-                plotStart = -1.0;
-            }
 
             if(plot->end)
             {
                 plotEnd = plot->end->Calculate(&rp);
-            }
-            else
-            {
-                plotEnd = 1.0;
             }
         }
 
         auto pars = funToUse->get_domain_variables();
         if(pars.size() == 1)
         {
-            for(double x=plotStart; x<plotEnd; x+= plot->step)
+            double t = plot->step->Calculate(&rp);
+            double stepValue = t;
+            qDebug() << "Current step:" << t << "for:" << plot->step->get_funBody();
+            if(plot->counted)
+            {
+                if(t > 1)
+                {
+                    stepValue = (plotEnd - plotStart) / (t - 1);
+                }
+                else
+                {
+                    stepValue = (plotEnd - plotStart);
+                }
+            }
+            for(double x=plotStart; x<=plotEnd; x += stepValue)
             {
 
                 funToUse->SetVariable(pars[0].c_str(), x);
@@ -435,6 +445,15 @@ private:
 
                 executor(x, y, continuous);
 
+            }
+
+            if(!plot->counted)
+            {
+                // the last points always goes to plotEnd
+                funToUse->SetVariable(pars[0].c_str(), plotEnd);
+                double y = funToUse->Calculate(&rp);
+
+                executor(plotEnd, y, continuous);
             }
         }
         else

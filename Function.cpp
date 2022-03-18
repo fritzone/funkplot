@@ -1,13 +1,21 @@
 #include "Function.h"
 #include "util.h"
 #include "RuntimeProvider.h"
-
+#include <QDebug>
 #include <math.h>
 #include <string.h>
 #include <memory>
 
 Function::Function(const char *expr) : funBody(expr)
 {
+//    qDebug() << "Creating fun:" << expr;
+
+//    QString as(expr);
+//    if(as.indexOf('e') >= 0)
+//    {
+//        qDebug() << "Weird";
+//    }
+
     const char* eqp_chr = strchr(expr, '=');
     if(!eqp_chr)
     {
@@ -68,6 +76,7 @@ Function::~Function()
 void Function::SetVariable(const std::string& varn, double valu)
 {
     vars[varn] = valu;
+//    qDebug() << "varn:" << varn.c_str() << "set to:" << valu;
 }
 
 double Function::Calculate(RuntimeProvider *rp)
@@ -89,18 +98,23 @@ std::vector<std::string> Function::get_domain_variables() const
     return result;
 }
 
+const QString &Function::get_funBody() const
+{
+    return funBody;
+}
+
 std::string Function::preverify_formula(char* expr)
 {
     std::string s;
     for (int i = 0; i < strlen(expr); i++) {
-        if (isalnum(expr[i]) || isoperator(expr[i]) || isparanthesis(expr[i])) {
+        if (expr[i] == '$' || isalnum(expr[i]) || isoperator(expr[i]) || isparanthesis(expr[i])) {
             if (expr[i] != '-')
             {
                 s += expr[i];
             }
             else
             {
-                if(s.empty())
+                if(s.empty() || s[s.length() - 1] == '(')
                 {
                     s += "(0-1)*";
                 }
@@ -246,7 +260,7 @@ double Function::calc(tree* node, RuntimeProvider* rp)
         }
         else
         {
-            throw syntax_error_exception("Possible error in formula statement: %s is not understood.", node->info);
+            throw syntax_error_exception("[E001] Possible error in formula statement: %s is not understood.", node->info);
         }
     }
 }
@@ -339,6 +353,8 @@ int Function::defd(const std::string& s, RuntimeProvider* rp)
 
 double Function::value(const std::string& s, RuntimeProvider* rp)
 {
+//    qDebug() << "Getting value of:" << s.c_str();
+
     if (isnumber(s.c_str()))
     {
         return atof(s.c_str());
@@ -346,6 +362,7 @@ double Function::value(const std::string& s, RuntimeProvider* rp)
 
     if (vars.count(s))
     {
+//        qDebug() << "is:" << vars[s];
         return vars[s];
     }
 

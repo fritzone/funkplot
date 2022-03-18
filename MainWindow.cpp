@@ -10,6 +10,78 @@
 
 #include <functional>
 
+
+enum class random_string_class
+{
+    RSC_HEX     = 0,
+    RSC_B64     = 1,
+    RSC_FULL    = 2,
+    RSC_ASC_DEC = 3,
+    RSC_DEC     = 4,
+    RSC_CHARS   = 5
+};
+
+static std::string random_string( size_t length, random_string_class cls = random_string_class::RSC_CHARS )
+{
+    auto randchar = [cls]() -> char
+    {
+        auto charset = [cls]() -> std::string {
+            switch (cls) {
+            case random_string_class::RSC_DEC:
+                return "0123456789";
+            case random_string_class::RSC_CHARS:
+                return "abcdfghijklmnopqrstuvwxyzABCDFGHIJKLMNOPQRSTUVWXYZ";
+            case random_string_class::RSC_HEX:
+                return "0123456789abcdef";
+            case random_string_class::RSC_ASC_DEC:
+                return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            case random_string_class::RSC_B64:
+                return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/";
+            case random_string_class::RSC_FULL:
+                return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ|!#$%&/()=?{[]}+\\-_.:,;'*^";
+            }
+            return "10";
+        }();
+
+        const size_t max_index = (charset.length() - 1);
+        return charset[ rand() % max_index ];
+    };
+    std::string str(length, 0);
+    std::generate_n( str.begin(), length, randchar );
+    return str;
+}
+
+static int hex2int(char ch)
+{
+    if (ch >= '0' && ch <= '9')
+        return ch - '0';
+    if (ch >= 'A' && ch <= 'F')
+        return ch - 'A' + 10;
+    if (ch >= 'a' && ch <= 'f')
+        return ch - 'a' + 10;
+    return -1;
+}
+
+static int hex2int( QChar hexchar )
+{
+    int v;
+    if ( hexchar.isDigit() )
+        v = hexchar.digitValue();
+    else if ( hexchar >= 'A' && hexchar <= 'F' )
+        v = hexchar.cell() - 'A' + 10;
+    else if ( hexchar >= 'a' && hexchar <= 'f' )
+        v = hexchar.cell() - 'a' + 10;
+    else
+        v = -1;
+    return v;
+}
+
+QSharedPointer<Function> temporaryFunction(const QString &definition)
+{
+    QString funString = QString::fromStdString(random_string(16)) +  "($) = " + definition;
+    return QSharedPointer<Function>(new Function(funString.toLocal8Bit().data()));
+}
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -130,8 +202,7 @@ QSharedPointer<Statement> MainWindow::createLoop(const QString &codeline, QStrin
                 consumeSpace(l_decl);
             }
 
-            ritl->startSt = "rsf_" +QString::number(nextNumber()) + "($) = " + range_start;
-            ritl->startFun = QSharedPointer<Function>(new Function(ritl->startSt.toLocal8Bit().data()));
+            ritl->startFun = temporaryFunction(range_start);
 
             QString range_end = "";
             while(!l_decl.isEmpty() && !l_decl[0].isSpace() && !(l_decl[0] == ')' || l_decl[0] == ']'))
@@ -140,8 +211,7 @@ QSharedPointer<Statement> MainWindow::createLoop(const QString &codeline, QStrin
                 l_decl = l_decl.mid(1);
             }
 
-            ritl->endSt = "ref_" +QString::number(nextNumber()) + "($) = " + range_end;
-            ritl->endFun = QSharedPointer<Function>(new Function(ritl->endSt.toLocal8Bit().data()));
+            ritl->endFun = temporaryFunction(range_end);
 
             if(l_decl[0] == ')')
             {
@@ -160,15 +230,13 @@ QSharedPointer<Statement> MainWindow::createLoop(const QString &codeline, QStrin
                     l_decl = l_decl.mid(1);
                 }
 
-                ritl->stepSt = "rpf_" +QString::number(nextNumber()) + "($) = " + step;
-                ritl->stepFun = QSharedPointer<Function>(new Function(ritl->stepSt.toLocal8Bit().data()));
+                ritl->stepFun = temporaryFunction(step);
 
                 consumeSpace(l_decl);
             }
             else
             {
-                ritl->stepSt = "rpf_" +QString::number(nextNumber()) + "($) = 0.1";
-                ritl->stepFun = QSharedPointer<Function>(new Function(ritl->stepSt.toLocal8Bit().data()));
+                ritl->stepFun = temporaryFunction("0.01");
             }
         }
         else
@@ -476,7 +544,7 @@ double MainWindow::coordEndY()
 
 double MainWindow::zoomFactor()
 {
-    return 40.0;
+    return 50.0;
 }
 
 QSharedPointer<Statement> MainWindow::createPlot(const QString& codeline)
@@ -522,22 +590,39 @@ QSharedPointer<Statement> MainWindow::createPlot(const QString& codeline)
             }
             plot_body = plot_body.mid(1);
             plot_body = plot_body.simplified();
-            if(plot_body == Keywords::KW_CONTINUOUS)
+
+            if(plot_body.startsWith(Keywords::KW_CONTINUOUS))
             {
                 plotData->continuous = true;
-            }
-            else if (plot_body.startsWith(STR_STEP))
+                plot_body = plot_body.mid(Keywords::KW_CONTINUOUS.length());
+                consumeSpace(plot_body);
+            };
+
+
+            if (plot_body.startsWith(STR_STEP))
             {
                 plot_body = plot_body.mid(STR_STEP.length());
                 double stp = plot_body.toDouble();
-                plotData->step = stp;
+                plotData->step = temporaryFunction(plot_body.simplified());
             }
+            else
+            if (plot_body.startsWith(STR_COUNTS))
+            {
+                plot_body = plot_body.mid(STR_COUNTS.length());
+                QString strPointCount = getDelimitedId(plot_body);
+                double stp = strPointCount.toInt();
+                plotData->step = temporaryFunction(strPointCount);
+                plotData->counted = true;
 
-            QString fakeFunSt = "fpds" + QString::number(plots.size()) + "($) = " + first_par;
-            QString fakeFunEn = "fpde" + QString::number(plots.size()) + "($) = " + second_par;
+                if(plot_body == Keywords::KW_SEGMENTS)
+                {
+                    plotData->step = temporaryFunction(strPointCount + " + 1");
+                    plotData->continuous = true;
+                }
 
-            plotData->start = QSharedPointer<Function>(new Function(fakeFunSt.toLocal8Bit().data()));
-            plotData->end = QSharedPointer<Function>(new Function(fakeFunEn.toLocal8Bit().data()));
+            }
+            plotData->start = temporaryFunction(first_par);
+            plotData->end = temporaryFunction(second_par);
         }
         else
         {
@@ -603,22 +688,37 @@ QSharedPointer<Assignment> MainWindow::providePointsOfDefinition(const QString& 
             }
             assignment_body = assignment_body.mid(1);
             assignment_body = assignment_body.simplified();
-            if(assignment_body == Keywords::KW_CONTINUOUS)
+            if(assignment_body.startsWith(Keywords::KW_CONTINUOUS))
             {
                 assignmentData->continuous = true;
-            }
-            else if (assignment_body.startsWith(STR_STEP))
+                assignment_body = assignment_body.mid(Keywords::KW_CONTINUOUS.length());
+                consumeSpace(assignment_body);
+            };
+
+
+            if (assignment_body.startsWith(STR_STEP))
             {
                 assignment_body = assignment_body.mid(STR_STEP.length());
-                double stp = assignment_body.toDouble();
-                assignmentData->step = stp;
+                assignmentData->step = temporaryFunction(assignment_body);
             }
+            else
+            if (assignment_body.startsWith(STR_COUNTS))
+            {
+                assignment_body = assignment_body.mid(STR_COUNTS.length());
+                QString strPointCount = getDelimitedId(assignment_body);
+                double stp = strPointCount.toDouble();
+                assignmentData->step = temporaryFunction(strPointCount);
+                assignmentData->counted = true;
 
-            QString fakeFunSt = "afpds" + QString::number(assignments.size()) + "($) = " + first_par;
-            QString fakeFunEn = "afpde" + QString::number(assignments.size()) + "($) = " + second_par;
+                if(assignment_body == Keywords::KW_SEGMENTS)
+                {
+                    assignmentData->step = temporaryFunction(strPointCount + " + 1");
+                    assignmentData->continuous = true;
+                }
 
-            assignmentData->start = QSharedPointer<Function>(new Function(fakeFunSt.toLocal8Bit().data()));
-            assignmentData->end = QSharedPointer<Function>(new Function(fakeFunEn.toLocal8Bit().data()));
+            }
+            assignmentData->start = temporaryFunction(first_par);
+            assignmentData->end = temporaryFunction(second_par);
 
         }
     }
@@ -663,14 +763,11 @@ QSharedPointer<Statement> MainWindow::resolveObjectAssignment(const QString &cod
             QString px = getDelimitedId(assignment_body, {','});
             QString py = getDelimitedId(assignment_body);
 
-            QString fakeFunStx = "xafpds" + QString::number(assignments.size()) + "($) = " + px;
-            QString fakeFunSty = "yafpds" + QString::number(assignments.size()) + "($) = " + py;
-
             QSharedPointer<PointDefinitionAssignment> assignmentData;
             assignmentData.reset(new PointDefinitionAssignment(codeline));
 
-            assignmentData->x = QSharedPointer<Function>(new Function(fakeFunStx.toLocal8Bit().data()));
-            assignmentData->y = QSharedPointer<Function>(new Function(fakeFunSty.toLocal8Bit().data()));
+            assignmentData->x = temporaryFunction(px);
+            assignmentData->y = temporaryFunction(py);
             assignmentData->varName = varName;
             assignments.append(assignmentData);
 
@@ -683,8 +780,7 @@ QSharedPointer<Statement> MainWindow::resolveObjectAssignment(const QString &cod
 
             QString expression = targetProperties;
             expression += assignment_body;
-            QString fakeFunSt = "xafpds" + QString::number(assignments.size()) + "($) = " + expression;
-            assignmentData->arythmetic = QSharedPointer<Function>(new Function(fakeFunSt.toLocal8Bit().data()));
+            assignmentData->arythmetic = temporaryFunction(expression);
             assignments.append(assignmentData);
 
             assignmentData->varName = varName;
@@ -812,31 +908,6 @@ bool FunctionDefinition::execute(RuntimeProvider *mw)
     return true;
 }
 
-static int hex2int(char ch)
-{
-    if (ch >= '0' && ch <= '9')
-        return ch - '0';
-    if (ch >= 'A' && ch <= 'F')
-        return ch - 'A' + 10;
-    if (ch >= 'a' && ch <= 'f')
-        return ch - 'a' + 10;
-    return -1;
-}
-
-static int hex2int( QChar hexchar )
-{
-    int v;
-    if ( hexchar.isDigit() )
-        v = hexchar.digitValue();
-    else if ( hexchar >= 'A' && hexchar <= 'F' )
-        v = hexchar.cell() - 'A' + 10;
-    else if ( hexchar >= 'a' && hexchar <= 'f' )
-        v = hexchar.cell() - 'a' + 10;
-    else
-        v = -1;
-    return v;
-}
-
 bool Sett::execute(RuntimeProvider *rp)
 {
     if(what == "color")
@@ -864,25 +935,15 @@ bool Sett::execute(RuntimeProvider *rp)
             {
                 case 4: // R,G,B,A
                 {
-                    QString fakeFunA = "clr_red_f($) = " + values[3].simplified();
-                    QSharedPointer<Function> fa(new Function(fakeFunA.toLocal8Bit().data()));
-                    a = fa->Calculate(rp);
+                    a = temporaryFunction(values[3].simplified())->Calculate(rp);
                 }
                 [[fallthrough]];
 
                 case 3: // R,G,B
                 {
-                    QString fakeFunR = "clr_red_f($) = " + values[0].simplified();
-                    QString fakeFunG = "clr_red_f($) = " + values[1].simplified();
-                    QString fakeFunB = "clr_red_f($) = " + values[2].simplified();
-
-                    QSharedPointer<Function> fr(new Function(fakeFunR.toLocal8Bit().data()));
-                    QSharedPointer<Function> fg(new Function(fakeFunG.toLocal8Bit().data()));
-                    QSharedPointer<Function> fb(new Function(fakeFunB.toLocal8Bit().data()));
-
-                    qreal r = fr->Calculate(rp);
-                    qreal g = fg->Calculate(rp);
-                    qreal b = fb->Calculate(rp);
+                    qreal r = temporaryFunction(values[0].simplified())->Calculate(rp);
+                    qreal g = temporaryFunction(values[1].simplified())->Calculate(rp);
+                    qreal b = temporaryFunction(values[2].simplified())->Calculate(rp);
 
                     QColor c;
 
@@ -920,9 +981,7 @@ bool Sett::execute(RuntimeProvider *rp)
                         uint32_t cui = Colors::colormap.at(s);
                         QColor c = Colors::QColorFromUint32(cui);
 
-                        QString fakeFunA = "clr_f($) = " + values[1].simplified();
-                        QSharedPointer<Function> fa(new Function(fakeFunA.toLocal8Bit().data()));
-                        a = fa->Calculate(rp);
+                        a = temporaryFunction(values[1].simplified())->Calculate(rp);;
                         qreal finalA = a;
 
                         if(a <= 1.0)
@@ -938,9 +997,7 @@ bool Sett::execute(RuntimeProvider *rp)
                         {
                             QColor c;
                             c.setNamedColor(value);
-                            QString fakeFunA = "clr_f($) = " + values[1].simplified();
-                            QSharedPointer<Function> fa(new Function(fakeFunA.toLocal8Bit().data()));
-                            a = fa->Calculate(rp);
+                            a = temporaryFunction(values[1].simplified())->Calculate(rp);
                             qreal finalA = a;
 
                             if(a <= 1.0)
@@ -1018,9 +1075,9 @@ bool RangeIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider* rp)
 {
     double v = startFun->Calculate(rp);
     double e = endFun->Calculate(rp);
-    qDebug() << "v=" << v << "e=" << e;
 
     double stepv = stepFun->Calculate(rp);
+    qDebug() << "Range Start=" << v << "Range end=" << e << "Range step:" << stepv;
 
     if(v < e && stepv < 0.0 || v > e && stepv > 0.0)
     {
@@ -1033,7 +1090,6 @@ bool RangeIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider* rp)
         lp();
         stepv = stepFun->Calculate(rp);
         v += stepv;
-        qDebug() << "v=" << v << "e=" << e;
 
         if(stepv < 0.0 && v < e)
         {
@@ -1088,26 +1144,61 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
             }
             else
             {
-                p = QPointF(cx, cy);
-                theLoop->updateLoopVariable(p);
+                // simulate a line from (cx, cy) to (x,y)
+                // Formula: f($) = (y - cy) / (x - cx) * ($ - cx) + cy;
+
+                double m = (y - cy) / (x - cx);
+                QString lineFormula = "(" + QString::number(m, 'f', 10) + ") * ( $ ) - (" + QString::number(m, 'f', 10)  + ") * (" + QString::number(x, 'f', 10) + " ) + (" + QString::number(y, 'f', 10) + ")";
+
+                qDebug() << lineFormula;
+                auto tempFun = temporaryFunction(lineFormula);
+
+                double xx = cx;
+                while(xx <= x)
+                {
+                    tempFun->SetVariable("$", xx);
+                    double yy = tempFun->Calculate(rp);
+
+                    qDebug() << "xx=" << xx << "yy=" << yy;
+
+                    p = QPointF(xx, yy);
+                    theLoop->updateLoopVariable( p );
+
+                    QSharedPointer<Assignment> assignmentData = rp->window()->get_assignments()[fakeVarPos];
+                    QString spx = QString::number(p.x(), 'f', 10);
+                    QString spy = QString::number(p.y(), 'f', 10);
+                    dynamic_cast<PointDefinitionAssignment*>(assignmentData.get())->x = temporaryFunction(spx);
+                    dynamic_cast<PointDefinitionAssignment*>(assignmentData.get())->y = temporaryFunction(spy);
+                    lp();
+
+                    xx += 0.01;
+                }
+
                 cx = x;
                 cy = y;
+                p = QPointF(cx, cy);
+                theLoop->updateLoopVariable(p);
+
+                QSharedPointer<Assignment> assignmentData = rp->window()->get_assignments()[fakeVarPos];
+                dynamic_cast<PointDefinitionAssignment*>(assignmentData.get())->x = temporaryFunction(QString::number(p.x(), 'f', 10));
+                dynamic_cast<PointDefinitionAssignment*>(assignmentData.get())->y = temporaryFunction(QString::number(p.y(), 'f', 10));
+
+                qDebug() << "point at cx=" << cx << "cy=" << cy;
+
+                lp();
             }
         }
         else
         {
             p = QPointF(x, y);
             theLoop->updateLoopVariable( p );
+
+            QSharedPointer<Assignment> assignmentData = rp->window()->get_assignments()[fakeVarPos];
+            dynamic_cast<PointDefinitionAssignment*>(assignmentData.get())->x = temporaryFunction(QString::number(p.x(), 'f', 10));
+            dynamic_cast<PointDefinitionAssignment*>(assignmentData.get())->y = temporaryFunction(QString::number(p.y(), 'f', 10));
+
+            lp();
         }
-
-        qDebug() << "Plotting:" << p;
-        QSharedPointer<Assignment> assignmentData = rp->window()->get_assignments()[fakeVarPos];
-        QString fakeFunStx = "xafpds($) = " + QString::number(p.x());
-        QString fakeFunSty = "yafpds($) = " + QString::number(p.y());
-        dynamic_cast<PointDefinitionAssignment*>(assignmentData.get())->x = QSharedPointer<Function>(new Function(fakeFunStx.toLocal8Bit().data()));
-        dynamic_cast<PointDefinitionAssignment*>(assignmentData.get())->y = QSharedPointer<Function>(new Function(fakeFunSty.toLocal8Bit().data()));
-
-        lp();
     };
 
     QSharedPointer<Assignment> assignment(nullptr);
@@ -1119,20 +1210,17 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
 
     // create a new fake point for the point
 
-    QString fakeFunStx = "xafpds($) = 0.0";
-    QString fakeFunSty = "yafpds($) = 0.0";
-    assignmentData->x = QSharedPointer<Function>(new Function(fakeFunStx.toLocal8Bit().data()));
-    assignmentData->y = QSharedPointer<Function>(new Function(fakeFunSty.toLocal8Bit().data()));
+    assignmentData->x = temporaryFunction("0.0");
+    assignmentData->y = temporaryFunction("0.0");
     assignmentData->varName = theLoop->loop_variable;
     rp->window()->get_assignments().append(assignmentData);
     fakeVarPos = rp->window()->get_assignments().size() - 1;
 
-
-//    rp->window()->genericFunctionIterator(plot, executor);
-
     double plotStart = -1.0;
     double plotEnd = 1.0;
     double step = 0.1;
+
+    bool counted = false;
 
     if(assignment)
     {
@@ -1144,13 +1232,29 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
         {
             plotEnd = assignment->endValueProvider()->Calculate(rp);
         }
+
+        continuous = assignment->continuous;
+        step = assignment->step->Calculate(rp);
+
+        if(assignment->counted)
+        {
+            counted = true;
+            if(step > 1)
+            {
+                step = (plotEnd - plotStart) / (step - 1);
+            }
+            else
+            {
+                step = (plotEnd - plotStart);
+            }
+        }
     }
 
 
     auto pars = funToUse->get_domain_variables();
     if(pars.size() == 1)
     {
-        for(double x=plotStart; x<plotEnd; x+= step)
+        for(double x=plotStart; x<=plotEnd; x+= step)
         {
 
             funToUse->SetVariable(pars[0].c_str(), x);
@@ -1159,5 +1263,23 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
             points_of_loop_exec(x, y, continuous);
 
         }
+
+        if(!counted)
+        {
+            // the last points always goes to plotEnd
+            funToUse->SetVariable(pars[0].c_str(), plotEnd);
+            double y = funToUse->Calculate(rp);
+
+            points_of_loop_exec(plotEnd, y, continuous);
+        }
     }
+
+    // remove the last point, since it was fake
+    rp->window()->get_assignments().pop_back();
+    return true;
+}
+
+Stepped::Stepped() noexcept : step(temporaryFunction("0.1"))
+{
+
 }

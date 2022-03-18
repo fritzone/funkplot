@@ -3,10 +3,12 @@
 
 #include "util.h"
 
+#include <QSharedPointer>
 #include <QString>
 #include <map>
 
 class RuntimeProvider;
+
 
 /*
  * This Class represents one function. A function needs:
@@ -41,6 +43,8 @@ public:
     const std::string &get_name() const;
 
     std::vector<std::string> get_domain_variables() const;
+
+    const QString &get_funBody() const;
 
 private:
     //the name of the function. Ex.: f
@@ -95,5 +99,8 @@ private:
     //
 
 };
+
+QSharedPointer<Function> temporaryFunction(const QString &definition);
+
 
 #endif
