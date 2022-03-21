@@ -16,11 +16,68 @@
 #include <functional>
 #include <map>
 #include <vector>
+#include <QChar>
 
 #include <cstdio> // snprintf
 #include <string>
 #include <stdexcept> // runtime_error
 #include <memory> // unique_ptr
+
+#include <cmath>
+
+
+struct fun_desc_solve
+{
+    std::string name;
+    std::string desc;
+    std::function<double(double,double)> solver;
+};
+
+static const std::vector<fun_desc_solve> supported_functions
+{
+     //trygonometry, simple
+     {"sin", "The sine function", [](double v, double v2) -> double { return std::sin(v); } },
+     {"cos", "The cosine function", [](double v, double v2) -> double { return std::cos(v); } },
+     {"tan", "The tangent function", [](double v, double v2) -> double { return std::tan(v); } },
+     {"cot", "The cotangent function", [](double v, double v2) -> double { return std::sin(v) != 0 ? std::cos(v) / std::sin(v) : std::numeric_limits<double>::quiet_NaN(); } },
+     {"sec", "The secant function", [](double v, double v2) -> double { return std::cos(v) != 0 ? 1.0 / std::cos(v) : std::numeric_limits<double>::quiet_NaN(); } },
+     {"cosec", "The cosecant function", [](double v, double v2) -> double { return std::sin(v)!= 0 ? 1.0 / std::sin(v) : std::numeric_limits<double>::quiet_NaN(); } },
+
+     //trygonometry, arc*/inverse functions
+     {"asin", "The arcsine function", [](double v, double v2) -> double { if(v >= -1 && v <= 1) return std::asin(v); return std::numeric_limits<double>::quiet_NaN();} },
+     {"acos", "The arccosine function", [](double v, double v2) -> double { if(v >= -1 && v <= 1) return std::acos(v); return std::numeric_limits<double>::quiet_NaN();} },
+     {"atan", "The arctangent function", [](double v, double v2) -> double { return std::atan(v); } },
+     {"actg", "The arc-cotangent function", [](double v, double v2) -> double { if(std::tan(1.0/v) != 0) return 1 / std::tan(1.0/v); return std::numeric_limits<double>::quiet_NaN(); } },
+     {"asec", "The arcsecant function", [](double v, double v2) -> double { return std::cos(1.0/v) != 0 ? 1.0 / std::cos(1.0/v) : std::numeric_limits<double>::quiet_NaN(); } },
+     {"acosec", "The arc-cosecant function", [](double v, double v2) -> double { return std::sin(1.0/v)!= 0 ? 1.0 / std::sin(1.0/v) : std::numeric_limits<double>::quiet_NaN(); } },
+
+     // Algebraic functions
+     {"exp", "The exponential function", [](double v, double v2) -> double { return std::exp(v); } },
+     {"log", "The common logarithmic function", [](double v, double v2) -> double { return std::log10(v); } },
+     {"ln", "The logarithmic function", [](double v, double v2) -> double { return std::log(v); } },
+     {"sqrt", "The square root function", [](double v, double v2) -> double { return std::sqrt(v); } },
+     {"pow", "The power function", [](double v, double v2) -> double { return std::pow(v, v2); } }
+
+};
+
+enum class random_string_class
+{
+    RSC_HEX     = 0,
+    RSC_B64     = 1,
+    RSC_FULL    = 2,
+    RSC_ASC_DEC = 3,
+    RSC_DEC     = 4,
+    RSC_CHARS   = 5
+};
+
+// gives a rendom string
+std::string random_string( size_t length, random_string_class cls = random_string_class::RSC_CHARS );
+
+// converts the given hex char to a number
+int hex2int(char ch);
+
+// converts the given hex char to a number
+int hex2int(QChar hexchar);
 
 namespace details
 {
@@ -47,10 +104,7 @@ std::unique_ptr<char[]> formatImplS(
     }
 }
 
-static char const* ifStringThenConvertToCharBuf(std::string const& cpp)
-{
-    return cpp.c_str();
-}
+char const* ifStringThenConvertToCharBuf(std::string const& cpp);
 
 template <typename T>
 T ifStringThenConvertToCharBuf(T const& t)
@@ -123,117 +177,43 @@ struct tree
 };
 
 //return the substring of src before pos. pos is NOT included in the result
-static char* before(int pos, const char *src)
-{
-    char *befs=new char[pos + 1];
-	for(int i=0;i<pos;i++)
-	{
-		befs[i]=src[i];
-	}
-	befs[pos]=0;
-	return befs;
-}
+char* before(int pos, const char *src);
 
 //and after pos. The char at pos is not included
-static char* after(int pos, const char *src)
-{
-char *afts=new char[strlen(src)-pos+1];
-unsigned int i;
-	for(i=0;i<strlen(src)-pos+1;afts[i++]=0);
-	for(i=pos+1;i<strlen(src);i++)
-	{
-		afts[i-pos-1]=src[i];
-	}
-	return afts;
-}
+char* after(int pos, const char *src);
 
 //returns true if c is an operator (+/-*)
-static int isoperator(char c)
-{
-	return c=='+' || c=='-' || c== '/' || c=='*' || c=='.';
-}
+int isoperator(char c);
 
 //returns true if c is a paranthesis
-static int isparanthesis(char c)
-{
-	return c=='(' || c==')';
-}
+int isparanthesis(char c);
 
 //returns true if s is a number
-static int isnumber(const char *s)
-{
-    unsigned int i;
-	for(i=0;i<strlen(s);i++)
-	{
-		if(!isdigit(s[i]) && !(s[i]=='.'))
-		{
-			return 0;
-		}
-	}
-	return 1;
-}
+int isnumber(const char *s);
 
 //transforms a character to a string
-static std::string c2str(char c)
-{
-    std::string s;
-    s+=c;
-	return s;
-}
+std::string c2str(char c);
 
 //this checks if an expression is a function or not (ex: sin(x) is s function)
 // kesobb atirni, hogy checkeljuk a sajat fuggvenyeinket is :))
-static char* isfunc(const char *s)
-{
-    unsigned int i=0, sc2=0;
-    char *s2=new char[strlen(s) + 1];
-	while(i<strlen(s) && s[i]!='(')
-	{
-		s2[sc2++]=s[i++];
-	}
-    s2[sc2]=0;
-
-    if( !strcmp(s2,"sin") || !strcmp(s2,"cos") || !strcmp(s2,"tan") || !strcmp(s2,"ctg") || !strcmp(s2, "exp") )
-	{
-        return s2;
-	}
-    delete[] s2;
-    return NULL;
-}
+char* isfunc(const char *s);
 
 //this function is an ENUMERATOR
 //it tells us, if the name of a hash_struct equals some other string
-static int keyz(void * hashstructadr, void *param)
-{
-	if(!strcmp( ((hash_struct*)hashstructadr)->name, (char*)param) )
-		return 0;
-	else
-		return 1;
-	
-}
+int keyz(void * hashstructadr, void *param);
 
 
 // trim from start
-static inline std::string &sltrim(std::string &s) {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
-    return s;
-}
+std::string &sltrim(std::string &s);
 
 // trim from end
-static inline std::string &srtrim(std::string &s) {
-    s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
-    return s;
-}
+std::string &srtrim(std::string &s);
 
 // trim from both ends
-static inline std::string strim(std::string &s)
-{
-    return sltrim(srtrim(s));
-}
+std::string strim(std::string &s);
 
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
-
 
 #endif

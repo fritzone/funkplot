@@ -38,9 +38,6 @@ const QString KW_SEGMENTS = "segments";    // plot f over (-2, 2) [continuous|st
 const QString KW_POINTS = "points";        // plot f over (-2, 2) [continuous|step<cnt|0.01>|counts<X[points|segments]> ]
 };
 
-class Function;
-class MainWindow;
-
 struct Statement
 {
     explicit Statement(const QString& s) : statement(s) {}
@@ -64,6 +61,8 @@ struct Stepped
     bool continuous = false;
     QSharedPointer<Function> step;
     bool counted = false;
+    QSharedPointer<Function> start;
+    QSharedPointer<Function> end;
 
 };
 
@@ -150,8 +149,6 @@ struct Plot : public Stepped, public Statement, public QEnableSharedFromThis<Plo
 
     explicit Plot(const QString& s) : Statement(s){}
 
-    QSharedPointer<Function> start;
-    QSharedPointer<Function> end;
     QString plotTarget;
 
     QString keyword() const override
@@ -206,8 +203,6 @@ struct PointsOfObjectAssignment : public Assignment
     explicit PointsOfObjectAssignment(const QString& s) : Assignment(s) {}
     QString ofWhat;                     // can be a function for now (or a circle, etc... later)
     QSharedPointer<Function> ofWhatFun;
-    QSharedPointer<Function> start;     // the start of the observation interval. if not found, the plot will fill in
-    QSharedPointer<Function> end;       // the end of the same
     bool execute(RuntimeProvider* rp) override;
     QString providedFunction() override
     {
@@ -304,6 +299,9 @@ public:
 
     QVector<QSharedPointer<Assignment> > &get_assignments();
 
+    void resolveOverKeyword(QString codeline, QSharedPointer<Stepped>);
+
+
 private slots:
     void on_splitter_splitterMoved(int pos, int index);
     void on_toolButton_clicked();
@@ -329,12 +327,6 @@ private:
     QSharedPointer<Statement> createFunction(const QString& codeline);
     QSharedPointer<Statement> createSett(const QString &codeline);
     QSharedPointer<Statement> createLoop(const QString &codeline, QStringList& codelines);
-
-    template<class E>
-    void genericFunctionIterator(QSharedPointer<Function> plot, QSharedPointer<Assignment> assignment, E executor)
-    {
-
-    }
 
     template<class E>
     void genericPlotIterator(QSharedPointer<Plot> plot, E executor)
@@ -368,6 +360,8 @@ private:
 
         double plotStart = -1.0;
         double plotEnd = 1.0;
+        bool counted = plot->counted;
+        QSharedPointer<Function> stepFun = nullptr;
 
         if(assignment)
         {
@@ -405,9 +399,13 @@ private:
                 plotEnd = plot->end->Calculate(&rp);
             }
             continuous = assignment->continuous || plot->continuous;
+            counted |= assignment->counted;
+            stepFun = assignment->step;
+
         }
         else
         {
+            stepFun = plot->step;
             continuous = plot->continuous;
             if(plot->start)
             {
@@ -423,10 +421,10 @@ private:
         auto pars = funToUse->get_domain_variables();
         if(pars.size() == 1)
         {
-            double t = plot->step->Calculate(&rp);
+            double t = stepFun->Calculate(&rp);
             double stepValue = t;
-            qDebug() << "Current step:" << t << "for:" << plot->step->get_funBody();
-            if(plot->counted)
+            qDebug() << "Current step:" << t << "for:" << stepFun->get_funBody();
+            if(counted)
             {
                 if(t > 1)
                 {
@@ -447,7 +445,7 @@ private:
 
             }
 
-            if(!plot->counted)
+            if(!counted)
             {
                 // the last points always goes to plotEnd
                 funToUse->SetVariable(pars[0].c_str(), plotEnd);

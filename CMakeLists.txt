@@ -34,7 +34,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 # add the executable
-add_library(gcompi compiler.cpp Function.cpp RuntimeProvider.cpp)
+add_library(gcompi compiler.cpp Function.cpp RuntimeProvider.cpp util.cpp)
 target_link_libraries(gcompi Qt5::Core)
 
 add_executable(tests compiler.cpp)

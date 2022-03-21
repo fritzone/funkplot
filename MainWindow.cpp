@@ -10,72 +10,6 @@
 
 #include <functional>
 
-
-enum class random_string_class
-{
-    RSC_HEX     = 0,
-    RSC_B64     = 1,
-    RSC_FULL    = 2,
-    RSC_ASC_DEC = 3,
-    RSC_DEC     = 4,
-    RSC_CHARS   = 5
-};
-
-static std::string random_string( size_t length, random_string_class cls = random_string_class::RSC_CHARS )
-{
-    auto randchar = [cls]() -> char
-    {
-        auto charset = [cls]() -> std::string {
-            switch (cls) {
-            case random_string_class::RSC_DEC:
-                return "0123456789";
-            case random_string_class::RSC_CHARS:
-                return "abcdfghijklmnopqrstuvwxyzABCDFGHIJKLMNOPQRSTUVWXYZ";
-            case random_string_class::RSC_HEX:
-                return "0123456789abcdef";
-            case random_string_class::RSC_ASC_DEC:
-                return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            case random_string_class::RSC_B64:
-                return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/";
-            case random_string_class::RSC_FULL:
-                return "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ|!#$%&/()=?{[]}+\\-_.:,;'*^";
-            }
-            return "10";
-        }();
-
-        const size_t max_index = (charset.length() - 1);
-        return charset[ rand() % max_index ];
-    };
-    std::string str(length, 0);
-    std::generate_n( str.begin(), length, randchar );
-    return str;
-}
-
-static int hex2int(char ch)
-{
-    if (ch >= '0' && ch <= '9')
-        return ch - '0';
-    if (ch >= 'A' && ch <= 'F')
-        return ch - 'A' + 10;
-    if (ch >= 'a' && ch <= 'f')
-        return ch - 'a' + 10;
-    return -1;
-}
-
-static int hex2int( QChar hexchar )
-{
-    int v;
-    if ( hexchar.isDigit() )
-        v = hexchar.digitValue();
-    else if ( hexchar >= 'A' && hexchar <= 'F' )
-        v = hexchar.cell() - 'A' + 10;
-    else if ( hexchar >= 'a' && hexchar <= 'f' )
-        v = hexchar.cell() - 'a' + 10;
-    else
-        v = -1;
-    return v;
-}
-
 QSharedPointer<Function> temporaryFunction(const QString &definition)
 {
     QString funString = QString::fromStdString(random_string(16)) +  "($) = " + definition;
@@ -566,69 +500,7 @@ QSharedPointer<Statement> MainWindow::createPlot(const QString& codeline)
     // over keyword
     if(plot_body.startsWith(Keywords::KW_OVER))
     {
-        plot_body = plot_body.mid(Keywords::KW_OVER.length());
-        consumeSpace(plot_body);
-        if(!plot_body.startsWith("(") || !plot_body.startsWith("["))
-        {
-            char close_char = plot_body[0].toLatin1() == '(' ? ')' : ']';
-
-            plot_body = plot_body.mid(1);
-            // first parameter
-            QString first_par;
-            while(!(plot_body[0].toLower() == ','))
-            {
-                first_par += plot_body[0];
-                plot_body = plot_body.mid(1);
-            }
-            // skip comma
-            plot_body = plot_body.mid(1);
-            QString second_par;
-            while(!(plot_body[0].toLower() == close_char))
-            {
-                second_par += plot_body[0];
-                plot_body = plot_body.mid(1);
-            }
-            plot_body = plot_body.mid(1);
-            plot_body = plot_body.simplified();
-
-            if(plot_body.startsWith(Keywords::KW_CONTINUOUS))
-            {
-                plotData->continuous = true;
-                plot_body = plot_body.mid(Keywords::KW_CONTINUOUS.length());
-                consumeSpace(plot_body);
-            };
-
-
-            if (plot_body.startsWith(STR_STEP))
-            {
-                plot_body = plot_body.mid(STR_STEP.length());
-                double stp = plot_body.toDouble();
-                plotData->step = temporaryFunction(plot_body.simplified());
-            }
-            else
-            if (plot_body.startsWith(STR_COUNTS))
-            {
-                plot_body = plot_body.mid(STR_COUNTS.length());
-                QString strPointCount = getDelimitedId(plot_body);
-                double stp = strPointCount.toInt();
-                plotData->step = temporaryFunction(strPointCount);
-                plotData->counted = true;
-
-                if(plot_body == Keywords::KW_SEGMENTS)
-                {
-                    plotData->step = temporaryFunction(strPointCount + " + 1");
-                    plotData->continuous = true;
-                }
-
-            }
-            plotData->start = temporaryFunction(first_par);
-            plotData->end = temporaryFunction(second_par);
-        }
-        else
-        {
-            throw syntax_error_exception("Syntax error: keyword over not followed by interval");
-        }
-        plots.append(plotData);
+        resolveOverKeyword(plot_body, plotData);
     }
 
     return plotData;
@@ -663,64 +535,7 @@ QSharedPointer<Assignment> MainWindow::providePointsOfDefinition(const QString& 
     // over keyword
     if(assignment_body.startsWith(Keywords::KW_OVER))
     {
-        assignment_body = assignment_body.mid(Keywords::KW_OVER.length());
-        consumeSpace(assignment_body);
-
-        if(!assignment_body.startsWith("(") || !assignment_body.startsWith("["))
-        {
-            char close_char = assignment_body[0].toLatin1() == '(' ? ')' : ']';
-
-            assignment_body = assignment_body.mid(1);
-            // first parameter
-            QString first_par;
-            while(!(assignment_body[0].toLower() == ','))
-            {
-                first_par += assignment_body[0];
-                assignment_body = assignment_body.mid(1);
-            }
-            // skip comma
-            assignment_body = assignment_body.mid(1);
-            QString second_par;
-            while(!(assignment_body[0].toLower() == close_char))
-            {
-                second_par += assignment_body[0];
-                assignment_body = assignment_body.mid(1);
-            }
-            assignment_body = assignment_body.mid(1);
-            assignment_body = assignment_body.simplified();
-            if(assignment_body.startsWith(Keywords::KW_CONTINUOUS))
-            {
-                assignmentData->continuous = true;
-                assignment_body = assignment_body.mid(Keywords::KW_CONTINUOUS.length());
-                consumeSpace(assignment_body);
-            };
-
-
-            if (assignment_body.startsWith(STR_STEP))
-            {
-                assignment_body = assignment_body.mid(STR_STEP.length());
-                assignmentData->step = temporaryFunction(assignment_body);
-            }
-            else
-            if (assignment_body.startsWith(STR_COUNTS))
-            {
-                assignment_body = assignment_body.mid(STR_COUNTS.length());
-                QString strPointCount = getDelimitedId(assignment_body);
-                double stp = strPointCount.toDouble();
-                assignmentData->step = temporaryFunction(strPointCount);
-                assignmentData->counted = true;
-
-                if(assignment_body == Keywords::KW_SEGMENTS)
-                {
-                    assignmentData->step = temporaryFunction(strPointCount + " + 1");
-                    assignmentData->continuous = true;
-                }
-
-            }
-            assignmentData->start = temporaryFunction(first_par);
-            assignmentData->end = temporaryFunction(second_par);
-
-        }
+        resolveOverKeyword(assignment_body, assignmentData);
     }
 
     return assignmentData;
@@ -871,6 +686,61 @@ void MainWindow::drawPoint(std::tuple<QSharedPointer<Function>, QSharedPointer<F
 QVector<QSharedPointer<Assignment> >& MainWindow::get_assignments()
 {
     return assignments;
+}
+
+void MainWindow::resolveOverKeyword(QString codeline, QSharedPointer<Stepped> stepped)
+{
+    codeline = codeline.mid(Keywords::KW_OVER.length());
+    consumeSpace(codeline);
+    bool interval = false;
+    char close_char = 0;
+    if(!codeline.startsWith("(") || !codeline.startsWith("["))
+    {
+        close_char = codeline[0].toLatin1() == '(' ? ')' : ']';
+        codeline = codeline.mid(1);
+        interval = true;
+    }
+
+    // first parameter
+    char delim;
+    QString first_par = getDelimitedId(codeline, {',', ' '}, delim);
+    QString second_par = getDelimitedId(codeline, {' ', close_char}, delim);
+
+    if(codeline.startsWith(Keywords::KW_CONTINUOUS))
+    {
+        stepped->continuous = true;
+        codeline = codeline.mid(Keywords::KW_CONTINUOUS.length());
+        consumeSpace(codeline);
+    };
+
+    if (codeline.startsWith(STR_STEP))
+    {
+        codeline = codeline.mid(STR_STEP.length());
+        stepped->step = temporaryFunction(codeline);
+    }
+    else
+    if (codeline.startsWith(STR_COUNTS))
+    {
+        codeline = codeline.mid(STR_COUNTS.length());
+        QString strPointCount = getDelimitedId(codeline);
+        double stp = strPointCount.toDouble();
+        stepped->step = temporaryFunction(strPointCount);
+        stepped->counted = true;
+
+        if(codeline == Keywords::KW_SEGMENTS)
+        {
+            stepped->step = temporaryFunction(strPointCount + " + 1");
+            stepped->continuous = true;
+        }
+    }
+    else
+    if(!codeline.isEmpty())
+    {
+        throw syntax_error_exception("Invalid keyword:", codeline);
+    }
+    stepped->start = temporaryFunction(first_par);
+    stepped->end = temporaryFunction(second_par);
+
 }
 
 void MainWindow::setCurrentStatement(const QString &newCurrentStatement)

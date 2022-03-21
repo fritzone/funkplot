@@ -6,6 +6,7 @@
 #include <QSharedPointer>
 #include <QString>
 #include <map>
+#include <set>
 
 class RuntimeProvider;
 
@@ -45,6 +46,13 @@ public:
     std::vector<std::string> get_domain_variables() const;
 
     const QString &get_funBody() const;
+
+    /**
+     * @brief extract_proper_expression will extract a proper expression from a string, that has the correct number of parenthesis
+     * @param p
+     * @return
+     */
+    std::string extract_proper_expression(const char*& p);
 
 private:
     //the name of the function. Ex.: f
@@ -98,6 +106,7 @@ private:
 
     //
 
+    std::string extract_proper_expression(const char *&p, std::set<char> seps);
 };
 
 QSharedPointer<Function> temporaryFunction(const QString &definition);

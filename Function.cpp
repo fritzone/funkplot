@@ -5,6 +5,7 @@
 #include <math.h>
 #include <string.h>
 #include <memory>
+#include <set>
 
 Function::Function(const char *expr) : funBody(expr)
 {
@@ -103,11 +104,68 @@ const QString &Function::get_funBody() const
     return funBody;
 }
 
+std::string Function::extract_proper_expression(const char *&p, std::set<char> seps)
+{
+    std::string res = "";
+    bool done = false;
+    int current_par_level = 1;
+    while(!done)
+    {
+        bool added = false;
+        if(*p == '(')
+        {
+            current_par_level ++;
+            res += *p;
+            added = true;
+        }
+        else
+        if(*p == ')')
+        {
+            current_par_level--;
+            if(current_par_level >= 1)
+            {
+                res += *p;
+                added = true;
+            }
+        }
+
+
+        // see if we can leave: no more parentheses and the current one is separator
+        if(seps.count(*p) > 0 and current_par_level <= 1)
+        {
+            if(current_par_level == 0)
+            {
+                done = true;
+            }
+
+            // except if the current one is a closing parenthesys and the separator is also a parenthesis
+            if(  !(*p == ')' && seps.count(*p) > 0))
+            {
+                done = true;
+            }
+        }
+        else
+        {
+            if(!added)
+            {
+                res += *p;
+            }
+        }
+
+        p++;
+
+        if(!*p) done = true;
+
+    }
+
+    return res;
+}
+
 std::string Function::preverify_formula(char* expr)
 {
     std::string s;
     for (int i = 0; i < strlen(expr); i++) {
-        if (expr[i] == '$' || isalnum(expr[i]) || isoperator(expr[i]) || isparanthesis(expr[i])) {
+        if (expr[i] == ',' || expr[i] == '$' || isalnum(expr[i]) || isoperator(expr[i]) || isparanthesis(expr[i])) {
             if (expr[i] != '-')
             {
                 s += expr[i];
@@ -183,20 +241,55 @@ void Function::doit(const char* expr, tree* node)
             wrapper.reset(iffunc);
 
             if (iffunc) {
-
+                std::string siffunc (iffunc);
                 node->info = iffunc;
-                node->right = nullptr;
 
-                const char* expr3 = expr + strlen(iffunc);
+                if(siffunc == "pow")
+                {
+                    // the power function has 2 parameters
 
-                if (!strcmp(expr3, "()")) {
-                    throw syntax_error_exception("Possible error in statement: %s No parameters for a function (%s)", expr, iffunc);
+                    // getting tjh first one
+                    const char* expr3 = expr + strlen(iffunc);
+
+                    if (!strcmp(expr3, "()"))
+                    {
+                        throw syntax_error_exception("Possible error in statement: %s No parameters for a function (%s)", expr, iffunc);
+                    }
+                    if (strlen(expr3) == 0)
+                    {
+                        throw syntax_error_exception("Possible error in statement: %s Meaningless use of a function (%s)", expr, iffunc);
+                    }
+
+                    // skipping the parentheses
+                    if(*expr3 == '(')
+                    {
+                        expr3 ++;
+                    }
+
+                    std::string p1 = extract_proper_expression(expr3, {','});
+                    std::string p2 =extract_proper_expression(expr3, {')'});
+
+                    node->left = new tree;
+                    doit(p1.c_str(), node->left);
+
+                    node->right = new tree;
+                    doit(p2.c_str(), node->right);
                 }
-                if (strlen(expr3) == 0) {
-                    throw syntax_error_exception("Possible error in statement: %s Meaningless use of a function (%s)", expr, iffunc);
+                else
+                {
+                    node->right = nullptr;
+
+                    const char* expr3 = expr + strlen(iffunc);
+
+                    if (!strcmp(expr3, "()")) {
+                        throw syntax_error_exception("Possible error in statement: %s No parameters for a function (%s)", expr, iffunc);
+                    }
+                    if (strlen(expr3) == 0) {
+                        throw syntax_error_exception("Possible error in statement: %s Meaningless use of a function (%s)", expr, iffunc);
+                    }
+                    node->left = new tree;
+                    doit(expr3, node->left);
                 }
-                node->left = new tree;
-                doit(expr3, node->left);
 
             }
             else if (expr[strlen(expr) - 1] == ')')
@@ -309,24 +402,10 @@ double Function::op(const std::string& s, double op1, double op2)
         }
     }
 
-    if (s == "sin")
+    auto it = std::find_if(supported_functions.begin(), supported_functions.end(), [s](fun_desc_solve fds){ return fds.name == s;});
+    if(it != supported_functions.end())
     {
-        return sin(op1);
-    }
-
-    if (s == "exp")
-    {
-        return exp(op1);
-    }
-
-    if (s == "cos")
-    {
-        return cos(op1);
-    }
-
-    if (s == "tan")
-    {
-        return tan(op1);
+        return it->solver(op1, op2);
     }
 
     return -1;
