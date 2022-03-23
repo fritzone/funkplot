@@ -306,7 +306,7 @@ void Function::doit(const char* expr, tree* node)
     }
 }
 
-int Function::l0ops(const char* expr, char op1, char op2)
+int Function::l0ops(const char* expr, char op1, char op2, char op3)
 {
     unsigned int i = 0, level = 0;
     while (i < strlen(expr))
@@ -315,7 +315,7 @@ int Function::l0ops(const char* expr, char op1, char op2)
             level++;
         if (expr[i] == ')')
             level--;
-        if ((expr[i] == op1 || expr[i] == op2) && level == 0)
+        if ((expr[i] == op1 || expr[i] == op2 || (expr[i] == op3 && op3) ) && level == 0)
             return i;
         i++;
     }
@@ -329,7 +329,7 @@ int Function::l0add(const char* expr)
 
 int Function::l0mlt(const char* expr)
 {
-    return l0ops(expr, '*', '/');
+    return l0ops(expr, '*', '/', '%');
 }
 
 double Function::calc(tree* node, RuntimeProvider* rp)
@@ -375,33 +375,6 @@ void Function::free_tree(tree *node)
 
 double Function::op(const std::string& s, double op1, double op2)
 {
-    if (s == "+")
-    {
-        return op1 + op2;
-    }
-
-    if (s == "-")
-    {
-        return op1 - op2;
-    }
-
-    if (s == "*")
-    {
-        return op1 * op2;
-    }
-
-    if (s == "/")
-    {
-        if (op2 != 0)
-        {
-            return op1 / op2;
-        }
-        else
-        {
-            return  sgn(op1) * std::numeric_limits<double>::quiet_NaN();
-        }
-    }
-
     auto it = std::find_if(supported_functions.begin(), supported_functions.end(), [s](fun_desc_solve fds){ return fds.name == s;});
     if(it != supported_functions.end())
     {
@@ -451,4 +424,11 @@ double Function::value(const std::string& s, RuntimeProvider* rp)
     }
 
     return std::numeric_limits<double>::quiet_NaN();
+}
+
+
+QSharedPointer<Function> temporaryFunction(const QString &definition)
+{
+    QString funString = QString::fromStdString(random_string(16)) +  "($) = " + definition;
+    return QSharedPointer<Function>(new Function(funString.toLocal8Bit().data()));
 }

@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <QString>
 
 std::string random_string(size_t length, random_string_class cls)
 {
@@ -157,4 +158,37 @@ std::string &srtrim(std::string &s) {
 std::string strim(std::string &s)
 {
     return sltrim(srtrim(s));
+}
+
+void consumeSpace(QString &s)
+{
+    while(!s.isEmpty() && s[0].isSpace())
+    {
+        s = s.mid(1);
+    }
+}
+
+QString getDelimitedId(QString &s, QSet<char> delims, char& delim)
+{
+    QString result;
+    consumeSpace(s);
+    // name of the assigned variable
+    while(!s.isEmpty() && !delims.contains(s[0].toLatin1()))
+    {
+        result += s[0];
+        s = s.mid(1);
+    }
+    delim = s[0].toLatin1();
+    // skip the delimiter
+    s = s.mid(1);
+    // and the space folowing that
+    consumeSpace(s);
+
+    return result;
+}
+
+QString getDelimitedId(QString& s, QSet<char> delim)
+{
+    char d;
+    return getDelimitedId(s, delim, d);
 }

@@ -76,7 +76,7 @@ private:
     void doit(const char *expr, tree* node);
 
 	//look for a level 0 additive or multiplicative operator
-    int l0ops(const char *expr, char op1, char op2);
+    int l0ops(const char *expr, char op1, char op2, char op3 = 0);
 
 	//looks for a lvel 0 additive operator
     int l0add(const char *expr);

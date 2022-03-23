@@ -16,15 +16,15 @@
 #include <functional>
 #include <map>
 #include <vector>
-#include <QChar>
 
 #include <cstdio> // snprintf
 #include <string>
 #include <stdexcept> // runtime_error
 #include <memory> // unique_ptr
-
 #include <cmath>
 
+#include <QSet>
+#include <QChar>
 
 struct fun_desc_solve
 {
@@ -35,6 +35,13 @@ struct fun_desc_solve
 
 static const std::vector<fun_desc_solve> supported_functions
 {
+     // basic stuff
+     {"+", "Simple addition", [](double v, double v2) -> double { return v + v2; } },
+     {"-", "Simple substraction", [](double v, double v2) -> double { return v - v2; } },
+     {"*", "Simple multiplication", [](double v, double v2) -> double { return v * v2; } },
+     {"%", "Simple modulo operator", [](double v, double v2) -> double { return  v2 == 0 ? std::numeric_limits<double>::quiet_NaN() : (static_cast<int>(v) % static_cast<int>(v2)); } },
+     {"/", "Simple division", [](double v, double v2) -> double { return  v2 == 0 ? std::numeric_limits<double>::quiet_NaN() : v / v2; } },
+
      //trygonometry, simple
      {"sin", "The sine function", [](double v, double v2) -> double { return std::sin(v); } },
      {"cos", "The cosine function", [](double v, double v2) -> double { return std::cos(v); } },
@@ -56,7 +63,11 @@ static const std::vector<fun_desc_solve> supported_functions
      {"log", "The common logarithmic function", [](double v, double v2) -> double { return std::log10(v); } },
      {"ln", "The logarithmic function", [](double v, double v2) -> double { return std::log(v); } },
      {"sqrt", "The square root function", [](double v, double v2) -> double { return std::sqrt(v); } },
-     {"pow", "The power function", [](double v, double v2) -> double { return std::pow(v, v2); } }
+     {"pow", "The power function", [](double v, double v2) -> double { return std::pow(v, v2); } },
+
+     // Some easy stuff
+     {"inc", "Increment by one", [](double v, double v2) -> double { return v + 1; } },
+     {"dec", "Decrement by one", [](double v, double v2) -> double { return v - 1; } },
 
 };
 
@@ -215,5 +226,10 @@ std::string strim(std::string &s);
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
+
+void consumeSpace(QString &s);
+QString getDelimitedId(QString&, QSet<char>, char &delim);
+QString getDelimitedId(QString&, QSet<char> = {' '});
+
 
 #endif
