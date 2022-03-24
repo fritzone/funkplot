@@ -27,6 +27,13 @@ struct DrawnLine
     QPen pen;
 };
 
+struct DrawnPoint
+{
+    QPointF point;
+    QPen pen;
+};
+
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -38,6 +45,7 @@ public:
     QVector<QPointF> drawPlot(QSharedPointer<Plot>);
     void setCurrentStatement(const QString &newCurrentStatement);
     void drawPoint(double x, double y);
+    bool eventFilter(QObject *obj, QEvent *event);
 
 private slots:
     void on_splitter_splitterMoved(int pos, int index);
@@ -55,7 +63,9 @@ private:
     double coordStartY();
     double coordEndY();
     double zoomFactor();
-
+    double rotationAngle();
+    void createMenubar();
+    QPoint toScene(QPointF);
 
     template<class E>
     void genericPlotIterator(QSharedPointer<Plot> plot, E executor)
@@ -69,19 +79,20 @@ private:
     Ui::MainWindow *ui;
     QGraphicsScene* sc = nullptr;
 
-
-
     // in case we resize/zoom/scroll the window, these objects will be used to redraw the scene
     QVector<DrawnLine> drawnLines;
-    QVector<QPointF> drawnPoints;
+    QVector<DrawnPoint> drawnPoints;
     friend class Sett;
     friend class Assignment;
     QPen drawingPen;
     QString currentStatement;
     RuntimeProvider rp;
-    int sceneScrollX = 0;
-    int sceneScrollY = 0;
-    MyGraphicsView* graphicsView;
+
+    MyGraphicsView* graphicsView = nullptr;
+    QMenuBar *menuBar = nullptr;
+    QMenuBar *bar = nullptr;
+    QDockWidget *dock = nullptr;
+
 };
 
 #endif // MAINWINDOW_H

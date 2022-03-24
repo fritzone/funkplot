@@ -70,6 +70,7 @@ add_executable(ggui
     main.cpp
     MainWindow.h MainWindow.cpp MainWindow.ui
     MyGraphicsView.h MyGraphicsView.cpp
+    GraphicsViewZoom.h GraphicsViewZoom.cpp
     ${GUI_UI_FILES}
     ${GUI_QRC_FILES}
 )

@@ -4,14 +4,36 @@
 #include "util.h"
 #include "colors.h"
 #include "MyGraphicsView.h"
+#include "GraphicsViewZoom.h"
 
 #include <QGraphicsTextItem>
 #include <QDebug>
 #include <QSharedPointer>
 #include <QPen>
 #include <QDockWidget>
+#include <QResizeEvent>
 
 #include <functional>
+
+
+void MainWindow::createMenubar()
+{
+    menuBar = new QMenuBar(dock);
+    QMenu *fileMenu = menuBar->addMenu(tr("&File"));
+    fileMenu->addAction("&New");
+    connect(fileMenu->addAction("E&xit"), &QAction::triggered, this, []() {QApplication::exit();});
+
+    bar = new QMenuBar(dock);
+
+    // right aligned help
+    QMenu *helpMenu = bar->addMenu(tr("&Help"));
+    helpMenu->addAction("&About");
+
+    menuBar->setCornerWidget(bar);
+
+}
+
+
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -26,19 +48,19 @@ MainWindow::MainWindow(QWidget *parent) :
       )
 {
 
-
-
     ui->setupUi(this);
     graphicsView = new MyGraphicsView(ui->frmDrawing);
     graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
     graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
+    Graphics_view_zoom* z = new Graphics_view_zoom(graphicsView);
+    z->set_modifiers(Qt::NoModifier);
 
     sc = new QGraphicsScene(graphicsView->rect());
     graphicsView->setScene(sc);
 
-    QDockWidget *dock = new QDockWidget(this);
+    dock = new QDockWidget(this);
     dock->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dock->setWidget(ui->frmCodeBlock);
 
@@ -50,20 +72,43 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(dock, SIGNAL(topLevelChanged(bool)), this, SLOT(dockWidgetTopLevelChanged(bool)));
     dock->setTitleBarWidget(ui->frame);
 
-    QMenuBar *menuBar = new QMenuBar(dock);
-    auto fileMenu = menuBar->addMenu(tr("&File"));
-    fileMenu->addAction("&New");
-
+    // standard menu
+    createMenubar();
 
     ui->verticalLayout->addWidget(graphicsView);
 
     graphicsView->viewport()->setFocusProxy(0);
+
+    connect(graphicsView, &MyGraphicsView::redraw, this, [this]()
+            {
+                redrawEverything();
+            }
+    );
+    dock->installEventFilter(this);
 
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::Resize && obj == dock)
+    {
+        QResizeEvent *resizeEvent = dynamic_cast<QResizeEvent*>(event);
+        qDebug("Dock Resized (New Size) - Width: %d Height: %d",
+               resizeEvent->size().width(),
+               resizeEvent->size().height());
+
+        qDebug() << menuBar->geometry();
+
+        menuBar->setGeometry(QRect{0, 0, resizeEvent->size().width(), 23});
+        menuBar->repaint(QRect{0, 0, resizeEvent->size().width(), 23});
+        return true;
+    }
+    return QWidget::eventFilter(obj, event);
 }
 
 void MainWindow::reportError(QString err)
@@ -100,49 +145,86 @@ void MainWindow::dockWidgetTopLevelChanged(bool)
 void MainWindow::drawCoordinateSystem()
 {
     sc->clear();
-    sc->addLine(sceneX(0), sceneY(0), sceneX(coordEndX()), sceneY(0), QPen(Qt::red));
-    sc->addLine(sceneX(0), sceneY(0), sceneX(coordStartX()), sceneY(0), QPen(Qt::red));
-    sc->addLine(sceneX(0), sceneY(0), sceneX(0), sceneY(coordEndY()), QPen(Qt::red));
-    sc->addLine(sceneX(0), sceneY(0), sceneX(0), sceneY(coordStartY()), QPen(Qt::red));
-    sc->addLine(sceneX(0), sceneY(coordEndY()), sceneX(0) - 6, sceneY(coordEndY()) + 6, QPen(Qt::red));
-    sc->addLine(sceneX(0), sceneY(coordEndY()), sceneX(0) + 6, sceneY(coordEndY()) + 6, QPen(Qt::red));
-    sc->addLine(sceneX(coordEndX()), sceneY(0), sceneX(coordEndX()) - 6, sceneY(0) - 6, QPen(Qt::red));
-    sc->addLine(sceneX(coordEndX()), sceneY(0), sceneX(coordEndX()) - 6, sceneY(0) + 6, QPen(Qt::red));
+    sc->addLine(QLineF(toScene( {0, 0} ), toScene( {coordEndX(), 0 })), QPen(Qt::blue));
+    sc->addLine(QLineF(toScene( {0, 0} ), toScene( {coordStartX(), 0})), QPen(Qt::red));
+    sc->addLine(QLineF(toScene( {0, 0} ), toScene( {0, coordEndY()})), QPen(Qt::red));
+    sc->addLine(QLineF(toScene( {0, 0} ), toScene( {0, coordStartY()})), QPen(Qt::red));
 
+    auto endPoint1 = toScene( {0, coordEndY()});
+
+    // the points of the arrow will be on a circle, radius 0.05, with rotation angle +/- 15 degreees
+    double r = 0.3;
+    double firstAngdiffTop = 0.261799 + M_PI;
+    double firstAngdiffBottom = 0.261799 + M_PI;
+    QPointF firstArrowheadTop = toScene({r * sin(firstAngdiffTop), coordEndY() + r * cos(+ firstAngdiffTop)});
+    QPointF firstArrowheadBottom = toScene({r * sin(- firstAngdiffBottom), coordEndY() + r * cos(- firstAngdiffBottom)});
+
+    sc->addLine(QLineF(endPoint1, firstArrowheadTop), QPen(Qt::red));
+    sc->addLine(QLineF(endPoint1, firstArrowheadBottom), QPen(Qt::red));
+
+    auto endPoint2 = toScene( {coordEndX(), 0});
+
+    double secondAngdiffTop = 0.261799 + 3 * M_PI / 2;
+    double secondAngdiffBottom = 0.261799 + M_PI /2;
+
+    QPointF secondArrowheadTop = toScene({coordEndX() + r * sin(secondAngdiffTop), r * cos(+ secondAngdiffTop)});
+    QPointF secondArrowheadBottom = toScene({coordEndX() + r * sin(- secondAngdiffBottom), r * cos(- secondAngdiffBottom)});
+
+    sc->addLine(QLineF(endPoint2, secondArrowheadTop), QPen(Qt::blue));
+    sc->addLine(QLineF(endPoint2, secondArrowheadBottom), QPen(Qt::blue));
+
+    // the small lines
+    r = 0.1;
     for(double x = -1.0; x > coordStartX(); x -= 1.0)
     {
-        QPoint pointOnCoordLine{sceneX(x), sceneY(0)};
-        sc->addLine(pointOnCoordLine.x(), pointOnCoordLine.y() - 3 ,pointOnCoordLine.x(), pointOnCoordLine.y() + 3 , QPen(Qt::red));
+        double angdiff = M_PI/2;
+
+        QPointF lineTop = toScene({x + r * sin(angdiff + M_PI / 2), + r * cos(angdiff + M_PI / 2)});
+        QPointF lineBottom = toScene({x + r * sin(angdiff + 3 * M_PI / 2), + r * cos(angdiff + 3 * M_PI / 2)});
+
+        sc->addLine( {lineTop, lineBottom}, QPen(Qt::red));
 
         QGraphicsTextItem *text = sc->addText(QString::number(x, 'f', 0));
-        text->setPos(pointOnCoordLine.x() - text->boundingRect().width() / 2, pointOnCoordLine.y() + 6);
+        text->setPos(lineBottom.x() - text->boundingRect().width() / 2, lineBottom.y() + 6);
     }
 
     for(double x = 1.0; x < coordEndX(); x += 1.0)
     {
-        QPoint pointOnCoordLine{sceneX(x), sceneY(0)};
-        sc->addLine(pointOnCoordLine.x(), pointOnCoordLine.y() - 3 ,pointOnCoordLine.x(), pointOnCoordLine.y() + 3 , QPen(Qt::red));
+        double angdiff = M_PI/2;
+
+        QPointF lineTop = toScene({x + r * sin(angdiff + M_PI / 2), + r * cos(angdiff + M_PI / 2)});
+        QPointF lineBottom = toScene({x + r * sin(angdiff + 3 * M_PI / 2), + r * cos(angdiff + 3 * M_PI / 2)});
+
+        sc->addLine( {lineTop, lineBottom}, QPen(Qt::blue));
 
         QGraphicsTextItem *text = sc->addText(QString::number(x, 'f', 0));
-        text->setPos(pointOnCoordLine.x() - text->boundingRect().width() / 2, pointOnCoordLine.y() + 6);
+        text->setPos(lineBottom.x() - text->boundingRect().width() / 2, lineBottom.y() + 6);
     }
 
     for(double y = -1.0; y > coordStartY(); y -= 1.0)
     {
-        QPoint pointOnCoordLine{sceneX(0), sceneY(y)};
-        sc->addLine(pointOnCoordLine.x(), pointOnCoordLine.y() - 3 ,pointOnCoordLine.x(), pointOnCoordLine.y() + 3 , QPen(Qt::red));
+        double angdiff = M_PI;
+
+        QPointF lineTop = toScene({r * sin(angdiff + M_PI / 2),y + r * cos(angdiff + M_PI / 2)});
+        QPointF lineBottom = toScene({r * sin(angdiff + 3 * M_PI / 2),y + r * cos(angdiff + 3 * M_PI / 2)});
+
+        sc->addLine( {lineTop, lineBottom}, QPen(Qt::red));
 
         QGraphicsTextItem *text = sc->addText(QString::number(y, 'f', 0));
-        text->setPos(pointOnCoordLine.x() + 6, pointOnCoordLine.y() - text->boundingRect().height() / 2);
+        text->setPos(lineTop.x() - text->boundingRect().width(), lineTop.y() - text->boundingRect().height() / 2);
     }
 
     for(double y = 1.0; y < coordEndY(); y += 1.0)
     {
-        QPoint pointOnCoordLine{sceneX(0), sceneY(y)};
-        sc->addLine(pointOnCoordLine.x(), pointOnCoordLine.y() - 3 ,pointOnCoordLine.x(), pointOnCoordLine.y() + 3 , QPen(Qt::red));
+        double angdiff = M_PI;
+
+        QPointF lineTop = toScene({r * sin(angdiff + M_PI / 2),y + r * cos(angdiff + M_PI / 2)});
+        QPointF lineBottom = toScene({r * sin(angdiff + 3 * M_PI / 2),y + r * cos(angdiff + 3 * M_PI / 2)});
+
+        sc->addLine( {lineTop, lineBottom}, QPen(Qt::red));
 
         QGraphicsTextItem *text = sc->addText(QString::number(y, 'f', 0));
-        text->setPos(pointOnCoordLine.x() + 6, pointOnCoordLine.y() - text->boundingRect().height() / 2);
+        text->setPos(lineTop.x() - text->boundingRect().width(), lineTop.y() - text->boundingRect().height() / 2);
     }
 }
 
@@ -155,15 +237,44 @@ int MainWindow::sceneX(double x)
 {
     int zeroX = sc->sceneRect().width() / 2;
 
-    return zeroX + sceneScrollX + x * zoomFactor();
+    return zeroX + graphicsView->get_sceneScrollX() + x * zoomFactor();
 }
 
 int MainWindow::sceneY(double y)
 {
     int zeroY = sc->sceneRect().height() / 2;
 
-    return zeroY + sceneScrollY - y * zoomFactor();
+    return zeroY + graphicsView->get_sceneScrollY() - y * zoomFactor();
 }
+
+QPointF rotatePoint(float cx, float cy, float angle, QPointF p)
+{
+    float s = sin(angle);
+    float c = cos(angle);
+
+    // translate point back to origin:
+    p.setX(p.x() - cx);
+    p.setY(p.y() - cy);
+
+    // rotate point
+    float xnew = p.x() * c - p.y() * s;
+    float ynew = p.x() * s + p.y() * c;
+
+    // translate point back:
+    p.setX( xnew + cx );
+    p.setY( ynew + cy );
+    return p;
+}
+
+QPoint MainWindow::toScene(QPointF f)
+{
+    QPointF rotated = rotatePoint(0, 0, rotationAngle(), f);
+    int scx = sceneX(rotated.x());
+    int scy = sceneY(rotated.y());
+
+    return {scx, scy};
+}
+
 
 double MainWindow::coordStartX()
 {
@@ -188,6 +299,11 @@ double MainWindow::coordEndY()
 double MainWindow::zoomFactor()
 {
     return 50.0;
+}
+
+double MainWindow::rotationAngle()
+{
+    return 0.523599;
 }
 
 QVector<QPointF> MainWindow::drawPlot(QSharedPointer<Plot> plot)
@@ -219,7 +335,7 @@ QVector<QPointF> MainWindow::drawPlot(QSharedPointer<Plot> plot)
         else
         {
             sc->addEllipse(sceneX(x), sceneY(y), 1.0, 1.0, drawingPen);
-            drawnPoints.append({x, y});
+            drawnPoints.append({{x, y}, drawingPen});
         }
     };
 
@@ -232,9 +348,8 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 {
     QMainWindow::resizeEvent(event);
     sc->setSceneRect(graphicsView->rect());
-    qDebug() << sc->sceneRect();
+
     QRect wrect = rect();
-//    ui->splitter->setSizes({wrect.height() / 3, 2 * wrect.height() / 3} );
     redrawEverything();
 }
 
@@ -248,7 +363,8 @@ void MainWindow::redrawEverything()
 
     for(const auto&p : qAsConst(drawnPoints))
     {
-        sc->addEllipse(sceneX(p.x()), sceneY(p.y()), 1.0, 1.0);
+
+        sc->addEllipse(sceneX(p.point.x()), sceneY(p.point.y()), 1.0, 1.0, p.pen);
     }
 
 }
@@ -257,7 +373,7 @@ void MainWindow::drawPoint(double x, double y)
 {
 
     sc->addEllipse(sceneX(x), sceneY(y), 1.0, 1.0, drawingPen);
-    drawnPoints.append({x, y});
+    drawnPoints.append({{x, y}, drawingPen});
 
 }
 
