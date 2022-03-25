@@ -247,24 +247,7 @@ int MainWindow::sceneY(double y)
     return zeroY + graphicsView->get_sceneScrollY() - y * zoomFactor();
 }
 
-QPointF rotatePoint(float cx, float cy, float angle, QPointF p)
-{
-    float s = sin(angle);
-    float c = cos(angle);
 
-    // translate point back to origin:
-    p.setX(p.x() - cx);
-    p.setY(p.y() - cy);
-
-    // rotate point
-    float xnew = p.x() * c - p.y() * s;
-    float ynew = p.x() * s + p.y() * c;
-
-    // translate point back:
-    p.setX( xnew + cx );
-    p.setY( ynew + cy );
-    return p;
-}
 
 QPoint MainWindow::toScene(QPointF f)
 {
@@ -303,7 +286,7 @@ double MainWindow::zoomFactor()
 
 double MainWindow::rotationAngle()
 {
-    return 0.523599;
+    return 0;
 }
 
 QVector<QPointF> MainWindow::drawPlot(QSharedPointer<Plot> plot)
@@ -326,15 +309,19 @@ QVector<QPointF> MainWindow::drawPlot(QSharedPointer<Plot> plot)
             }
             else
             {
-                sc->addLine( sceneX(cx), sceneY(cy), sceneX(x), sceneY(y), drawingPen);
-                drawnLines.append({{cx, cy, x, y}, drawingPen});
+                QPoint scp1 {toScene({cx, cy})};
+                QPoint scp2 {toScene({x, y})};
+                sc->addLine( QLine(scp1, scp2), drawingPen);
+                drawnLines.append({{static_cast<qreal>(cx), static_cast<qreal>(cy), static_cast<qreal>(x), static_cast<qreal>(y)}, drawingPen});
                 cx = x;
                 cy = y;
             }
         }
         else
         {
-            sc->addEllipse(sceneX(x), sceneY(y), 1.0, 1.0, drawingPen);
+            QPoint scp {toScene({x, y})};
+
+            sc->addEllipse(scp.x(), scp.y(), 1.0, 1.0, drawingPen);
             drawnPoints.append({{x, y}, drawingPen});
         }
     };
@@ -358,21 +345,23 @@ void MainWindow::redrawEverything()
     drawCoordinateSystem();
     for(const auto&l : qAsConst(drawnLines))
     {
-        sc->addLine(sceneX(l.line.x1()), sceneY(l.line.y1()), sceneX(l.line.x2()), sceneY(l.line.y2()), l.pen);
+        QPoint p1 = toScene({l.line.x1(), l.line.y1()});
+        QPoint p2 = toScene({l.line.x2(), l.line.y2()});
+        sc->addLine(QLine(p1, p2) , l.pen);
     }
 
     for(const auto&p : qAsConst(drawnPoints))
     {
-
-        sc->addEllipse(sceneX(p.point.x()), sceneY(p.point.y()), 1.0, 1.0, p.pen);
+        QPoint pd = toScene({p.point.x(), p.point.y()});
+        sc->addEllipse(pd.x(), pd.y(), 1.0, 1.0, p.pen);
     }
 
 }
 
 void MainWindow::drawPoint(double x, double y)
 {
-
-    sc->addEllipse(sceneX(x), sceneY(y), 1.0, 1.0, drawingPen);
+    QPoint p = toScene({x, y});
+    sc->addEllipse(p.x(), p.y(), 1.0, 1.0, drawingPen);
     drawnPoints.append({{x, y}, drawingPen});
 
 }

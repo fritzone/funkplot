@@ -25,6 +25,7 @@
 
 #include <QSet>
 #include <QChar>
+#include <QPointF>
 
 struct fun_desc_solve
 {
@@ -231,5 +232,6 @@ void consumeSpace(QString &s);
 QString getDelimitedId(QString&, QSet<char>, char &delim);
 QString getDelimitedId(QString&, QSet<char> = {' '});
 
+QPointF rotatePoint(float cx, float cy, float angle, QPointF p);
 
 #endif

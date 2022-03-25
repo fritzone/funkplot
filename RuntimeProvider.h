@@ -32,99 +32,33 @@ public:
     QMap<QString, double>& variables();
 
     template<class E>
-    void genericPlotIterator(QSharedPointer<Plot> plot, E executor)
+    void genericPlotIterator(QSharedPointer<Plot> plot, const E executor)
     {
         QSharedPointer<Assignment> assignment(nullptr);
-        bool continuous = true;
 
         // first test: see if this is a function we need to plot
         QSharedPointer<Function> funToUse = getFunction(plot->plotTarget, assignment);
 
-        if(!funToUse)
+        if(!funToUse && !assignment)
         {
             if(!resolveAsPoint(plot))
             {
                 reportError("Invalid data to plot: " + plot->plotTarget);
-                return;
             }
+            return;
         }
 
+        bool continuous = true;
         double plotStart = -1.0;
         double plotEnd = 1.0;
         bool counted = plot->counted;
-        QSharedPointer<Function> stepFun = nullptr;
+        double stepValue = 0.01;
 
-        if(assignment)
-        {
-            if(!plot->start)
-            {
-                if(! assignment->startValueProvider())
-                {
-                    reportError("Invalid plotting interval for " + assignment->varName + ". There is no clear start value defined for it.");
-                    return;
-                }
-                else
-                {
-                    plotStart = assignment->startValueProvider()->Calculate(this);
-                }
-            }
-            else
-            {
-                plotStart = plot->start->Calculate(this);
-            }
-
-            if(!plot->end)
-            {
-                if(! assignment->endValueProvider())
-                {
-                    reportError("Invalid plotting interval. There is no clear end value defined for it.");
-                    return;
-                }
-                else
-                {
-                    plotEnd = assignment->endValueProvider()->Calculate(this);
-                }
-            }
-            else
-            {
-                plotEnd = plot->end->Calculate(this);
-            }
-            continuous = assignment->continuous || plot->continuous;
-            counted |= assignment->counted;
-            stepFun = assignment->step;
-
-        }
-        else
-        {
-            stepFun = plot->step;
-            continuous = plot->continuous;
-            if(plot->start)
-            {
-                plotStart = plot->start->Calculate(this);
-            }
-
-            if(plot->end)
-            {
-                plotEnd = plot->end->Calculate(this);
-            }
-        }
+        resolvePlotInterval(plot, assignment, continuous, plotStart, plotEnd, counted, stepValue);
 
         auto pars = funToUse->get_domain_variables();
         if(pars.size() == 1)
         {
-            double t = stepFun->Calculate(this);
-            double stepValue = t;
-            if(counted)
-            {
-                if(t > 1)
-                {
-                    stepValue = (plotEnd - plotStart) / (t - 1);
-                }
-                else
-                {
-                    stepValue = (plotEnd - plotStart);
-                }
-            }
             for(double x=plotStart; x<=plotEnd; x += stepValue)
             {
 
@@ -149,8 +83,6 @@ public:
             reportError("Invalid function to plot: " + plot->plotTarget + ". Multidomain functions are not supported yet");
             return;
         }
-
-
     }
 
     QSharedPointer<Function> getFunction(const QString &name, QSharedPointer<Assignment>& assignment);
@@ -162,6 +94,8 @@ public:
     void setCurrentStatement(const QString &newCurrentStatement);
     void setPen(int, int, int, int);
     void drawPlot(QSharedPointer<Plot> plot);
+    void resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPointer<Assignment> assignment,
+                             bool &continuous, double &plotStart, double &plotEnd, bool &counted, double &stepValue);
 
     QSharedPointer<Statement> resolveCodeline(QStringList& codelines, QVector<QSharedPointer<Statement>>& statements, QSharedPointer<Statement> parentScope);
 
@@ -170,6 +104,8 @@ public:
     QSharedPointer<Statement> createFunction(const QString& codeline);
     QSharedPointer<Statement> createSett(const QString &codeline);
     QSharedPointer<Statement> createLoop(const QString &codeline, QStringList& codelines);
+    QSharedPointer<Statement> createRotation(const QString &codeline, QStringList& codelines);
+
     void resolveOverKeyword(QString codeline, QSharedPointer<Stepped>);
     QSharedPointer<Assignment> providePointsOfDefinition(const QString &codeline, QString assignment_body, const QString &varName, const QString &targetProperties);
     QVector<QSharedPointer<Assignment> > &get_assignments();

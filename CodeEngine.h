@@ -11,6 +11,7 @@ class RuntimeProvider;
 
 namespace Keywords
 {
+const QString KW_ROTATE = "rotate";        // rotate <scene|point|assignment_of_points|object> with X [degrees|radians] [around <point>]
 const QString KW_FUNCTION = "function";    // function f(x) = x * 2 + 5
 const QString KW_PLOT = "plot";            // plot f over (-2, 2) [continuous]
 const QString KW_OVER = "over";            // plot f over (-2, 2) [continuous]
@@ -231,10 +232,24 @@ struct PointDefinitionAssignment : public Assignment
     QSharedPointer<Function> x;       // x position
     QSharedPointer<Function> y;       // y position
 
+    bool rotated = false;
+
+    double rotated_x = 0.0;
+    double rotated_y = 0.0;
+
     bool execute(RuntimeProvider* rp) override;
     std::tuple<QSharedPointer<Function>, QSharedPointer<Function>> fullCoordProvider() override
     {
-        return {x, y};
+        if(rotated)
+        {
+            QString spx = QString::number(rotated_x, 'f', 10);
+            QString spy = QString::number(rotated_y, 'f', 10);
+            return {temporaryFunction(spx), temporaryFunction(spy)};
+        }
+        else
+        {
+            return {x, y};
+        }
     }
 
 };
@@ -252,5 +267,20 @@ struct FunctionDefinition : public Statement
     }
 };
 
+struct Rotation : public Statement
+{
+    explicit Rotation(QString a) : Statement(a) {}
+
+    QSharedPointer<Function> degree;
+    QString what;
+    QString unit;
+
+    bool execute(RuntimeProvider* rp) override;
+    QString keyword() const override
+    {
+        return Keywords::KW_ROTATE;
+    }
+
+};
 
 #endif // CODEENGINE_H

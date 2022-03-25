@@ -7,6 +7,7 @@ const QString STR_LET = Keywords::KW_LET + " ";              // let something = 
 const QString STR_OF  = Keywords::KW_OF + " ";               // let something = points of f over (-2, 2) [continuous|step<cnt|0.01>]
 const QString STR_STEP = Keywords::KW_STEP + " ";            // plot f over (-2, 2) [continuous|step<cnt|0.01>]
 const QString STR_COUNTS = Keywords::KW_COUNTS + " ";
+const QString STR_ROTATE = Keywords::KW_ROTATE + " ";
 const QString STR_FOREACH = Keywords::KW_FOREACH + " ";      // foreach p in something do ... done
 const QString STR_SET = Keywords::KW_SET + " ";              // set color red
 const QString STR_IN = Keywords::KW_IN + " ";                // foreach p in something do ... done
@@ -167,6 +168,83 @@ void RuntimeProvider::drawPlot(QSharedPointer<Plot> plot)
     m_plotDrawer(plot);
 }
 
+void RuntimeProvider::resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPointer<Assignment> assignment,
+                                          bool& continuous, double& plotStart, double& plotEnd, bool& counted, double &stepValue)
+{
+    QSharedPointer<Function> stepFun = nullptr;
+
+    if(assignment)
+    {
+        if(!plot->start)
+        {
+            if(! assignment->startValueProvider())
+            {
+                reportError("Invalid plotting interval for " + assignment->varName + ". There is no clear start value defined for it.");
+                return;
+            }
+            else
+            {
+                plotStart = assignment->startValueProvider()->Calculate(this);
+            }
+        }
+        else
+        {
+            plotStart = plot->start->Calculate(this);
+        }
+
+        if(!plot->end)
+        {
+            if(! assignment->endValueProvider())
+            {
+                reportError("Invalid plotting interval. There is no clear end value defined for it.");
+                return;
+            }
+            else
+            {
+                plotEnd = assignment->endValueProvider()->Calculate(this);
+            }
+        }
+        else
+        {
+            plotEnd = plot->end->Calculate(this);
+        }
+        continuous = assignment->continuous || plot->continuous;
+        counted |= assignment->counted;
+        stepFun = assignment->step;
+
+    }
+    else
+    {
+        stepFun = plot->step;
+        continuous = plot->continuous;
+        if(plot->start)
+        {
+            plotStart = plot->start->Calculate(this);
+        }
+
+        if(plot->end)
+        {
+            plotEnd = plot->end->Calculate(this);
+        }
+    }
+
+    if(stepFun)
+    {
+        double t = stepFun->Calculate(this);
+        if(counted)
+        {
+            if(t > 1)
+            {
+                stepValue = (plotEnd - plotStart) / (t - 1);
+            }
+            else
+            {
+                stepValue = (plotEnd - plotStart);
+            }
+        }
+    }
+}
+
 QSharedPointer<Statement> RuntimeProvider::resolveCodeline(QStringList& codelines, QVector<QSharedPointer<Statement>>& statements, QSharedPointer<Statement> parentScope)
 {
     QString codeline = codelines[0];
@@ -201,6 +279,10 @@ QSharedPointer<Statement> RuntimeProvider::resolveCodeline(QStringList& codeline
         if(codeline.startsWith(Keywords::KW_DONE)) // looping over a set of points or something else
         {
             statements.append(createdStatement = QSharedPointer<Done>(new Done(codeline)));
+        }
+        if(codeline.startsWith(Keywords::KW_ROTATE)) // rotating something
+        {
+            statements.append(createdStatement = createRotation(codeline, codelines));
         }
 
         if(createdStatement)
@@ -403,6 +485,27 @@ QSharedPointer<Statement> RuntimeProvider::createLoop(const QString &codeline, Q
 
     return result;
 
+}
+
+QSharedPointer<Statement> RuntimeProvider::createRotation(const QString &codeline, QStringList &codelines)
+{
+    QString r_decl = codeline.mid(STR_ROTATE.length());
+    QString rotate_what = getDelimitedId(r_decl);
+    QString with_keyword = getDelimitedId(r_decl);
+    if(with_keyword != "with")
+    {
+        throw syntax_error_exception("rotate statement does not contain <b>with</b> keyword");
+    }
+    QString rotation_amount = getDelimitedId(r_decl);
+    QString rotation_unit = getDelimitedId(r_decl);
+
+    QSharedPointer<Rotation> result;
+    result.reset(new Rotation(codeline));
+    result->degree = temporaryFunction(rotation_amount);
+    result->what = rotate_what;
+    result->unit = rotation_unit;
+
+    return result;
 }
 
 

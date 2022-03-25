@@ -89,7 +89,7 @@ char *after(int pos, const char *src)
 
 int isoperator(char c)
 {
-    return c=='+' || c=='-' || c== '/' || c=='*' || c=='.';
+    return c=='+' || c=='-' || c== '/' || c=='*' || c=='.' || c == '%';
 }
 
 int isparanthesis(char c)
@@ -191,4 +191,23 @@ QString getDelimitedId(QString& s, QSet<char> delim)
 {
     char d;
     return getDelimitedId(s, delim, d);
+}
+
+QPointF rotatePoint(float cx, float cy, float angle, QPointF p)
+{
+    float s = sin(angle);
+    float c = cos(angle);
+
+    // translate point back to origin:
+    p.setX(p.x() - cx);
+    p.setY(p.y() - cy);
+
+    // rotate point
+    float xnew = p.x() * c - p.y() * s;
+    float ynew = p.x() * s + p.y() * c;
+
+    // translate point back:
+    p.setX( xnew + cx );
+    p.setY( ynew + cy );
+    return p;
 }

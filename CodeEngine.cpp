@@ -2,6 +2,7 @@
 
 #include "RuntimeProvider.h"
 #include "colors.h"
+#include <QDebug>
 
 bool ArythmeticAssignment::execute(RuntimeProvider *rp)
 {
@@ -391,4 +392,34 @@ bool Plot::execute(RuntimeProvider *rp)
 {
     rp->drawPlot(this->sharedFromThis());
     return true;
+}
+
+bool Rotation::execute(RuntimeProvider *rp)
+{
+    for(auto& adef : rp->get_assignments())
+    {
+        if(what == adef->varName && adef.dynamicCast<PointDefinitionAssignment>())
+        {
+            adef.dynamicCast<PointDefinitionAssignment>()->rotated = false;
+
+            auto fcp = adef->fullCoordProvider();
+            if( std::get<0>(fcp) && std::get<1>(fcp) )
+            {
+
+                double x = std::get<0>(fcp)->Calculate(rp);
+                double y = std::get<1>(fcp)->Calculate(rp);
+
+                double a = degree->Calculate(rp);
+                auto p = rotatePoint(0, 0, a, {x, y});
+                qDebug() << "Rotate:" << x << "," << y << " with" << a << "rads gives" << p;
+
+                adef.dynamicCast<PointDefinitionAssignment>()->rotated_x = p.x();
+                adef.dynamicCast<PointDefinitionAssignment>()->rotated_y = p.y();
+                adef.dynamicCast<PointDefinitionAssignment>()->rotated = true;
+
+                return true;
+            }
+        }
+    }
+    return false;
 }
