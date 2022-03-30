@@ -10,13 +10,13 @@
 #include "Function.h"
 #include "RuntimeProvider.h"
 #include "CodeEngine.h"
+#include "TextEditWithCodeCompletion.h"
 
 #include <functional>
 
 class QGraphicsScene;
-
-
 class MyGraphicsView;
+
 namespace Ui {
 class MainWindow;
 }
@@ -45,10 +45,8 @@ public:
     QVector<QPointF> drawPlot(QSharedPointer<Plot>);
     void setCurrentStatement(const QString &newCurrentStatement);
     void drawPoint(double x, double y);
-    bool eventFilter(QObject *obj, QEvent *event);
 
 private slots:
-    void on_splitter_splitterMoved(int pos, int index);
     void on_toolButton_clicked();
     void dockWidgetTopLevelChanged(bool);
 
@@ -64,7 +62,6 @@ private:
     double coordEndY();
     double zoomFactor();
     double rotationAngle();
-    void createMenubar();
     QPoint toScene(QPointF);
 
     template<class E>
@@ -89,10 +86,9 @@ private:
     RuntimeProvider rp;
 
     MyGraphicsView* graphicsView = nullptr;
-    QMenuBar *menuBar = nullptr;
-    QMenuBar *bar = nullptr;
     QDockWidget *dock = nullptr;
-
+    TextEditWithCodeCompletion *textEdit = nullptr;
+    FrameForLineNumbers* frmLineNrs = nullptr;
 };
 
 #endif // MAINWINDOW_H

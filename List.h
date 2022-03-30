@@ -17,17 +17,17 @@ public:
 	List()
 	{
 		debug("created ne list");
-		first=NULL;
-		if(first==NULL)
+		first=nullptr;
+		if(first==nullptr)
 		{
 			//debug
 			char s[256];
-			sprintf(s,"first(%i) is NULL",first);
+			sprintf(s,"first(%i) is nullptr",first);
 			debug(s);
 			//end debug
 
 		}
-		p=NULL;
+		p=nullptr;
 	}
 
 	/*
@@ -35,12 +35,12 @@ public:
 	 */
 	void AddElement(void *dat)
 	{
-		list *tmp=NULL;
-		if(first==NULL)
+		list *tmp=nullptr;
+		if(first==nullptr)
 		{
 			first=new list;
 			p=first;
-			first->next=NULL;
+			first->next=nullptr;
 			first->inf=dat;
 			return;
 		}
@@ -50,13 +50,13 @@ public:
 			//handle the insuff memory error
 		}
 		tmp->inf=dat;
-		tmp->next=NULL;
+		tmp->next=nullptr;
 		p->next=tmp;
 		p=p->next;
 	}
 
 	/*
-	 * This will return NULL if the desired adress was not in the list
+	 * This will return nullptr if the desired adress was not in the list
 	 * Else it will return the address at which the desired addrs is
 	 */
 	list *InList(void *desiree)
@@ -70,7 +70,7 @@ public:
 			}
 			q=q->next;
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	/*
@@ -103,19 +103,19 @@ public:
 	 * This function calls the ENUMERATOR for each list element. If depending on the
 	 * values, that were passed to the enumerator it returns 0 no more enumeration will be, and
 	 * this function returns the element, which caused the enumerator to return 0.
-	 * Otherwere it returns NULL after passing each element to the enumerator function.
+	 * Otherwere it returns nullptr after passing each element to the enumerator function.
 	 * And of course, the parameter is passed to the enumerator function
 	 */
 	list* Enumerate(ENUMERATOR func, void * parm)
 	{
-		if(first==NULL)
+		if(first==nullptr)
 		{
-			return NULL;
+			return nullptr;
 		}
 		debug("first is not null");
 		list *q=first;
 		
-		while(q!=NULL)
+		while(q!=nullptr)
 		{
 			//debug
 			char s[256];
@@ -128,7 +128,7 @@ public:
 			}
 			q=q->next;
 		}
-		return NULL;
+		return nullptr;
 	}
 	
 

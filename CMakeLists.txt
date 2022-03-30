@@ -68,9 +68,13 @@ qt5_add_resources(GUI_QRC_FILES main.qrc)
 
 add_executable(ggui
     main.cpp
+    Highlighter.h Highlighter.cpp
     MainWindow.h MainWindow.cpp MainWindow.ui
     MyGraphicsView.h MyGraphicsView.cpp
     GraphicsViewZoom.h GraphicsViewZoom.cpp
+    FrameForLineNumbers.h FrameForLineNumbers.cpp
+    TextEditWithCodeCompletion.h TextEditWithCodeCompletion.cpp
+    ListWidgetForCodeCompletion.h ListWidgetForCodeCompletion.cpp
     ${GUI_UI_FILES}
     ${GUI_QRC_FILES}
 )

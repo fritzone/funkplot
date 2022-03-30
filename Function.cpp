@@ -38,7 +38,7 @@ Function::Function(const char *expr) : funBody(expr)
     while (ppar)
     {
         char* pve = strchr(ppar, ',');
-        if (pve != NULL)
+        if (pve != nullptr)
         {
             ppar[pve - ppar] = 0;
             std::string vn = ppar;
@@ -49,7 +49,7 @@ Function::Function(const char *expr) : funBody(expr)
         {
             std::string ujv = ppar;
             vars[ujv] = std::numeric_limits<double>::quiet_NaN();
-            ppar = NULL;
+            ppar = nullptr;
         }
     }
 
@@ -102,63 +102,6 @@ std::vector<std::string> Function::get_domain_variables() const
 const QString &Function::get_funBody() const
 {
     return funBody;
-}
-
-std::string Function::extract_proper_expression(const char *&p, std::set<char> seps)
-{
-    std::string res = "";
-    bool done = false;
-    int current_par_level = 1;
-    while(!done)
-    {
-        bool added = false;
-        if(*p == '(')
-        {
-            current_par_level ++;
-            res += *p;
-            added = true;
-        }
-        else
-        if(*p == ')')
-        {
-            current_par_level--;
-            if(current_par_level >= 1)
-            {
-                res += *p;
-                added = true;
-            }
-        }
-
-
-        // see if we can leave: no more parentheses and the current one is separator
-        if(seps.count(*p) > 0 and current_par_level <= 1)
-        {
-            if(current_par_level == 0)
-            {
-                done = true;
-            }
-
-            // except if the current one is a closing parenthesys and the separator is also a parenthesis
-            if(  !(*p == ')' && seps.count(*p) > 0))
-            {
-                done = true;
-            }
-        }
-        else
-        {
-            if(!added)
-            {
-                res += *p;
-            }
-        }
-
-        p++;
-
-        if(!*p) done = true;
-
-    }
-
-    return res;
 }
 
 std::string Function::preverify_formula(char* expr)

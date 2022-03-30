@@ -96,7 +96,10 @@ void RuntimeProvider::reportError(const QString &err)
 {
     if(m_errorReporter)
     {
-        m_errorReporter(err);
+        if(m_shouldReport)
+        {
+            m_errorReporter(err);
+        }
     }
 }
 
@@ -130,13 +133,29 @@ void RuntimeProvider::reset()
 
 }
 
-void RuntimeProvider::execute(QStringList codelines)
+void RuntimeProvider::parse(QStringList codelines)
 {
     while(!codelines.empty())
     {
         resolveCodeline(codelines, statements, nullptr);
     }
 
+}
+
+bool RuntimeProvider::get_shouldReport() const
+{
+    return m_shouldReport;
+}
+
+void RuntimeProvider::set_ShouldReport(bool newShouldReport)
+{
+    m_shouldReport = newShouldReport;
+}
+
+
+void RuntimeProvider::execute(QStringList codelines)
+{
+    parse(codelines);
     try
     {
         for(const auto& stmt : qAsConst(statements))
@@ -169,7 +188,7 @@ void RuntimeProvider::drawPlot(QSharedPointer<Plot> plot)
 }
 
 void RuntimeProvider::resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPointer<Assignment> assignment,
-                                          bool& continuous, double& plotStart, double& plotEnd, bool& counted, double &stepValue)
+                                          bool& continuous, double& plotStart, double& plotEnd, bool& counted, double &stepValue, int& count)
 {
     QSharedPointer<Function> stepFun = nullptr;
 
@@ -230,12 +249,12 @@ void RuntimeProvider::resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPoin
 
     if(stepFun)
     {
-        double t = stepFun->Calculate(this);
+        count = stepFun->Calculate(this);
         if(counted)
         {
-            if(t > 1)
+            if(count > 1)
             {
-                stepValue = (plotEnd - plotStart) / (t - 1);
+                stepValue = (plotEnd - plotStart) / (count - 1);
             }
             else
             {
@@ -260,31 +279,40 @@ QSharedPointer<Statement> RuntimeProvider::resolveCodeline(QStringList& codeline
         {
             statements.append(createdStatement = createFunction(codeline));
         }
+        else
         if(codeline.startsWith(STR_PLOT))
         {
             statements.append(createdStatement = createPlot(codeline));
         }
+        else
         if(codeline.startsWith(STR_LET)) // variable assignment
         {
             statements.append(createdStatement = resolveObjectAssignment(codeline));
         }
+        else
         if(codeline.startsWith(STR_SET)) // setting the color, line width, rotation, etc ...
         {
             statements.append(createdStatement = createSett(codeline));
         }
+        else
         if(codeline.startsWith(STR_FOREACH)) // looping over a set of points or something else
         {
             statements.append(createdStatement = createLoop(codeline, codelines));
         }
+        else
         if(codeline.startsWith(Keywords::KW_DONE)) // looping over a set of points or something else
         {
             statements.append(createdStatement = QSharedPointer<Done>(new Done(codeline)));
         }
+        else
         if(codeline.startsWith(Keywords::KW_ROTATE)) // rotating something
         {
             statements.append(createdStatement = createRotation(codeline, codelines));
         }
-
+        else
+        {
+            reportError("Invalid statement: " + codeline);
+        }
         if(createdStatement)
         {
             createdStatement->parent = parentScope;
@@ -439,7 +467,7 @@ QSharedPointer<Statement> RuntimeProvider::createLoop(const QString &codeline, Q
         }
         else
         {
-            result->loop_target = QSharedPointer<LoopTarget>(new FunctionIteratorLoopTarget(result));
+            result->loop_target.reset(new FunctionIteratorLoopTarget(result));
             result->loop_target->name = loop_over;
         }
 
@@ -503,8 +531,32 @@ QSharedPointer<Statement> RuntimeProvider::createRotation(const QString &codelin
     result.reset(new Rotation(codeline));
     result->degree = temporaryFunction(rotation_amount);
     result->what = rotate_what;
+
+    if(rotation_unit != "degrees" && rotation_unit != "radians" && !rotation_unit.isEmpty())
+    {
+        throw syntax_error_exception("Rotation unit must be either degree or radians (default)");
+    }
     result->unit = rotation_unit;
 
+    QString around_kw = getDelimitedId(r_decl);
+    QString nextWord = getDelimitedId(r_decl);
+    if(nextWord == "point")
+    {
+        nextWord = getDelimitedId(r_decl);
+        if(nextWord != "at")
+        {
+            throw syntax_error_exception("Invalid reference: %s (missing at keyword)", codeline.toStdString().c_str());
+        }
+
+        if(!r_decl.isEmpty())
+        {
+            if(r_decl[0] == '(') // around a specific point
+            {
+                QString px = getDelimitedId(r_decl, {','});
+                QString py = getDelimitedId(r_decl, {')'});
+            }
+        }
+    }
     return result;
 }
 
@@ -701,4 +753,41 @@ void RuntimeProvider::resolveOverKeyword(QString codeline, QSharedPointer<Steppe
 QVector<QSharedPointer<Assignment> >& RuntimeProvider::get_assignments()
 {
     return assignments;
+}
+
+std::vector<std::string> RuntimeProvider::get_builtin_functions() const
+{
+    std::vector<std::string> functions;
+
+    for(const auto& fds : supported_functions)
+    {
+        functions.push_back(fds.name);
+    }
+
+    return functions;
+}
+
+std::vector<std::string> RuntimeProvider::get_functions() const
+{
+    std::vector<std::string> functions;
+
+    for(const auto& fds : this->functions)
+    {
+        functions.push_back(fds.data()->f->get_name());
+    }
+
+    return functions;
+}
+
+std::vector<std::string> RuntimeProvider::get_variables() const
+{
+    std::vector<std::string> functions;
+
+    for(const auto& fds : this->assignments)
+    {
+        functions.push_back(fds->varName.toStdString());
+    }
+
+    return functions;
+
 }

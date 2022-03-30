@@ -2,6 +2,7 @@
 
 #include "RuntimeProvider.h"
 #include "colors.h"
+#include "qmath.h"
 #include <QDebug>
 
 bool ArythmeticAssignment::execute(RuntimeProvider *rp)
@@ -323,7 +324,7 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
     double plotStart = -1.0;
     double plotEnd = 1.0;
     double step = 0.1;
-
+    int count = -1;
     bool counted = false;
 
     if(assignment)
@@ -339,9 +340,10 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
 
         continuous = assignment->continuous;
         step = assignment->step->Calculate(rp);
-
+        count = step;
         if(assignment->counted)
         {
+            qDebug() << "counted step:" << step;
             counted = true;
             if(step > 1)
             {
@@ -358,6 +360,10 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
     auto pars = funToUse->get_domain_variables();
     if(pars.size() == 1)
     {
+
+
+        int pointsDrawn = 0;
+
         for(double x=plotStart; x<=plotEnd; x+= step)
         {
 
@@ -365,10 +371,12 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
             double y = funToUse->Calculate(rp);
 
             points_of_loop_exec(x, y, continuous);
+            pointsDrawn ++;
 
         }
+        qDebug() << "drawn:" << pointsDrawn << "points";
 
-        if(!counted)
+        if(!counted || (counted && pointsDrawn == count - 1))
         {
             // the last points always goes to plotEnd
             funToUse->SetVariable(pars[0].c_str(), plotEnd);
@@ -398,26 +406,33 @@ bool Rotation::execute(RuntimeProvider *rp)
 {
     for(auto& adef : rp->get_assignments())
     {
-        if(what == adef->varName && adef.dynamicCast<PointDefinitionAssignment>())
+        if(what == adef->varName)
         {
-            adef.dynamicCast<PointDefinitionAssignment>()->rotated = false;
-
-            auto fcp = adef->fullCoordProvider();
-            if( std::get<0>(fcp) && std::get<1>(fcp) )
+            // first implemented rotation: a point
+            if(adef.dynamicCast<PointDefinitionAssignment>())
             {
+                adef.dynamicCast<PointDefinitionAssignment>()->rotated = false;
 
-                double x = std::get<0>(fcp)->Calculate(rp);
-                double y = std::get<1>(fcp)->Calculate(rp);
+                auto fcp = adef->fullCoordProvider();
+                if( std::get<0>(fcp) && std::get<1>(fcp) )
+                {
 
-                double a = degree->Calculate(rp);
-                auto p = rotatePoint(0, 0, a, {x, y});
-                qDebug() << "Rotate:" << x << "," << y << " with" << a << "rads gives" << p;
+                    double x = std::get<0>(fcp)->Calculate(rp);
+                    double y = std::get<1>(fcp)->Calculate(rp);
 
-                adef.dynamicCast<PointDefinitionAssignment>()->rotated_x = p.x();
-                adef.dynamicCast<PointDefinitionAssignment>()->rotated_y = p.y();
-                adef.dynamicCast<PointDefinitionAssignment>()->rotated = true;
+                    double a = degree->Calculate(rp);
+                    if(unit != "radians")
+                    {
+                        a = qDegreesToRadians(a);
+                    }
+                    auto p = rotatePoint(0, 0, a, {x, y});
 
-                return true;
+                    adef.dynamicCast<PointDefinitionAssignment>()->rotated_x = p.x();
+                    adef.dynamicCast<PointDefinitionAssignment>()->rotated_y = p.y();
+                    adef.dynamicCast<PointDefinitionAssignment>()->rotated = true;
+
+                    return true;
+                }
             }
         }
     }

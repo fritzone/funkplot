@@ -16,7 +16,7 @@ public:
 	{
 		debug("created new HashTable");
 		hashlist=new List();
-		if(hashlist==NULL)
+		if(hashlist==nullptr)
 		{
 			debug("hashlist is pretty null???");
 		}
@@ -62,7 +62,7 @@ public:
 		}
 		else
 		{
-			return NULL;
+			return nullptr;
 		}
 
 	}
@@ -73,9 +73,9 @@ public:
 	hash_struct *HasKey(char *key)
 	{
 		debug("in has_key");
-		if(hashlist==NULL)
+		if(hashlist==nullptr)
 		{
-			debug("HASHLIST is NULL");
+			debug("HASHLIST is nullptr");
 
 		}
 		list *posl = hashlist->Enumerate((ENUMERATOR)(keyz), key);
@@ -85,7 +85,7 @@ public:
 			return (hash_struct*)(posl->inf);
 		}
 		else
-			return NULL;
+			return nullptr;
 	}
 
 private:

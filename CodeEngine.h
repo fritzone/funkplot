@@ -35,6 +35,8 @@ struct Statement
     explicit Statement(const QString& s) : statement(s) {}
     Statement() = delete;
 
+    virtual ~Statement() = default;
+
     QString statement;
     QSharedPointer<Statement> parent = nullptr;
     RuntimeProvider* runtimeProvider = nullptr; // this is the "scope" of the running piece of code
@@ -273,7 +275,9 @@ struct Rotation : public Statement
 
     QSharedPointer<Function> degree;
     QString what;
-    QString unit;
+    QString unit = "radians";
+
+    QPointF around;
 
     bool execute(RuntimeProvider* rp) override;
     QString keyword() const override

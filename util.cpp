@@ -133,7 +133,7 @@ char *isfunc(const char *s)
         return s2;
     }
     delete[] s2;
-    return NULL;
+    return nullptr;
 }
 
 int keyz(void *hashstructadr, void *param)
@@ -210,4 +210,61 @@ QPointF rotatePoint(float cx, float cy, float angle, QPointF p)
     p.setX( xnew + cx );
     p.setY( ynew + cy );
     return p;
+}
+
+std::string extract_proper_expression(const char *&p, std::set<char> seps)
+{
+    std::string res = "";
+    bool done = false;
+    int current_par_level = 1;
+    while(!done)
+    {
+        bool added = false;
+        if(*p == '(')
+        {
+            current_par_level ++;
+            res += *p;
+            added = true;
+        }
+        else
+            if(*p == ')')
+            {
+                current_par_level--;
+                if(current_par_level >= 1)
+                {
+                    res += *p;
+                    added = true;
+                }
+            }
+
+
+        // see if we can leave: no more parentheses and the current one is separator
+        if(seps.count(*p) > 0 and current_par_level <= 1)
+        {
+            if(current_par_level == 0)
+            {
+                done = true;
+            }
+
+            // except if the current one is a closing parenthesys and the separator is also a parenthesis
+            if(  !(*p == ')' && seps.count(*p) > 0))
+            {
+                done = true;
+            }
+        }
+        else
+        {
+            if(!added)
+            {
+                res += *p;
+            }
+        }
+
+        p++;
+
+        if(!*p) done = true;
+
+    }
+
+    return res;
 }

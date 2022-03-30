@@ -5,6 +5,8 @@
 #include "colors.h"
 #include "MyGraphicsView.h"
 #include "GraphicsViewZoom.h"
+#include "Highlighter.h"
+#include "FrameForLineNumbers.h"
 
 #include <QGraphicsTextItem>
 #include <QDebug>
@@ -12,29 +14,10 @@
 #include <QPen>
 #include <QDockWidget>
 #include <QResizeEvent>
+#include <QColorDialog>
+#include <QLabel>
 
 #include <functional>
-
-
-void MainWindow::createMenubar()
-{
-    menuBar = new QMenuBar(dock);
-    QMenu *fileMenu = menuBar->addMenu(tr("&File"));
-    fileMenu->addAction("&New");
-    connect(fileMenu->addAction("E&xit"), &QAction::triggered, this, []() {QApplication::exit();});
-
-    bar = new QMenuBar(dock);
-
-    // right aligned help
-    QMenu *helpMenu = bar->addMenu(tr("&Help"));
-    helpMenu->addAction("&About");
-
-    menuBar->setCornerWidget(bar);
-
-}
-
-
-
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -49,6 +32,22 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 
     ui->setupUi(this);
+
+    connect(ui->toolBar->addAction(QIcon(":/img/img/video-play-3-32.ico"), "Run"), &QAction::triggered, this, [this]() {on_toolButton_clicked();});
+
+    // the code editing one
+    frmLineNrs = new FrameForLineNumbers(ui->frmCodeditor);
+    frmLineNrs->setObjectName(QString::fromUtf8("m_frameForLineNumbers"));
+
+    textEdit = new TextEditWithCodeCompletion(ui->frmCodeditor, &rp);
+    textEdit->setObjectName(QString::fromUtf8("textEdit"));
+
+    ui->horizontalLayout->addWidget(frmLineNrs);
+    ui->horizontalLayout->addWidget(textEdit);
+    textEdit->setLineNumberFrame(frmLineNrs);
+    textEdit->setFocus();
+
+    // teh drawing one
     graphicsView = new MyGraphicsView(ui->frmDrawing);
     graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
     graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -61,19 +60,13 @@ MainWindow::MainWindow(QWidget *parent) :
     graphicsView->setScene(sc);
 
     dock = new QDockWidget(this);
-    dock->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    dock->setWidget(ui->frmCodeBlock);
-
-    addDockWidget(Qt::TopDockWidgetArea, dock);
-
+    dock->setAllowedAreas(Qt::BottomDockWidgetArea);
+    addDockWidget(Qt::BottomDockWidgetArea, dock);
+    dock->setWidget(ui->frmDrawing);
     sc->setBackgroundBrush(Qt::white);
     drawCoordinateSystem();
 
     connect(dock, SIGNAL(topLevelChanged(bool)), this, SLOT(dockWidgetTopLevelChanged(bool)));
-    dock->setTitleBarWidget(ui->frame);
-
-    // standard menu
-    createMenubar();
 
     ui->verticalLayout->addWidget(graphicsView);
 
@@ -85,6 +78,7 @@ MainWindow::MainWindow(QWidget *parent) :
             }
     );
     dock->installEventFilter(this);
+    textEdit->setFocus();
 
 }
 
@@ -93,27 +87,17 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-bool MainWindow::eventFilter(QObject *obj, QEvent *event)
-{
-    if (event->type() == QEvent::Resize && obj == dock)
-    {
-        QResizeEvent *resizeEvent = dynamic_cast<QResizeEvent*>(event);
-        qDebug("Dock Resized (New Size) - Width: %d Height: %d",
-               resizeEvent->size().width(),
-               resizeEvent->size().height());
-
-        qDebug() << menuBar->geometry();
-
-        menuBar->setGeometry(QRect{0, 0, resizeEvent->size().width(), 23});
-        menuBar->repaint(QRect{0, 0, resizeEvent->size().width(), 23});
-        return true;
-    }
-    return QWidget::eventFilter(obj, event);
-}
-
 void MainWindow::reportError(QString err)
 {
-    ui->errorText->setText(err + " <b>[" + currentStatement + "]</b>");
+    static bool firstMessage = true;
+    static QLabel *label = nullptr;
+    if(firstMessage)
+    {
+        label = new QLabel;
+        statusBar()->addPermanentWidget(label, 1);
+        firstMessage = false;
+    }
+    label->setText(err);
     qWarning() << err;
 }
 
@@ -124,8 +108,8 @@ void MainWindow::on_toolButton_clicked()
     drawnLines.clear();
     drawnPoints.clear();
     drawCoordinateSystem();
-    QStringList codelines = ui->textEdit->toPlainText().split("\n");
-
+    QStringList codelines = textEdit->toPlainText().split("\n");
+    rp.parse(codelines);
     rp.execute(codelines);
 }
 
@@ -369,12 +353,4 @@ void MainWindow::drawPoint(double x, double y)
 void MainWindow::setCurrentStatement(const QString &newCurrentStatement)
 {
     currentStatement = newCurrentStatement;
-}
-
-
-void MainWindow::on_splitter_splitterMoved(int pos, int index)
-{
-    sc->setSceneRect(graphicsView->rect());
-    qDebug() << sc->sceneRect() << pos << index;
-    redrawEverything();
 }
