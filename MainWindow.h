@@ -32,17 +32,12 @@ public:
     ~MainWindow();
 
     void reportError(QString err);
-    QVector<QPointF> drawPlot(QSharedPointer<Plot>);
     void setCurrentStatement(const QString &newCurrentStatement);
-    void drawPoint(double x, double y);
 
 private slots:
     void on_toolButton_clicked();
 
 private:
-
-    void resizeEvent(QResizeEvent* event);
-    void redrawEverything();
 
     Ui::MainWindow *ui;
 

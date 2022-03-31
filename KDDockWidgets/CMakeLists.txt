@@ -129,6 +129,10 @@ if (${PROJECT_NAME}_XLib)
   add_definitions(-DKDDockWidgets_XLIB)
 endif()
 
+if(WIN32)
+  set(${PROJECT_NAME}_QT6 ON)
+endif()
+
 if(${PROJECT_NAME}_QT6)
   set(Qt_VERSION_MAJOR 6)
   set(QT_MIN_VERSION "6.0.0")

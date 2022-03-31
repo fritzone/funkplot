@@ -12,8 +12,27 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
+
+message(Qt${QT_VERSION_MAJOR} found)
+
+
+if(WIN32)
+    set(DKDDockWidgets_QT6 ON)
+
+    find_package(
+        Qt${QT_VERSION_MAJOR}
+        REQUIRED
+        COMPONENTS
+        Core
+        Gui
+        Widgets
+        CONFIG
+)
+else()
 find_package(
-    Qt5
+    Qt${QT_VERSION_MAJOR}
     REQUIRED
     COMPONENTS
     Core
@@ -22,6 +41,7 @@ find_package(
     X11Extras
     CONFIG
 )
+endif()
 
 Include(FetchContent)
 
@@ -44,7 +64,7 @@ add_library(funplot STATIC
 )
 
 target_link_libraries(funplot
-    Qt5::Core
+    Qt${QT_VERSION_MAJOR}::Core
 )
 
 add_executable(tests compiler.cpp
@@ -54,9 +74,9 @@ target_link_libraries(tests
       Catch2::Catch2WithMain
       funplot
     PUBLIC
-      Qt5::Core
-      Qt5::Widgets
-      Qt5::Gui
+      Qt${QT_VERSION_MAJOR}::Core
+      Qt${QT_VERSION_MAJOR}::Widgets
+      Qt${QT_VERSION_MAJOR}::Gui
 )
 
 include_directories(
@@ -71,8 +91,13 @@ include(Catch)
 catch_discover_tests(tests)
 
 
-qt5_wrap_ui(GUI_UI_FILES MainWindow.ui)
-qt5_add_resources(GUI_QRC_FILES main.qrc)
+if(${QT_VERSION_MAJOR} STREQUAL "6")
+  qt6_wrap_ui(GUI_UI_FILES MainWindow.ui)
+  qt6_add_resources(GUI_QRC_FILES main.qrc)
+else()
+  qt5_wrap_ui(GUI_UI_FILES MainWindow.ui)
+  qt5_add_resources(GUI_QRC_FILES main.qrc)
+endif()
 
 add_executable(ggui
     main.cpp
@@ -88,14 +113,20 @@ add_executable(ggui
     ${GUI_QRC_FILES}
 )
 
+set(QtLibList
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Gui
+)
+
+if(NOT WIN32)
+    LIST(APPEND QtLibList Qt${QT_VERSION_MAJOR}::X11Extras)
+endif()
+
 target_link_libraries(ggui
     PUBLIC
-    Qt5::Core
-    Qt5::Widgets
-    Qt5::Gui
-    Qt5::X11Extras
+    ${QtLibList}
     PRIVATE
     funplot
     kddockwidgets
-    ${CMAKE_BINARY_DIR}/KDDockWidgets/src/libkddockwidgets.a
 )

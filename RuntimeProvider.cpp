@@ -708,9 +708,17 @@ void RuntimeProvider::resolveOverKeyword(QString codeline, QSharedPointer<Steppe
     char close_char = 0;
     if(!codeline.startsWith("(") || !codeline.startsWith("["))
     {
-        close_char = codeline[0].toLatin1() == '(' ? ')' : ']';
-        codeline = codeline.mid(1);
-        interval = true;
+        if (!codeline.isEmpty())
+        {
+            close_char = codeline[0].toLatin1() == '(' ? ')' : ']';
+            codeline = codeline.mid(1);
+            interval = true;
+        }
+    }
+
+    if (close_char == 0)
+    {
+        return;
     }
 
     // first parameter

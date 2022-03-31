@@ -145,13 +145,13 @@ int keyz(void *hashstructadr, void *param)
 
 }
 
-std::string &sltrim(std::string &s) {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+static inline std::string& sltrim(std::string& s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int c) {return !std::isspace(c); }));
     return s;
 }
 
-std::string &srtrim(std::string &s) {
-    s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+static inline std::string& srtrim(std::string& s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](int c) {return !std::isspace(c); }).base(), s.end() );
     return s;
 }
 
@@ -177,6 +177,11 @@ QString getDelimitedId(QString &s, QSet<char> delims, char& delim)
     {
         result += s[0];
         s = s.mid(1);
+    }
+    if (s.isEmpty())
+    {
+        delim = 0;
+        return result;
     }
     delim = s[0].toLatin1();
     // skip the delimiter

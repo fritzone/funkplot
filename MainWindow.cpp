@@ -69,15 +69,6 @@ void MainWindow::on_toolButton_clicked()
     m_rp->execute();
 }
 
-QVector<QPointF> MainWindow::drawPlot(QSharedPointer<Plot> plot)
-{
-}
-
-void MainWindow::resizeEvent(QResizeEvent *event)
-{
-}
-
-
 void MainWindow::setCurrentStatement(const QString &newCurrentStatement)
 {
     currentStatement = newCurrentStatement;
