@@ -233,6 +233,7 @@ void consumeSpace(QString &s);
 QString getDelimitedId(QString&, QSet<char>, char &delim);
 QString getDelimitedId(QString&, QSet<char> = {' '});
 std::string extract_proper_expression(const char *&p, std::set<char> seps);
+QString extract_proper_expression(QString &p, QSet<QChar> seps);
 QPointF rotatePoint(float cx, float cy, float angle, QPointF p);
 
 #endif

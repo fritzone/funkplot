@@ -279,6 +279,9 @@ struct Rotation : public Statement
 
     QPointF around;
 
+    QString aroundX;
+    QString aroundY;
+
     bool execute(RuntimeProvider* rp) override;
     QString keyword() const override
     {

@@ -97,7 +97,7 @@ public:
     void reportError(const QString& err);
     bool resolveAsPoint(QSharedPointer<Plot> plot);
     void reset();
-    void execute(QStringList codelines);
+    void execute();
     void setCurrentStatement(const QString &newCurrentStatement);
     void setPen(int, int, int, int);
     void drawPlot(QSharedPointer<Plot> plot);

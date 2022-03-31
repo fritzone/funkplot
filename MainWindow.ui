@@ -66,23 +66,6 @@
       </layout>
      </widget>
     </item>
-    <item>
-     <widget class="QFrame" name="frmDrawing">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>380</height>
-       </size>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout"/>
-     </widget>
-    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">

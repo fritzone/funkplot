@@ -19,6 +19,7 @@ find_package(
     Core
     Gui
     Widgets
+    X11Extras
     CONFIG
 )
 
@@ -31,6 +32,9 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(Catch2)
+
+add_subdirectory(KDDockWidgets)
+find_package(KDDockWidgets CONFIG PATHS ${CMAKE_SOURCE_DIR}/KDDockWidgets)
 
 add_library(funplot STATIC
     Function.cpp Function.h
@@ -47,15 +51,19 @@ add_executable(tests compiler.cpp
 )
 target_link_libraries(tests
     PRIVATE
-    Catch2::Catch2WithMain
-    funplot
+      Catch2::Catch2WithMain
+      funplot
     PUBLIC
-    Qt5::Core
-    Qt5::Widgets
-    Qt5::Gui
+      Qt5::Core
+      Qt5::Widgets
+      Qt5::Gui
 )
 
-include_directories(${catch2_SOURCE_DIR}/src)
+include_directories(
+    ${catch2_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/KDDockWidgets
+    ${CMAKE_SOURCE_DIR}/KDDockWidgets/src
+)
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(CTest)
@@ -75,6 +83,7 @@ add_executable(ggui
     FrameForLineNumbers.h FrameForLineNumbers.cpp
     TextEditWithCodeCompletion.h TextEditWithCodeCompletion.cpp
     ListWidgetForCodeCompletion.h ListWidgetForCodeCompletion.cpp
+    DrawingForm.h DrawingForm.cpp DrawingForm.ui
     ${GUI_UI_FILES}
     ${GUI_QRC_FILES}
 )
@@ -84,6 +93,9 @@ target_link_libraries(ggui
     Qt5::Core
     Qt5::Widgets
     Qt5::Gui
+    Qt5::X11Extras
     PRIVATE
     funplot
+    kddockwidgets
+    ${CMAKE_BINARY_DIR}/KDDockWidgets/src/libkddockwidgets.a
 )

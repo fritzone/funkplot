@@ -153,9 +153,8 @@ void RuntimeProvider::set_ShouldReport(bool newShouldReport)
 }
 
 
-void RuntimeProvider::execute(QStringList codelines)
+void RuntimeProvider::execute()
 {
-    parse(codelines);
     try
     {
         for(const auto& stmt : qAsConst(statements))
@@ -310,6 +309,7 @@ QSharedPointer<Statement> RuntimeProvider::resolveCodeline(QStringList& codeline
             statements.append(createdStatement = createRotation(codeline, codelines));
         }
         else
+        if(!codeline.isEmpty())
         {
             reportError("Invalid statement: " + codeline);
         }
@@ -552,8 +552,13 @@ QSharedPointer<Statement> RuntimeProvider::createRotation(const QString &codelin
         {
             if(r_decl[0] == '(') // around a specific point
             {
-                QString px = getDelimitedId(r_decl, {','});
-                QString py = getDelimitedId(r_decl, {')'});
+                // skip paren
+                r_decl = r_decl.mid(1);
+                QString px = extract_proper_expression(r_decl, {','});
+                QString py = extract_proper_expression(r_decl, {')'});
+
+                result->aroundX = px;
+                result->aroundY = py;
             }
         }
     }

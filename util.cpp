@@ -266,5 +266,32 @@ std::string extract_proper_expression(const char *&p, std::set<char> seps)
 
     }
 
+    // skip the whitespace
+    while(*p && isspace(*p))
+    {
+        p++;
+    }
+
     return res;
+}
+
+QString extract_proper_expression(QString &p, QSet<QChar> seps)
+{
+    std::string s = p.toStdString();
+    std::set<char> t;
+    for(const QChar c : seps)
+    {
+        t.insert(c.toLatin1());
+    }
+
+    char* ss = (char*)calloc(s.length() + 1, sizeof(char));
+    strncpy(ss, s.c_str(), s.length());
+    const char* css = ss;
+
+    std::string rs = extract_proper_expression(css, t);
+    std::string ts(css);
+    p = QString::fromStdString(ts);
+    QString result = QString::fromStdString(rs);
+    free(ss);
+    return result;
 }

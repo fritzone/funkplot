@@ -425,7 +425,11 @@ bool Rotation::execute(RuntimeProvider *rp)
                     {
                         a = qDegreesToRadians(a);
                     }
-                    auto p = rotatePoint(0, 0, a, {x, y});
+
+                    auto rotfX = temporaryFunction(aroundX);
+                    auto rotfY = temporaryFunction(aroundY);
+
+                    auto p = rotatePoint(rotfX->Calculate(rp), rotfY->Calculate(rp), a, {x, y});
 
                     adef.dynamicCast<PointDefinitionAssignment>()->rotated_x = p.x();
                     adef.dynamicCast<PointDefinitionAssignment>()->rotated_y = p.y();
