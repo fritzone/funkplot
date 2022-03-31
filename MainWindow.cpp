@@ -30,22 +30,11 @@ MainWindow::MainWindow(RuntimeProvider *rp, DrawingForm* df, QWidget *parent) :
 
     connect(ui->toolBar->addAction(QIcon(":/img/img/video-play-3-32.ico"), "Run"), &QAction::triggered, this, [this]() {on_toolButton_clicked();});
 
-    // the code editing one
     frmLineNrs = new FrameForLineNumbers(ui->frmCodeditor);
-    frmLineNrs->setObjectName(QString::fromUtf8("m_frameForLineNumbers"));
-
     textEdit = new TextEditWithCodeCompletion(ui->frmCodeditor, m_rp);
-    textEdit->setObjectName(QString::fromUtf8("textEdit"));
-
     ui->horizontalLayout->addWidget(frmLineNrs);
     ui->horizontalLayout->addWidget(textEdit);
     textEdit->setLineNumberFrame(frmLineNrs);
-    textEdit->setFocus();
-
-
-
-
-//    dock->installEventFilter(this);
     textEdit->setFocus();
 
 }

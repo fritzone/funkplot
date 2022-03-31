@@ -1,0 +1,99 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/build-dev/compile_commands.json",
+    "C_Cpp.default.cStandard": "c17",
+    "files.trimTrailingWhitespace": true,
+    "editor.formatOnType": true,
+    "C_Cpp.autocompleteAddParentheses": true
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "kddockwidgets_example",
+        "type": "lldb",
+        "request": "launch",
+        "program": "${workspaceFolder}/build-dev/bin/kddockwidgets_example",
+        "args": [],
+        "cwd": "${workspaceFolder}"
+      },
+      {
+        "name": "kddockwidgets_minimal_example",
+        "type": "lldb",
+        "request": "launch",
+        "program": "${workspaceFolder}/build-dev/bin/kddockwidgets_minimal_example",
+        "args": [],
+        "cwd": "${workspaceFolder}"
+      },
+      {
+        "name": "kddockwidgets_minimal_mdi_example",
+        "type": "lldb",
+        "request": "launch",
+        "program": "${workspaceFolder}/build-dev/bin/kddockwidgets_minimal_mdi_example",
+        "args": [],
+        "cwd": "${workspaceFolder}"
+      },
+      {
+        "name": "kddockwidgets_mdi_with_docking_example",
+        "type": "lldb",
+        "request": "launch",
+        "program": "${workspaceFolder}/build-dev/bin/kddockwidgets_mdi_with_docking_example",
+        "args": [],
+        "cwd": "${workspaceFolder}"
+      },
+      {
+        "name": "tst_docks",
+        "type": "lldb",
+        "request": "launch",
+        "program": "${workspaceFolder}/build-dev/bin/tst_docks",
+        "args": [],
+        "cwd": "${workspaceFolder}"
+      },
+      {
+        "name": "msvc-kddockwidgets_example",
+        "type": "cppvsdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build-dev/bin/kddockwidgets_example",
+        "args": [],
+        "cwd": "${workspaceFolder}",
+        "stopAtEntry": false,
+        "externalConsole": false
+      },
+      {
+        "name": "msvc-kddockwidgets_minimal_example",
+        "type": "cppvsdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build-dev/bin/kddockwidgets_minimal_example",
+        "args": [],
+        "cwd": "${workspaceFolder}",
+        "stopAtEntry": false,
+        "externalConsole": false
+      },
+      {
+        "name": "msvc-kddockwidgets_minimal_mdi_example",
+        "type": "cppvsdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build-dev/bin/kddockwidgets_minimal_mdi_example",
+        "args": [],
+        "cwd": "${workspaceFolder}",
+        "stopAtEntry": false,
+        "externalConsole": false
+      },
+      {
+        "name": "msvc-tst_docks",
+        "type": "cppvsdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build-dev/bin/tst_docks",
+        "args": [],
+        "cwd": "${workspaceFolder}",
+        "stopAtEntry": false,
+        "externalConsole": false
+      }
+    ]
+  }
+}

@@ -1,9 +1,30 @@
 #include "DrawingForm.h"
 #include "MainWindow.h"
 #include "RuntimeProvider.h"
+#include "qscreen.h"
 #include <DockWidget.h>
+#include <QAction>
 #include <QApplication>
 #include <KDDockWidgets/src/MainWindow.h>
+
+QScreen* getActiveScreen(QWidget* pWidget)
+{
+    QScreen* pActive = nullptr;
+
+    while (pWidget)
+    {
+        auto w = pWidget->windowHandle();
+        if (w != nullptr)
+        {
+            pActive = w->screen();
+            break;
+        }
+        else
+            pWidget = pWidget->parentWidget();
+    }
+
+    return pActive;
+}
 
 int main(int argc, char *argv[])
 {
@@ -11,8 +32,10 @@ int main(int argc, char *argv[])
 
     KDDockWidgets::MainWindow mainWindow(QStringLiteral("MyMainWindow"), KDDockWidgets::MainWindowOption_HasCentralWidget);
     mainWindow.setWindowTitle("FunPlotter");
-    mainWindow.resize(1200, 1200);
     mainWindow.show();
+    QRect r = getActiveScreen(&mainWindow)->availableGeometry();
+    mainWindow.resize(r.size());
+    mainWindow.move(r.topLeft());
 
     DrawingForm* df;
     MainWindow* mainWidget;
@@ -36,9 +59,9 @@ int main(int argc, char *argv[])
     drawingDock->setOptions(KDDockWidgets::DockWidgetBase::Option_NotClosable);
     mainDock->setOptions(KDDockWidgets::DockWidgetBase::Option_NotClosable);
 
-    mainWindow.addDockWidget(mainDock, KDDockWidgets::Location_OnTop);
-    mainWindow.addDockWidget(drawingDock, KDDockWidgets::Location_None);
-    mainWindow.setPersistentCentralWidget(drawingDock);
+    mainWindow.addDockWidget(mainDock, KDDockWidgets::Location_None);
+    mainWindow.addDockWidget(drawingDock, KDDockWidgets::Location_OnBottom);
+    mainWindow.setPersistentCentralWidget(mainDock);
 
     return a.exec();
 }
