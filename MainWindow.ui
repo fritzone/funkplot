@@ -16,71 +16,54 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
-     <widget class="QTabWidget" name="tabWidget">
-      <property name="currentIndex">
-       <number>0</number>
+     <widget class="QFrame" name="frmCodeBlock">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
       </property>
-      <property name="tabsClosable">
-       <bool>true</bool>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
       </property>
-      <widget class="QWidget" name="tab">
-       <attribute name="title">
-        <string>nameless</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
-         <widget class="QFrame" name="frmCodeBlock">
-          <property name="frameShape">
-           <enum>QFrame::StyledPanel</enum>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QFrame" name="frmCodeditor">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="spacing">
+           <number>0</number>
           </property>
-          <property name="frameShadow">
-           <enum>QFrame::Raised</enum>
+          <property name="leftMargin">
+           <number>0</number>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_2">
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
-           <item>
-            <widget class="QFrame" name="frmCodeditor">
-             <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout">
-              <property name="spacing">
-               <number>0</number>
-              </property>
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
-               <number>0</number>
-              </property>
-             </layout>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-       </layout>
-      </widget>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+         </layout>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
    </layout>
@@ -94,41 +77,92 @@
      <height>20</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menu_File">
-    <property name="title">
-     <string>&amp;File</string>
-    </property>
-   </widget>
-   <addaction name="menu_File"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QToolBar" name="toolBar">
-   <property name="windowTitle">
-    <string>toolBar</string>
+  <action name="actionSaveAs">
+   <property name="icon">
+    <iconset resource="main.qrc">
+     <normaloff>:/icons/icons/48px-Document-save-as.png</normaloff>:/icons/icons/48px-Document-save-as.png</iconset>
    </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-  </widget>
-  <action name="action_New">
    <property name="text">
-    <string>&amp;New</string>
+    <string>Save As</string>
    </property>
   </action>
-  <action name="action_Open">
+  <action name="actionOpen">
+   <property name="icon">
+    <iconset resource="main.qrc">
+     <normaloff>:/icons/icons/48px-Document-open.png</normaloff>:/icons/icons/48px-Document-open.png</iconset>
+   </property>
    <property name="text">
-    <string>&amp;Open</string>
+    <string>Open</string>
    </property>
   </action>
-  <action name="action_Save">
+  <action name="actionSave">
+   <property name="icon">
+    <iconset resource="main.qrc">
+     <normaloff>:/icons/icons/48px-Document-save.png</normaloff>:/icons/icons/48px-Document-save.png</iconset>
+   </property>
    <property name="text">
-    <string>&amp;Save</string>
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="actionRun">
+   <property name="icon">
+    <iconset resource="main.qrc">
+     <normaloff>:/img/img/video-play-3-32.ico</normaloff>:/img/img/video-play-3-32.ico</iconset>
+   </property>
+   <property name="text">
+    <string>Run</string>
+   </property>
+  </action>
+  <action name="actionHelp">
+   <property name="icon">
+    <iconset resource="main.qrc">
+     <normaloff>:/icons/icons/Help-browser.png</normaloff>:/icons/icons/Help-browser.png</iconset>
+   </property>
+   <property name="text">
+    <string>Help</string>
+   </property>
+  </action>
+  <action name="actionNew">
+   <property name="icon">
+    <iconset resource="main.qrc">
+     <normaloff>:/icons/icons/48px-Document-new.png</normaloff>:/icons/icons/48px-Document-new.png</iconset>
+   </property>
+   <property name="text">
+    <string>New</string>
+   </property>
+  </action>
+  <action name="actionExport">
+   <property name="icon">
+    <iconset resource="main.qrc">
+     <normaloff>:/icons/icons/48px-Image-x-generic.png</normaloff>:/icons/icons/48px-Image-x-generic.png</iconset>
+   </property>
+   <property name="text">
+    <string>Export</string>
+   </property>
+  </action>
+  <action name="actionSyntax">
+   <property name="icon">
+    <iconset resource="main.qrc">
+     <normaloff>:/icons/icons/light_bulb.png</normaloff>:/icons/icons/light_bulb.png</iconset>
+   </property>
+   <property name="text">
+    <string>Syntax</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="icon">
+    <iconset resource="main.qrc">
+     <normaloff>:/icons/icons/icons8-about-50.png</normaloff>:/icons/icons/icons8-about-50.png</iconset>
+   </property>
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="main.qrc"/>
+ </resources>
  <connections/>
 </ui>

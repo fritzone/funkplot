@@ -145,12 +145,12 @@ int keyz(void *hashstructadr, void *param)
 
 }
 
-static inline std::string& sltrim(std::string& s) {
+std::string& sltrim(std::string& s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int c) {return !std::isspace(c); }));
     return s;
 }
 
-static inline std::string& srtrim(std::string& s) {
+std::string& srtrim(std::string& s) {
     s.erase(std::find_if(s.rbegin(), s.rend(), [](int c) {return !std::isspace(c); }).base(), s.end() );
     return s;
 }

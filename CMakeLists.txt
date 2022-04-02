@@ -54,7 +54,8 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 add_subdirectory(KDDockWidgets)
-find_package(KDDockWidgets CONFIG PATHS ${CMAKE_SOURCE_DIR}/KDDockWidgets)
+add_subdirectory(ribbon)
+
 
 add_library(funplot STATIC
     Function.cpp Function.h
@@ -83,6 +84,7 @@ include_directories(
     ${catch2_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/KDDockWidgets
     ${CMAKE_SOURCE_DIR}/KDDockWidgets/src
+    ${CMAKE_SOURCE_DIR}/ribbon/include
 )
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
@@ -129,4 +131,5 @@ target_link_libraries(ggui
     PRIVATE
     funplot
     kddockwidgets
+    TabToolbar
 )
