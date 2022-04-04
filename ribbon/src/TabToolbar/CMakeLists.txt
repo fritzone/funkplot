@@ -3,9 +3,18 @@ add_definitions(-DTT_BUILDING_DLL)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt5Core       5.3 REQUIRED)
-find_package(Qt5Gui        5.3 REQUIRED)
-find_package(Qt5Widgets    5.3 REQUIRED)
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
+
+message("Ribbon: Qt${QT_VERSION_MAJOR} found")
+find_package(
+        Qt${QT_VERSION_MAJOR}
+        REQUIRED
+        COMPONENTS
+        Core
+        Gui
+        Widgets
+        CONFIG
+)
 
 set(INCROOT ${PROJECT_SOURCE_DIR}/include/TabToolbar)
 set(SRCROOT ${PROJECT_SOURCE_DIR}/src/TabToolbar)
@@ -40,10 +49,14 @@ source_group("resources" FILES ${RESOURCES})
 
 add_library(TabToolbar SHARED ${SRC_LIST} ${RESOURCES})
 
+set(QtLibList
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Gui
+)
+
 target_link_libraries(TabToolbar
-    Qt5::Core
-    Qt5::Gui
-    Qt5::Widgets
+     ${QtLibList}
 )
 
 if(WIN32)

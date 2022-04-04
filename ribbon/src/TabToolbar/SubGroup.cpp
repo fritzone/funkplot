@@ -36,7 +36,9 @@ SubGroup::SubGroup(Align align, QWidget* parent) : QFrame(parent)
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
     innerLayout = new QVBoxLayout(this);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     innerLayout->setMargin(0);
+#endif
     innerLayout->setContentsMargins(0, 0, 0, 0);
     innerLayout->setSpacing(1);
     innerLayout->setDirection(QBoxLayout::TopToBottom);
@@ -118,7 +120,9 @@ QFrame* SubGroup::ConstructInnerFrame(int spacing)
     frame->setSizePolicy(policy);
     frame->setMaximumHeight(groupMaxHeight / rowCount);
     QHBoxLayout* l = new QHBoxLayout(frame);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     l->setMargin(0);
+#endif
     l->setContentsMargins(0, 0, 0, 0);
     l->setSpacing(spacing);
     l->setDirection(QBoxLayout::LeftToRight);

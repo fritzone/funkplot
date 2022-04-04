@@ -45,7 +45,9 @@ protected:
             QScrollArea* scroll = static_cast<QScrollArea*>(watched);
             QWheelEvent* wheel = static_cast<QWheelEvent*>(event);
             QScrollBar* scrollbar = scroll->horizontalScrollBar();
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
             scrollbar->setValue(scrollbar->value() - wheel->delta()/5);
+#endif
             return true;
         }
         return QObject::eventFilter(watched, event);

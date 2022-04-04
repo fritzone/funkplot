@@ -139,7 +139,9 @@ CompactToolButton::CompactToolButton(QAction* action, QMenu* menu, QWidget* pare
     upButton->setMaximumHeight(iconSize + 5);
 
     QVBoxLayout* l = new QVBoxLayout(this);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     l->setMargin(0);
+#endif
     l->setContentsMargins(0, 0, 0, 0);
     l->setSpacing(0);
     l->setDirection(QBoxLayout::TopToBottom);
