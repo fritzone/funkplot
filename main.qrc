@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/img">
-        <file>img/video-play-3-32.ico</file>
+        <file>img/play.png</file>
     </qresource>
     <qresource prefix="/tt">
         <file>tabtoolbar.json</file>

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=FunPlotter
+Exec=funplot
+Icon=/usr/share/icons/hicolor/256x256/apps/funplot.png
+Type=Application
+Categories=Personal;Mathematics
+Terminal=false
