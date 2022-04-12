@@ -42,8 +42,8 @@ private:
     Ui::MainWindow *ui;
 
     // in case we resize/zoom/scroll the window, these objects will be used to redraw the scene
-    friend class Sett;
-    friend class Assignment;
+    friend struct Sett;
+    friend struct Assignment;
     QString currentStatement;
     DrawingForm* m_df;
     RuntimeProvider *m_rp;

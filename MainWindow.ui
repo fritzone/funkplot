@@ -109,7 +109,7 @@
   <action name="actionRun">
    <property name="icon">
     <iconset resource="main.qrc">
-     <normaloff>:/img/img/video-play-3-32.ico</normaloff>:/img/img/video-play-3-32.ico</iconset>
+     <normaloff>:/img/img/play.png</normaloff>:/img/img/play.png</iconset>
    </property>
    <property name="text">
     <string>Run</string>

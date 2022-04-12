@@ -86,7 +86,7 @@ struct Done : public Statement
     }
 };
 
-class Loop;
+struct Loop;
 struct LoopTarget : public Stepped
 {
 
