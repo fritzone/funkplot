@@ -9,6 +9,7 @@
 #include "FrameForLineNumbers.h"
 #include "DrawingForm.h"
 #include "RuntimeProvider.h"
+#include "CodeEditorTabPage.h"
 
 #include <TabToolbar/TabToolbar.h>
 #include <TabToolbar/Page.h>
@@ -46,7 +47,6 @@ MainWindow::MainWindow(RuntimeProvider *rp, DrawingForm* df, QWidget *parent) :
 
     m_currentProgram.reset( new Program(ui->tabWidget->currentWidget(), rp));
     m_programs.append(m_currentProgram);
-
 
     ui->tabWidget->addTab(m_currentProgram->m_tabPage, tr("noname ") + QString::number(m_programs.size()));
 
@@ -160,7 +160,7 @@ void Program::setCurrentStatement(const QString &newCurrentStatement)
 void Program::run()
 {
     m_rp->reset();
-    QStringList codelines = m_textEditor->toPlainText().split("\n");
+    QStringList codelines = m_tabPage->get_textEdit()->toPlainText().split("\n");
     m_rp->parse(codelines);
     m_rp->execute();
 

@@ -5,7 +5,10 @@
 
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
 #include <QtOpenGLWidgets/QOpenGLWidget>
+#endif
+
 #include <QSurfaceFormat>
 
 DrawingForm::DrawingForm(RuntimeProvider *rp, QWidget *parent) :
@@ -29,11 +32,13 @@ DrawingForm::DrawingForm(RuntimeProvider *rp, QWidget *parent) :
     graphicsView->viewport()->setFocusProxy(0);
     sc->setBackgroundBrush(Qt::white);
 
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
     QOpenGLWidget* gl = new QOpenGLWidget();
     QSurfaceFormat format;
     format.setSamples(4);
     gl->setFormat(format);
     graphicsView->setViewport(gl);
+#endif
 
     ui->verticalLayout->addWidget(graphicsView);
 

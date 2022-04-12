@@ -18,6 +18,8 @@ public:
     explicit CodeEditorTabPage(QWidget *parent, RuntimeProvider *rp);
     ~CodeEditorTabPage();
 
+    TextEditWithCodeCompletion *get_textEdit() const;
+
 private:
     Ui::CodeEditorTabPage *ui;
 

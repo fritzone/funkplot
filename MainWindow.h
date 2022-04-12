@@ -19,10 +19,24 @@ class MyGraphicsView;
 
 
 class DrawingForm;
+
+class CodeEditorTabPage;
 namespace Ui {
 class MainWindow;
 }
 
+class Program
+{
+
+public:
+    Program(QWidget *tabContainer, RuntimeProvider *rp);
+    void setCurrentStatement(const QString &newCurrentStatement);
+    void run();
+
+    CodeEditorTabPage* m_tabPage = nullptr;
+    QString currentStatement;
+    RuntimeProvider *m_rp = nullptr;
+};
 
 class MainWindow : public QMainWindow
 {
@@ -34,8 +48,7 @@ public:
     void reportError(QString err);
     void setCurrentStatement(const QString &newCurrentStatement);
 
-private slots:
-    void on_toolButton_clicked();
+    void runCurrentCode();
 
 private:
 
@@ -44,12 +57,12 @@ private:
     // in case we resize/zoom/scroll the window, these objects will be used to redraw the scene
     friend struct Sett;
     friend struct Assignment;
-    QString currentStatement;
-    DrawingForm* m_df;
+    DrawingForm* m_df;/*
     RuntimeProvider *m_rp;
     QDockWidget *dock = nullptr;
-    TextEditWithCodeCompletion *textEdit = nullptr;
-    FrameForLineNumbers* frmLineNrs = nullptr;
+    FrameForLineNumbers* frmLineNrs = nullptr;*/
+    QSharedPointer<Program> m_currentProgram;
+    QVector<QSharedPointer<Program>> m_programs;
 };
 
 #endif // MAINWINDOW_H

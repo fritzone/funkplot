@@ -19,3 +19,8 @@ CodeEditorTabPage::~CodeEditorTabPage()
 {
     delete ui;
 }
+
+TextEditWithCodeCompletion *CodeEditorTabPage::get_textEdit() const
+{
+    return textEdit;
+}

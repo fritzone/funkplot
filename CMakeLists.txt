@@ -17,35 +17,26 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets OpenGL REQUIRED)
 
 message(Qt${QT_VERSION_MAJOR} found)
 
+set(QT_COMPONENTS Core Gui Widgets OpenGL)
+
 
 if(WIN32)
     set(DKDDockWidgets_QT6 ON)
-
-    find_package(
-        Qt${QT_VERSION_MAJOR}
-        REQUIRED
-        COMPONENTS
-        Core
-        Gui
-        Widgets
-        OpenGLWidgets
-        OpenGL
-        CONFIG
-)
 else()
+    list(APPEND QT_COMPONENTS X11Extras)
+endif()
+
+if(${QT_VERSION_MAJOR} STREQUAL "6")
+    list(APPEND QT_COMPONENTS OpenGLWidgets)
+endif()
+
 find_package(
     Qt${QT_VERSION_MAJOR}
-    REQUIRED
-    COMPONENTS
-    Core
-    Gui
-    Widgets
-    X11Extras
-    OpenGLWidgets    
-    OpenGL
+        REQUIRED
+        COMPONENTS
+        ${QT_COMPONENTS}
     CONFIG
 )
-endif()
 
 Include(FetchContent)
 
@@ -125,8 +116,11 @@ set(QtLibList
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::OpenGL
-    Qt${QT_VERSION_MAJOR}::OpenGLWidgets
 )
+if(${QT_VERSION_MAJOR} STREQUAL "6")
+    list(APPEND QtLibList Qt${QT_VERSION_MAJOR}::OpenGLWidgets)
+endif()
+
 
 find_package(OpenGL REQUIRED)
 
@@ -210,7 +204,7 @@ endif()
 # Debian packaging stuff                                                                           #
 ####################################################################################################
 
-if(NOT WIN32)
+if(NOT WIN32 AND FALSE)
 
 # SET(CPACK_GENERATOR "DEB")
 set(DRV2WEB_CLIENT_BIN_DIR "bin")
