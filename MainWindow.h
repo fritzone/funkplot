@@ -11,6 +11,7 @@
 #include "RuntimeProvider.h"
 #include "CodeEngine.h"
 #include "TextEditWithCodeCompletion.h"
+#include "CodeEditorTabPage.h"
 
 #include <functional>
 
@@ -23,6 +24,19 @@ namespace Ui {
 class MainWindow;
 }
 
+struct Program
+{
+    // create a new program
+    Program(QWidget* tabContainer, RuntimeProvider *rp);
+
+    void setCurrentStatement(const QString &newCurrentStatement);
+    void run();
+
+    QString currentStatement;
+    RuntimeProvider *m_rp;
+    TextEditWithCodeCompletion* m_textEditor = nullptr;
+    CodeEditorTabPage* m_tabPage;
+};
 
 class MainWindow : public QMainWindow
 {
@@ -34,22 +48,19 @@ public:
     void reportError(QString err);
     void setCurrentStatement(const QString &newCurrentStatement);
 
-private slots:
-    void on_toolButton_clicked();
-
 private:
 
+    void runCurrentCode();
+
+private:
     Ui::MainWindow *ui;
 
-    // in case we resize/zoom/scroll the window, these objects will be used to redraw the scene
-    friend class Sett;
-    friend class Assignment;
-    QString currentStatement;
+    // the common drawing form
     DrawingForm* m_df;
-    RuntimeProvider *m_rp;
-    QDockWidget *dock = nullptr;
-    TextEditWithCodeCompletion *textEdit = nullptr;
-    FrameForLineNumbers* frmLineNrs = nullptr;
+
+    // the programs and their associated tab/texteditor pages
+    QVector<QSharedPointer<Program>> m_programs;
+    QSharedPointer<Program> m_currentProgram;
 };
 
 #endif // MAINWINDOW_H

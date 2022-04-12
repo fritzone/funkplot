@@ -8,6 +8,7 @@
 #include "Highlighter.h"
 #include "FrameForLineNumbers.h"
 #include "DrawingForm.h"
+#include "RuntimeProvider.h"
 
 #include <TabToolbar/TabToolbar.h>
 #include <TabToolbar/Page.h>
@@ -38,10 +39,16 @@
 MainWindow::MainWindow(RuntimeProvider *rp, DrawingForm* df, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    m_df(df), m_rp(rp)
+    m_df(df)
 {
 
     ui->setupUi(this);
+
+    m_currentProgram.reset( new Program(ui->tabWidget->currentWidget(), rp));
+    m_programs.append(m_currentProgram);
+
+
+    ui->tabWidget->addTab(m_currentProgram->m_tabPage, tr("noname ") + QString::number(m_programs.size()));
 
     tt::Builder ttb(this);
     ttb.SetCustomWidgetCreator("textEdit", []() { return new QTextEdit(); });
@@ -99,14 +106,8 @@ MainWindow::MainWindow(RuntimeProvider *rp, DrawingForm* df, QWidget *parent) :
 //    QObject::connect(btn, &QPushButton::clicked, [tabToolbar]() { tabToolbar->SetStyle(tt::GetDefaultStyle()); });
 
 
-    connect(ui->actionRun, &QAction::triggered, this, [this]() {on_toolButton_clicked();});
+    connect(ui->actionRun, &QAction::triggered, this, [this]() {runCurrentCode();});
 
-    frmLineNrs = new FrameForLineNumbers(ui->frmCodeditor);
-    textEdit = new TextEditWithCodeCompletion(ui->frmCodeditor, m_rp);
-    ui->horizontalLayout->addWidget(frmLineNrs);
-    ui->horizontalLayout->addWidget(textEdit);
-    textEdit->setLineNumberFrame(frmLineNrs);
-    textEdit->setFocus();
 
 }
 
@@ -132,17 +133,35 @@ void MainWindow::reportError(QString err)
 }
 
 
-void MainWindow::on_toolButton_clicked()
+void MainWindow::runCurrentCode()
 {
-    m_rp->reset();
     m_df->reset();
     m_df->drawCoordinateSystem();
-    QStringList codelines = textEdit->toPlainText().split("\n");
-    m_rp->parse(codelines);
-    m_rp->execute();
+
+    m_currentProgram->run();
 }
 
 void MainWindow::setCurrentStatement(const QString &newCurrentStatement)
 {
+    m_currentProgram->setCurrentStatement(newCurrentStatement);
+}
+
+Program::Program(QWidget *tabContainer, RuntimeProvider *rp) : m_rp(rp)
+{
+    m_tabPage = new CodeEditorTabPage(tabContainer, rp);
+}
+
+void Program::setCurrentStatement(const QString &newCurrentStatement)
+{
     currentStatement = newCurrentStatement;
+
+}
+
+void Program::run()
+{
+    m_rp->reset();
+    QStringList codelines = m_textEditor->toPlainText().split("\n");
+    m_rp->parse(codelines);
+    m_rp->execute();
+
 }

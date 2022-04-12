@@ -111,6 +111,7 @@ add_executable(ggui
     TextEditWithCodeCompletion.h TextEditWithCodeCompletion.cpp
     ListWidgetForCodeCompletion.h ListWidgetForCodeCompletion.cpp
     DrawingForm.h DrawingForm.cpp DrawingForm.ui
+    CodeEditorTabPage.h CodeEditorTabPage.cpp CodeEditorTabPage.ui
     ${GUI_UI_FILES}
     ${GUI_QRC_FILES}
 )
