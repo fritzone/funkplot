@@ -2,6 +2,8 @@
 #include "GraphicsViewZoom.h"
 #include "MyGraphicsView.h"
 #include "ui_DrawingForm.h"
+#include "PlotRenderer.h"
+#include "AbstractDrawer.h"
 
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
@@ -18,38 +20,50 @@ DrawingForm::DrawingForm(RuntimeProvider *rp, QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // teh drawing one
-    graphicsView = new MyGraphicsView(ui->frmDrawing);
-    graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
-    graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    if (false)
+    {
+        // the drawing one, using QGraphicScene
+        graphicsView = new MyGraphicsView(ui->frmDrawing);
+        graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
+        graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    Graphics_view_zoom* z = new Graphics_view_zoom(graphicsView);
-    z->set_modifiers(Qt::NoModifier);
-
-    sc = new QGraphicsScene(graphicsView->rect());
-    graphicsView->setScene(sc);
-    graphicsView->viewport()->setFocusProxy(0);
-    sc->setBackgroundBrush(Qt::white);
+        sc = new QGraphicsScene(graphicsView->rect());
+        graphicsView->setScene(sc);
+        graphicsView->viewport()->setFocusProxy(0);
+        sc->setBackgroundBrush(Qt::white);
 
 #if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
-    QOpenGLWidget* gl = new QOpenGLWidget();
-    QSurfaceFormat format;
-    format.setSamples(4);
-    gl->setFormat(format);
-    graphicsView->setViewport(gl);
+        QOpenGLWidget* gl = new QOpenGLWidget();
+        QSurfaceFormat format;
+        format.setSamples(4);
+        gl->setFormat(format);
+        graphicsView->setViewport(gl);
 #endif
 
-    ui->verticalLayout->addWidget(graphicsView);
+        ui->verticalLayout->addWidget(graphicsView);
+        Graphics_view_zoom* z = new Graphics_view_zoom(graphicsView);
+        z->set_modifiers(Qt::NoModifier);
 
-    drawCoordinateSystem();
+        drawCoordinateSystem();
 
-    connect(graphicsView, &MyGraphicsView::redraw, this, [this]()
-            {
-                redrawEverything();
-            }
-            );
+        connect(graphicsView, &MyGraphicsView::redraw, this, [this]()
+        {
+            redrawEverything();
+        }
+        );
 
+        m_ar = graphicsView;
+    }
+    else
+    {
+        m_pr = new PlotRenderer(this);
+
+        ui->verticalLayout->addWidget(m_pr);
+
+        m_ar = m_pr;
+
+    }
 
 }
 
@@ -256,7 +270,8 @@ void DrawingForm::reset()
 void DrawingForm::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
-    sc->setSceneRect(graphicsView->rect());
+
+    m_ar->resizeEvent(event);
 
     QRect wrect = rect();
     redrawEverything();

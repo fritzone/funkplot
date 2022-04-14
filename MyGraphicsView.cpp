@@ -2,7 +2,9 @@
 #include <QMouseEvent>
 #include <QDebug>
 
-MyGraphicsView::MyGraphicsView(QWidget *parent) : QGraphicsView(parent) {this->installEventFilter(this);
+MyGraphicsView::MyGraphicsView(QWidget *parent) : QGraphicsView(parent) 
+{
+    this->installEventFilter(this);
 }
 
 void MyGraphicsView::mousePressEvent(QMouseEvent *event)
@@ -38,4 +40,9 @@ int MyGraphicsView::get_sceneScrollX() const
 int MyGraphicsView::get_sceneScrollY() const
 {
     return sceneScrollY;
+}
+
+void MyGraphicsView::resizeEvent(QResizeEvent* event)
+{
+    scene()->setSceneRect(rect());
 }

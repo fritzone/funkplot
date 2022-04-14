@@ -5,7 +5,7 @@
 #include <QGraphicsView>
 #include <QEvent>
 
-class MyGraphicsView : public QGraphicsView
+class MyGraphicsView : public QGraphicsView, p
 {
 
     Q_OBJECT
@@ -21,6 +21,7 @@ public:
 
     int get_sceneScrollY() const;
 
+    void resizeEvent(QResizeEvent* event) override;
 signals:
 
     void redraw();

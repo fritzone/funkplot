@@ -9,6 +9,8 @@
 
 
 class MyGraphicsView;
+class PlotRenderer;
+class AbstractDrawer;
 
 class QGraphicsScene;
 namespace Ui {
@@ -87,11 +89,14 @@ private:
 
     Ui::DrawingForm *ui;
     QGraphicsScene* sc = nullptr;
-    MyGraphicsView* graphicsView = nullptr;
     QPen drawingPen;
     QVector<DrawnLine> drawnLines;
     QVector<DrawnPoint> drawnPoints;
-    RuntimeProvider *m_rp;
+    RuntimeProvider* m_rp;
+
+    PlotRenderer* m_pr = nullptr;
+    AbstractDrawer* m_ar = nullptr;
+    MyGraphicsView* graphicsView = nullptr;
 
 };
 
