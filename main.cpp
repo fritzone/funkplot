@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     mainDock->setOptions(KDDockWidgets::DockWidgetBase::Option_NotClosable);
 
     mainWindow.addDockWidget(mainDock, KDDockWidgets::Location_None);
-    mainWindow.addDockWidget(drawingDock, KDDockWidgets::Location_OnBottom);
+    mainWindow.addDockWidget(drawingDock, KDDockWidgets::Location_OnRight);
     mainWindow.setPersistentCentralWidget(mainDock);
 
     return a.exec();

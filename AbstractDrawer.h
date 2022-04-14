@@ -3,14 +3,17 @@
 
 #include <QWidget>
 
-class AbstractDrawer : public QWidget
+class AbstractDrawer
 {
-    Q_OBJECT
 
 public:
-    explicit AbstractDrawer(QWidget* parent = nullptr) : QWidget(parent) {}
+    explicit AbstractDrawer(QWidget* parent = nullptr){}
 
     virtual void resizeEvent(QResizeEvent* event) = 0;
+
+    virtual void drawCoordinateSystem() = 0;
+
+    virtual QPoint toScene(QPointF) = 0;
 };
 
 #endif // !ABSTRACT_DRAWER

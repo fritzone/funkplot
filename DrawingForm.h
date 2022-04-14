@@ -45,27 +45,6 @@ public:
 
     void setDrawingPen(int r, int g, int b, int a);
 
-    int sceneX(double x);
-
-    int sceneY(double y);
-
-
-
-    QPoint toScene(QPointF f);
-
-
-    double coordStartX();
-
-    double coordEndX();
-
-    double coordStartY();
-
-    double coordEndY();
-
-    double zoomFactor();
-
-    double rotationAngle();
-
     QVector<QPointF> drawPlot(QSharedPointer<Plot> plot);
 
     void reset();
