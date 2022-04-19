@@ -20,7 +20,7 @@ DrawingForm::DrawingForm(RuntimeProvider *rp, QWidget *parent) :
 {
     ui->setupUi(this);
 
-    if (false)
+    if (true)
     {
         // the drawing one, using QGraphicScene
         graphicsView = new MyGraphicsView(ui->frmDrawing);
@@ -28,10 +28,7 @@ DrawingForm::DrawingForm(RuntimeProvider *rp, QWidget *parent) :
         graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-        sc = new QGraphicsScene(graphicsView->rect());
-        graphicsView->setScene(sc);
-        graphicsView->viewport()->setFocusProxy(0);
-        sc->setBackgroundBrush(Qt::white);
+        graphicsView->initScene();
 
 #if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
         QOpenGLWidget* gl = new QOpenGLWidget();
@@ -44,16 +41,15 @@ DrawingForm::DrawingForm(RuntimeProvider *rp, QWidget *parent) :
         ui->verticalLayout->addWidget(graphicsView);
         Graphics_view_zoom* z = new Graphics_view_zoom(graphicsView);
         z->set_modifiers(Qt::NoModifier);
+        m_ar = graphicsView;
 
-        drawCoordinateSystem();
 
         connect(graphicsView, &MyGraphicsView::redraw, this, [this]()
         {
-            redrawEverything();
+             graphicsView->redrawEverything();
         }
         );
 
-        m_ar = graphicsView;
     }
     else
     {
@@ -64,6 +60,9 @@ DrawingForm::DrawingForm(RuntimeProvider *rp, QWidget *parent) :
         m_ar = m_pr;
 
     }
+
+    drawCoordinateSystem();
+
 
 }
 
@@ -106,8 +105,8 @@ QVector<QPointF> DrawingForm::drawPlot(QSharedPointer<Plot> plot)
             {
                 QPoint scp1 {m_ar->toScene({cx, cy})};
                 QPoint scp2 {m_ar->toScene({x, y})};
-                sc->addLine( QLine(scp1, scp2), drawingPen);
-                drawnLines.append({{static_cast<qreal>(cx), static_cast<qreal>(cy), static_cast<qreal>(x), static_cast<qreal>(y)}, drawingPen});
+                //sc->addLine( QLine(scp1, scp2), drawingPen);
+                m_ar->addLine({static_cast<qreal>(cx), static_cast<qreal>(cy), static_cast<qreal>(x), static_cast<qreal>(y)}, drawingPen);
                 cx = x;
                 cy = y;
             }
@@ -116,8 +115,8 @@ QVector<QPointF> DrawingForm::drawPlot(QSharedPointer<Plot> plot)
         {
             QPoint scp {m_ar->toScene({x, y})};
 
-            sc->addEllipse(scp.x(), scp.y(), 1.0, 1.0, drawingPen);
-            drawnPoints.append({{x, y}, drawingPen});
+            // sc->addEllipse(scp.x(), scp.y(), 1.0, 1.0, drawingPen);
+            m_ar->addPoint({x, y}, drawingPen);
         }
     };
 
@@ -129,8 +128,7 @@ QVector<QPointF> DrawingForm::drawPlot(QSharedPointer<Plot> plot)
 
 void DrawingForm::reset()
 {
-    drawnLines.clear();
-    drawnPoints.clear();
+    m_ar->reset();
 
 }
 
@@ -141,32 +139,16 @@ void DrawingForm::resizeEvent(QResizeEvent *event)
     m_ar->resizeEvent(event);
 
     QRect wrect = rect();
-    redrawEverything();
+    m_ar->redrawEverything();
 
 }
 
-void DrawingForm::redrawEverything()
-{
-    drawCoordinateSystem();
-    for(const auto&l : qAsConst(drawnLines))
-    {
-        QPoint p1 = m_ar->toScene({l.line.x1(), l.line.y1()});
-        QPoint p2 = m_ar->toScene({l.line.x2(), l.line.y2()});
-        sc->addLine(QLine(p1, p2) , l.pen);
-    }
 
-    for(const auto&p : qAsConst(drawnPoints))
-    {
-        QPoint pd = m_ar->toScene({p.point.x(), p.point.y()});
-        sc->addEllipse(pd.x(), pd.y(), 1.0, 1.0, p.pen);
-    }
-
-}
 
 void DrawingForm::drawPoint(double x, double y)
 {
     QPoint p = m_ar->toScene({x, y});
-    sc->addEllipse(p.x(), p.y(), 1.0, 1.0, drawingPen);
-    drawnPoints.append({{x, y}, drawingPen});
+    // sc->addEllipse(p.x(), p.y(), 1.0, 1.0, drawingPen);
+    m_ar->addPoint({x, y}, drawingPen);
 
 }

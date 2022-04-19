@@ -16,18 +16,36 @@ void PlotRenderer::resizeEvent(QResizeEvent* event)
 
 void PlotRenderer::drawCoordinateSystem()
 {
-
+    AbstractDrawer::drawCoordinateSystem();
+    repaint();
 }
 
-QPoint PlotRenderer::toScene(QPointF)
+void PlotRenderer::drawLine(const QLineF &l, const QPen &p)
 {
-    return {0, 0};
+    drawnLines.append({l, p});
+}
+
+int PlotRenderer::sceneX(double x)
+{
+    int zeroX = rect().width() / 2;
+
+    return zeroX + get_sceneScrollX() + x * zoomFactor();
+}
+
+int PlotRenderer::sceneY(double y)
+{
+    int zeroY = rect().height() / 2;
+
+    return zeroY + get_sceneScrollY() - y * zoomFactor();
+}
+
+void PlotRenderer::redrawEverything()
+{
+    repaint();
 }
 
 void PlotRenderer::paintEvent(QPaintEvent* /* event */)
 {
-    qWarning() << "AAAAAAAAAAAAAAAAAAAAAAaa";
-
     QPainter painter(this);
     QPen pen;
     QBrush brush;
@@ -35,21 +53,21 @@ void PlotRenderer::paintEvent(QPaintEvent* /* event */)
     painter.setPen(pen);
     painter.setBrush(brush);
 
-    static const QPoint points[4] = {
-        QPoint(10, 80),
-        QPoint(20, 10),
-        QPoint(80, 30),
-        QPoint(90, 70)
-    };
+    for(const auto& dl : drawnLines)
+    {
+        painter.setPen(dl.pen);
+        QPoint p1 = toScene(dl.line.p1());
+        QPoint p2 = toScene(dl.line.p2());
+        painter.drawLine(QLine{p1, p2});
+    }
 
-    QRect rect(10, 20, 80, 60);
+    for(const auto& dp : drawnPoints)
+    {
+        painter.setPen(dp.pen);
 
-    QPainterPath path;
-    path.moveTo(20, 80);
-    path.lineTo(20, 30);
-    path.cubicTo(80, 0, 50, 50, 80, 80);
+        QPoint p = toScene(dp.point);
 
-    painter.drawLine(rect.bottomLeft(), rect.topRight());
-    painter.drawPath(path);
+        painter.drawEllipse(p.x() - 1, p.y() - 1, 2.0, 2.0);
+    }
 
 }

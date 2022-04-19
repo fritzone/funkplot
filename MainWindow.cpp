@@ -139,6 +139,8 @@ void MainWindow::runCurrentCode()
     m_df->drawCoordinateSystem();
 
     m_currentProgram->run();
+
+    m_df->repaint();
 }
 
 void MainWindow::setCurrentStatement(const QString &newCurrentStatement)

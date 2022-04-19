@@ -98,6 +98,7 @@ endif()
 
 add_executable(ggui WIN32
     main.cpp
+    AbstractDrawer.cpp AbstractDrawer.h
     Highlighter.h Highlighter.cpp
     MainWindow.h MainWindow.cpp MainWindow.ui
     MyGraphicsView.h MyGraphicsView.cpp

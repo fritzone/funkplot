@@ -17,18 +17,6 @@ namespace Ui {
 class DrawingForm;
 }
 
-struct DrawnLine
-{
-    QLineF line;
-    QPen pen;
-};
-
-struct DrawnPoint
-{
-    QPointF point;
-    QPen pen;
-};
-
 
 
 class DrawingForm : public QWidget
@@ -51,8 +39,6 @@ public:
 
     void resizeEvent(QResizeEvent *event);
 
-    void redrawEverything();
-
     void drawPoint(double x, double y);
 
 
@@ -67,10 +53,8 @@ private:
 
 
     Ui::DrawingForm *ui;
-    QGraphicsScene* sc = nullptr;
+
     QPen drawingPen;
-    QVector<DrawnLine> drawnLines;
-    QVector<DrawnPoint> drawnPoints;
     RuntimeProvider* m_rp;
 
     PlotRenderer* m_pr = nullptr;
