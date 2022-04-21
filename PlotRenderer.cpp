@@ -7,7 +7,7 @@
 
 PlotRenderer::PlotRenderer(QWidget* parent) : AbstractDrawer(parent)
 {
-
+    this->installEventFilter(this);
 }
 
 void PlotRenderer::resizeEvent(QResizeEvent* event)
@@ -46,7 +46,11 @@ void PlotRenderer::redrawEverything()
 
 void PlotRenderer::paintEvent(QPaintEvent* /* event */)
 {
+
     QPainter painter(this);
+    painter.fillRect(rect(), "white");
+
+    painter.scale(scale,scale);
     QPen pen;
     QBrush brush;
 
@@ -70,4 +74,27 @@ void PlotRenderer::paintEvent(QPaintEvent* /* event */)
         painter.drawEllipse(p.x() - 1, p.y() - 1, 2.0, 2.0);
     }
 
+}
+
+
+void PlotRenderer::mousePressEvent(QMouseEvent *event)
+{
+    AbstractDrawer::mousePressEvent(event);
+}
+
+void PlotRenderer::mouseMoveEvent(QMouseEvent *event)
+{
+    AbstractDrawer::mouseMoveEvent(event);
+    repaint();
+}
+
+void PlotRenderer::mouseReleaseEvent(QMouseEvent *event)
+{
+    AbstractDrawer::mouseReleaseEvent(event);
+}
+
+void PlotRenderer::wheelEvent(QWheelEvent *event)
+{
+    AbstractDrawer::wheelEvent(event);
+    repaint();
 }

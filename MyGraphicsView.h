@@ -18,7 +18,7 @@ public:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
-
+//    void wheelEvent ( QWheelEvent * event ) override;
 
     void resizeEvent(QResizeEvent* event) override;
 
@@ -37,13 +37,6 @@ signals:
     void redraw();
 
 private:
-
-    int origScSx = 0;
-    int origScSy = 0;
-
-    bool dragging = false;
-    int drag_down_x = 0;
-    int drag_down_y = 0;
 
     QGraphicsScene* sc = nullptr;
 };

@@ -12,23 +12,30 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+set(CMAKE_PREFIX_PATH "/home/fld/Qt/6.3.0/gcc_64/lib/cmake")
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets OpenGL REQUIRED)
+find_package(QT NAMES Qt6
+    COMPONENTS
+        Widgets
+        OpenGL
+
+        3DCore
+        3DRender
+        3DInput
+        3DLogic
+        3DExtras
+        3DAnimation
+    REQUIRED
+)
 
 message(Qt${QT_VERSION_MAJOR} found)
 
-set(QT_COMPONENTS Core Gui Widgets OpenGL)
+set(QT_COMPONENTS Core Gui Widgets OpenGL 3DCore 3DRender 3DInput 3DLogic 3DExtras 3DAnimation)
 
 
-if(WIN32)
-    set(DKDDockWidgets_QT6 ON)
-else()
-    list(APPEND QT_COMPONENTS X11Extras)
-endif()
+set(KDDockWidgets_QT6 true)
 
-if(${QT_VERSION_MAJOR} STREQUAL "6")
-    list(APPEND QT_COMPONENTS OpenGLWidgets)
-endif()
+list(APPEND QT_COMPONENTS OpenGLWidgets)
 
 find_package(
     Qt${QT_VERSION_MAJOR}
@@ -109,6 +116,10 @@ add_executable(ggui WIN32
     DrawingForm.h DrawingForm.cpp DrawingForm.ui
     PlotRenderer.h PlotRenderer.cpp
     CodeEditorTabPage.h CodeEditorTabPage.cpp CodeEditorTabPage.ui
+
+
+    OrbitTransformController.h
+
     ${GUI_UI_FILES}
     ${GUI_QRC_FILES}
 )
@@ -118,6 +129,12 @@ set(QtLibList
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::OpenGL
+
+    Qt${QT_VERSION_MAJOR}::3DCore
+    Qt${QT_VERSION_MAJOR}::3DRender
+    Qt${QT_VERSION_MAJOR}::3DLogic
+    Qt${QT_VERSION_MAJOR}::3DExtras
+    Qt${QT_VERSION_MAJOR}::3DAnimation
 )
 if(${QT_VERSION_MAJOR} STREQUAL "6")
     list(APPEND QtLibList Qt${QT_VERSION_MAJOR}::OpenGLWidgets)
@@ -125,10 +142,6 @@ endif()
 
 
 find_package(OpenGL REQUIRED)
-
-if(NOT WIN32)
-    LIST(APPEND QtLibList Qt${QT_VERSION_MAJOR}::X11Extras)
-endif()
 
 target_link_libraries(ggui
     PUBLIC

@@ -41,6 +41,8 @@ public:
 
     void drawPoint(double x, double y);
 
+signals:
+    void contentChanged();
 
 private:
 

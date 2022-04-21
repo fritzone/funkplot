@@ -12,30 +12,26 @@ MyGraphicsView::MyGraphicsView(QWidget *parent) : QGraphicsView(parent)
 
 void MyGraphicsView::mousePressEvent(QMouseEvent *event)
 {
-    drag_down_x = event->x();
-    drag_down_y = event->y();
-    origScSx = sceneScrollX;
-    origScSy = sceneScrollY;
-    dragging = true;
+    AbstractDrawer::mousePressEvent(event);
 }
 
 void MyGraphicsView::mouseMoveEvent(QMouseEvent *event)
 {
-    if(dragging)
-    {
-        sceneScrollX = origScSx + (event->x() - drag_down_x);
-        sceneScrollY = origScSy + (event->y() - drag_down_y);
+    AbstractDrawer::mouseMoveEvent(event);
 
-        emit redraw();
-    }
+    emit redraw();
+
 }
 
 void MyGraphicsView::mouseReleaseEvent(QMouseEvent *event)
 {
-    dragging = false;
+    AbstractDrawer::mouseReleaseEvent(event);
 }
 
-
+//void MyGraphicsView::wheelEvent(QWheelEvent *event)
+//{
+//    AbstractDrawer::wheelEvent(event);
+//}
 
 void MyGraphicsView::resizeEvent(QResizeEvent* event)
 {
@@ -57,7 +53,7 @@ void MyGraphicsView::drawLine(const QLineF &l, const QPen &p)
     QPoint p1 = toScene(l.p1());
     QPoint p2 = toScene(l.p2());
     sc->addLine(QLine{p1, p2}, p);
-    addLine(l, p);
+    //addLine(l, p);
 }
 
 int MyGraphicsView::sceneX(double x)

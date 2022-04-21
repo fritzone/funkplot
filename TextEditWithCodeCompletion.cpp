@@ -46,6 +46,8 @@ TextEditWithCodeCompletion::TextEditWithCodeCompletion(QWidget* p, RuntimeProvid
 
     m_highlighter.reset(new Highlighter(document(), rp));
 
+    setPlainText("function f(x) = sin(x)\nplot f");
+
 }
 
 void TextEditWithCodeCompletion::onTimer()

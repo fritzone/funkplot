@@ -17,6 +17,11 @@ public:
     void drawCoordinateSystem() override;
     void drawLine(const QLineF&, const QPen&) override;
 
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void wheelEvent(QWheelEvent * event) override;
+
     int sceneX(double x) override;
 
     int sceneY(double y) override;

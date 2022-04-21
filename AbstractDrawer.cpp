@@ -1,5 +1,7 @@
 #include "AbstractDrawer.h"
+#include "qdebug.h"
 #include "util.h"
+#include <QMouseEvent>
 #include <QPen>
 #include <cmath>
 
@@ -94,6 +96,29 @@ void AbstractDrawer::drawCoordinateSystem()
 
 }
 
+void AbstractDrawer::mousePressEvent(QMouseEvent *event)
+{
+    drag_down_x = event->x();
+    drag_down_y = event->y();
+    origScSx = sceneScrollX;
+    origScSy = sceneScrollY;
+    dragging = true;
+}
+
+void AbstractDrawer::mouseMoveEvent(QMouseEvent *event)
+{
+    if(dragging)
+    {
+        sceneScrollX = origScSx + (event->x() - drag_down_x);
+        sceneScrollY = origScSy + (event->y() - drag_down_y);
+    }
+}
+
+void AbstractDrawer::mouseReleaseEvent(QMouseEvent *event)
+{
+    dragging = false;
+}
+
 QPoint AbstractDrawer::toScene(QPointF f)
 {
     QPointF rotated = rotatePoint(0, 0, rotationAngle(), f);
@@ -101,6 +126,46 @@ QPoint AbstractDrawer::toScene(QPointF f)
     int scy = sceneY(rotated.y());
 
     return {scx, scy};
+}
+
+double AbstractDrawer::coordStartX()
+{
+    return -15.0;
+}
+
+double AbstractDrawer::coordEndX()
+{
+    return 15.0;
+}
+
+double AbstractDrawer::coordStartY()
+{
+    return -10.0;
+}
+
+double AbstractDrawer::coordEndY()
+{
+    return 10.0;
+}
+
+double AbstractDrawer::zoomFactor()
+{
+    return 50.0;
+}
+
+double AbstractDrawer::rotationAngle()
+{
+    return 0;
+}
+
+int AbstractDrawer::get_sceneScrollX() const
+{
+    return sceneScrollX;
+}
+
+int AbstractDrawer::get_sceneScrollY() const
+{
+    return sceneScrollY;
 }
 
 void AbstractDrawer::reset()
@@ -118,4 +183,16 @@ void AbstractDrawer::addLine(QLineF l, QPen p)
 void AbstractDrawer::addPoint(QPointF l, QPen p)
 {
     drawnPoints.append({l, p});
+}
+
+void AbstractDrawer::wheelEvent ( QWheelEvent * event )
+{
+    qreal oldScale = scale;
+    qreal scf = (event->angleDelta().y() / 120.0);
+    scale += scf / zoomFactor();
+    if(scale <= 0.001)
+    {
+        scale = oldScale;
+    }
+
 }

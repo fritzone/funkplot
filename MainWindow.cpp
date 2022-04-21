@@ -140,6 +140,7 @@ void MainWindow::runCurrentCode()
 
     m_currentProgram->run();
 
+    m_df->contentChanged();
     m_df->repaint();
 }
 
