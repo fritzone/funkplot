@@ -116,9 +116,7 @@ add_executable(ggui WIN32
     DrawingForm.h DrawingForm.cpp DrawingForm.ui
     PlotRenderer.h PlotRenderer.cpp
     CodeEditorTabPage.h CodeEditorTabPage.cpp CodeEditorTabPage.ui
-
-
-    OrbitTransformController.h
+    ProjectedRenderer.h ProjectedRenderer.cpp
 
     ${GUI_UI_FILES}
     ${GUI_QRC_FILES}

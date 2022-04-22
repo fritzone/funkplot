@@ -11,8 +11,9 @@
 class MyGraphicsView;
 class PlotRenderer;
 class AbstractDrawer;
-
 class QGraphicsScene;
+class ProjectedRenderer;
+
 namespace Ui {
 class DrawingForm;
 }
@@ -59,9 +60,11 @@ private:
     QPen drawingPen;
     RuntimeProvider* m_rp;
 
-    PlotRenderer* m_pr = nullptr;
     AbstractDrawer* m_ar = nullptr;
+
+    PlotRenderer* m_pr = nullptr;
     MyGraphicsView* graphicsView = nullptr;
+    ProjectedRenderer *view = nullptr;
 
 };
 

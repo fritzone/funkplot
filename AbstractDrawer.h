@@ -51,8 +51,8 @@ public:
     int get_sceneScrollX() const;
     int get_sceneScrollY() const;
     void reset();
-    void addLine(QLineF l, QPen p);
-    void addPoint(QPointF l, QPen p);
+    virtual void addLine(QLineF l, QPen p);
+    virtual void addPoint(QPointF l, QPen p);
 
 
 protected:

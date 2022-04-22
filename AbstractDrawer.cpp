@@ -13,9 +13,9 @@ static QPointF asItIs(QPointF p)
 void AbstractDrawer::drawCoordinateSystem()
 {
     drawLine(QLineF(asItIs( {0, 0} ), asItIs( {coordEndX(), 0 })), QPen(Qt::blue));
-    drawLine(QLineF(asItIs( {0, 0} ), asItIs( {coordStartX(), 0})), QPen(Qt::red));
+    drawLine(QLineF(asItIs( {0, 0} ), asItIs( {coordStartX(), 0})), QPen(Qt::black));
     drawLine(QLineF(asItIs( {0, 0} ), asItIs( {0, coordEndY()})), QPen(Qt::red));
-    drawLine(QLineF(asItIs( {0, 0} ), asItIs( {0, coordStartY()})), QPen(Qt::red));
+    drawLine(QLineF(asItIs( {0, 0} ), asItIs( {0, coordStartY()})), QPen(Qt::black));
 
     auto endPoint1 = asItIs( {0, coordEndY()});
 
@@ -49,7 +49,7 @@ void AbstractDrawer::drawCoordinateSystem()
         QPointF lineTop = asItIs({x + r * sin(angdiff + M_PI / 2), + r * cos(angdiff + M_PI / 2)});
         QPointF lineBottom = asItIs({x + r * sin(angdiff + 3 * M_PI / 2), + r * cos(angdiff + 3 * M_PI / 2)});
 
-        drawLine( {lineTop, lineBottom}, QPen(Qt::red));
+        drawLine( {lineTop, lineBottom}, QPen(Qt::black));
 
 //        QGraphicsTextItem *text = sc->addText(QString::number(x, 'f', 0));
 //        text->setPos(lineBottom.x() - text->boundingRect().width() / 2, lineBottom.y() + 6);
@@ -75,7 +75,7 @@ void AbstractDrawer::drawCoordinateSystem()
         QPointF lineTop = asItIs({r * sin(angdiff + M_PI / 2),y + r * cos(angdiff + M_PI / 2)});
         QPointF lineBottom = asItIs({r * sin(angdiff + 3 * M_PI / 2),y + r * cos(angdiff + 3 * M_PI / 2)});
 
-        drawLine( {lineTop, lineBottom}, QPen(Qt::red));
+        drawLine( {lineTop, lineBottom}, QPen(Qt::black));
 
 //        QGraphicsTextItem *text = sc->addText(QString::number(y, 'f', 0));
 //        text->setPos(lineTop.x() - text->boundingRect().width(), lineTop.y() - text->boundingRect().height() / 2);
