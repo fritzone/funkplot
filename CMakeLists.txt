@@ -32,7 +32,6 @@ message(Qt${QT_VERSION_MAJOR} found)
 
 set(QT_COMPONENTS Core Gui Widgets OpenGL 3DCore 3DRender 3DInput 3DLogic 3DExtras 3DAnimation)
 
-
 set(KDDockWidgets_QT6 true)
 
 list(APPEND QT_COMPONENTS OpenGLWidgets)
@@ -64,6 +63,13 @@ add_library(funplot STATIC
     RuntimeProvider.cpp RuntimeProvider.h
     util.cpp util.h
     CodeEngine.cpp CodeEngine.h
+
+    Keywords.h
+    Statement.h
+    Stepped.h
+    Set.h
+
+    constants.h
 )
 
 target_link_libraries(funplot

@@ -2,6 +2,7 @@
 #define RUNTIMEPROVIDER_H
 
 #include "CodeEngine.h"
+#include "Set.h"
 
 #include <QMap>
 #include <QString>
@@ -44,6 +45,10 @@ public:
         {
             if(!resolveAsPoint(plot))
             {
+                // try it as a function, hopefully that will work
+                auto tf = temporaryFunction(plot->plotTarget);
+                double v = tf->Calculate(this);
+
                 reportError("Invalid data to plot: " + plot->plotTarget);
             }
             return;
@@ -109,7 +114,7 @@ public:
     QSharedPointer<Statement> createPlot(const QString &codeline);
     QSharedPointer<Statement> resolveObjectAssignment(const QString &codeline);
     QSharedPointer<Statement> createFunction(const QString& codeline);
-    QSharedPointer<Statement> createSett(const QString &codeline);
+    QSharedPointer<Statement> createSet(const QString &codeline);
     QSharedPointer<Statement> createLoop(const QString &codeline, QStringList& codelines);
     QSharedPointer<Statement> createRotation(const QString &codeline, QStringList& codelines);
 
@@ -132,7 +137,7 @@ private:
     QVector<QSharedPointer<Plot>> plots;
     QVector<QSharedPointer<FunctionDefinition>> functions;
     QVector<QSharedPointer<Assignment>> assignments;
-    QVector<QSharedPointer<Sett>> m_setts;
+    QVector<QSharedPointer<Set>> m_setts;
 
     QVector<QSharedPointer<Statement>> statements;
 

@@ -1,4 +1,5 @@
 #include "RuntimeProvider.h"
+#include "constants.h"
 
 const QString STR_FUNCTION = Keywords::KW_FUNCTION + " ";    // function f(x) = x * 2 + 5
 const QString STR_PLOT = Keywords::KW_PLOT + " ";            // plot f over (-2, 2) [continuous]
@@ -8,9 +9,12 @@ const QString STR_OF  = Keywords::KW_OF + " ";               // let something = 
 const QString STR_STEP = Keywords::KW_STEP + " ";            // plot f over (-2, 2) [continuous|step<cnt|0.01>]
 const QString STR_COUNTS = Keywords::KW_COUNTS + " ";
 const QString STR_ROTATE = Keywords::KW_ROTATE + " ";
-const QString STR_FOREACH = Keywords::KW_FOREACH + " ";      // foreach p in something do ... done
 const QString STR_SET = Keywords::KW_SET + " ";              // set color red
-const QString STR_IN = Keywords::KW_IN + " ";                // foreach p in something do ... done
+const QString STR_IN = Keywords::KW_IN + " ";                // for p in something do ... done
+const QString STR_TO = Keywords::KW_TO + " ";                // for i = 0 to 256 step 1 do
+
+const QString STR_DEFAULT_FOR_STEP = QString::number(DEFAULT_FOR_STEP);
+const QString DTR_DEFAULT_RANGE_STEP = QString::number(DEFAULT_RANGE_STEP, 'f', 2 );
 
 
 RuntimeProvider::RuntimeProvider(CB_ErrorReporter erp, CB_PointDrawer pd, CB_StatementTracker str, CB_PenSetter ps, CB_PlotDrawer pld) :
@@ -291,10 +295,10 @@ QSharedPointer<Statement> RuntimeProvider::resolveCodeline(QStringList& codeline
         else
         if(codeline.startsWith(STR_SET)) // setting the color, line width, rotation, etc ...
         {
-            statements.append(createdStatement = createSett(codeline));
+            statements.append(createdStatement = createSet(codeline));
         }
         else
-        if(codeline.startsWith(STR_FOREACH)) // looping over a set of points or something else
+        if(codeline.startsWith(Keywords::KW_FOR)) // looping over a set of points or something else
         {
             statements.append(createdStatement = createLoop(codeline, codelines));
         }
@@ -347,7 +351,7 @@ QSharedPointer<Statement> RuntimeProvider::createFunction(const QString &codelin
     return fd;
 }
 
-QSharedPointer<Statement> RuntimeProvider::createSett(const QString &codeline)
+QSharedPointer<Statement> RuntimeProvider::createSet(const QString &codeline)
 {
     QString s_body = codeline.mid(STR_SET.length());
     // set what?
@@ -369,7 +373,7 @@ QSharedPointer<Statement> RuntimeProvider::createSett(const QString &codeline)
         to_what += s_body[0];
         s_body = s_body.mid(1);
     }
-    QSharedPointer<Sett> sett(new Sett(codeline));
+    QSharedPointer<Set> sett(new Set(codeline));
     sett->what = what;
     sett->value = to_what;
     return sett;
@@ -377,19 +381,19 @@ QSharedPointer<Statement> RuntimeProvider::createSett(const QString &codeline)
 
 QSharedPointer<Statement> RuntimeProvider::createLoop(const QString &codeline, QStringList &codelines)
 {
-    QString l_decl = codeline.mid(STR_FOREACH.length());
+    QString l_decl = codeline.mid(Keywords::KW_FOR.length());
+    consumeSpace(l_decl);
     QVector<QSharedPointer<Statement>> loop_body;
+
+    // the loop object, regardless if its an in loop or assignment loop
     QSharedPointer<Loop> result = nullptr;
+    result.reset(new Loop(codeline));
 
     // the loop variable
-    QString loop_variable;
-    while(!l_decl.isEmpty() && !l_decl[0].isSpace())
-    {
-        loop_variable += l_decl[0];
-        l_decl = l_decl.mid(1);
-    }
-    // skip the space
-    l_decl = l_decl.mid(1);
+    QString loop_variable = extract_proper_expression(l_decl);
+    result->loop_variable = loop_variable;
+
+    consumeSpace(l_decl);
 
     // in keyword
     if(l_decl.startsWith(STR_IN))
@@ -407,22 +411,28 @@ QSharedPointer<Statement> RuntimeProvider::createLoop(const QString &codeline, Q
         // skip the space
         consumeSpace(l_decl);
 
-        // create the correct loop object
-        result.reset(new Loop(codeline));
-        result->loop_variable = loop_variable;
-        if(loop_over == Keywords::KW_RANGE && (l_decl[0] == '(' || l_decl[0] == '['))
+        if(loop_over == Keywords::KW_RANGE)
         {
+            // see if it starts with parenthesis or not
+
+            bool needs_closing_paren = false;
+            if(!l_decl.isEmpty() && l_decl[0] == '(')
+            {
+                needs_closing_paren = true;
+                // skip openin parenthesis
+                l_decl = l_decl.mid(1);
+                consumeSpace(l_decl);
+            }
+
             auto ritl = new RangeIteratorLoopTarget(result);
             result->loop_target.reset(ritl);
-            l_decl = l_decl.mid(1);
-            QString range_start = "";
-            while(!l_decl.isEmpty() && !l_decl[0].isSpace() && !(l_decl[0] == ','))
-            {
-                range_start += l_decl[0];
-                l_decl = l_decl.mid(1);
-            }
+
+
+            // get the range start functions
+            QString range_start = extract_proper_expression(l_decl, {','});
             consumeSpace(l_decl);
-            if(l_decl[0] == ',')
+
+            if(!l_decl.isEmpty() && l_decl[0] == ',')
             {
                 l_decl = l_decl.mid(1);
                 consumeSpace(l_decl);
@@ -430,39 +440,30 @@ QSharedPointer<Statement> RuntimeProvider::createLoop(const QString &codeline, Q
 
             ritl->startFun = temporaryFunction(range_start);
 
-            QString range_end = "";
-            while(!l_decl.isEmpty() && !l_decl[0].isSpace() && !(l_decl[0] == ')' || l_decl[0] == ']'))
-            {
-                range_end += l_decl[0];
-                l_decl = l_decl.mid(1);
-            }
-
+            // range end
+            QString range_end = extract_proper_expression(l_decl, (needs_closing_paren ? QSet{QChar(')')} : QSet{QChar(' ')}) );
             ritl->endFun = temporaryFunction(range_end);
 
-            if(l_decl[0] == ')')
+            if(!l_decl.isEmpty() && l_decl[0] == ')' && needs_closing_paren)
             {
                 l_decl = l_decl.mid(1);
             }
+
             consumeSpace(l_decl);
             // do we have a step
             if(l_decl.startsWith(Keywords::KW_STEP))
             {
                 l_decl = l_decl.mid(STR_STEP.length());
                 consumeSpace(l_decl);
-                QString step;
-                while(!l_decl.isEmpty() && !l_decl[0].isSpace())
-                {
-                    step += l_decl[0];
-                    l_decl = l_decl.mid(1);
-                }
 
+                QString step = extract_proper_expression(l_decl);
                 ritl->stepFun = temporaryFunction(step);
 
                 consumeSpace(l_decl);
             }
             else
             {
-                ritl->stepFun = temporaryFunction("0.01");
+                ritl->stepFun = temporaryFunction(DEFAULT_RANGE_STEP);
             }
         }
         else
@@ -473,7 +474,7 @@ QSharedPointer<Statement> RuntimeProvider::createLoop(const QString &codeline, Q
 
         if(!l_decl.startsWith(Keywords::KW_DO))
         {
-            throw syntax_error_exception("foreach does not contain the do keyword");
+            throw syntax_error_exception("for statement does not contain the do keyword");
         }
 
         bool done = false;
@@ -502,13 +503,59 @@ QSharedPointer<Statement> RuntimeProvider::createLoop(const QString &codeline, Q
 
         if(!done)
         {
-            throw syntax_error_exception("foreach body does not end with done");
+            throw syntax_error_exception("for body does not end with done");
         }
 
     }
     else
+    if(l_decl.startsWith("=")) // the classical loop: for i = 0 to 256 step 1 do
     {
-        throw syntax_error_exception("foreach does not contain the in keyword");
+        // skip the equal sign
+        l_decl = l_decl.mid(1);
+        consumeSpace(l_decl);
+
+        // the loop target of this is a range iterator, since this loop is a stepped range
+        auto ritl = new RangeIteratorLoopTarget(result);
+        result->loop_target.reset(ritl);
+
+        // the start:
+        QString range_start = extract_proper_expression(l_decl);
+        ritl->startFun = temporaryFunction(range_start);
+
+        if(!l_decl.startsWith(Keywords::KW_TO))
+        {
+            throw syntax_error_exception("for statement with direct assignment does not contain the to keyword");
+        }
+
+        l_decl = l_decl.mid(STR_TO.length());
+        consumeSpace(l_decl);
+
+        // range end
+        QString range_end = extract_proper_expression(l_decl);
+        ritl->endFun = temporaryFunction(range_end);
+
+        consumeSpace(l_decl);
+        // do we have a step
+        if(l_decl.startsWith(Keywords::KW_STEP))
+        {
+            l_decl = l_decl.mid(STR_STEP.length());
+            consumeSpace(l_decl);
+
+            QString step = extract_proper_expression(l_decl);
+            ritl->stepFun = temporaryFunction(step);
+
+            consumeSpace(l_decl);
+        }
+        else
+        {
+            ritl->stepFun = temporaryFunction(DEFAULT_FOR_STEP);
+        }
+
+
+    }
+    else
+    {
+        throw syntax_error_exception("invalid for statement");
     }
 
     return result;
@@ -573,15 +620,10 @@ QSharedPointer<Statement> RuntimeProvider::createPlot(const QString& codeline)
 
     QString plot_body = codeline.mid(STR_PLOT.length());
     // function name
-    QString funToPlot;
-    while(!plot_body.isEmpty() && !plot_body[0].isSpace())
-    {
-        funToPlot += plot_body[0];
-        plot_body = plot_body.mid(1);
-    }
+    QString funToPlot = extract_proper_expression(plot_body, {}, {Keywords::KW_OVER, Keywords::KW_CONTINUOUS});
     plotData->plotTarget = funToPlot;
+    consumeSpace(plot_body);
 
-    plot_body = plot_body.mid(1);
     // over keyword
     if(plot_body.startsWith(Keywords::KW_OVER))
     {
@@ -623,6 +665,7 @@ QSharedPointer<Assignment> RuntimeProvider::providePointsOfDefinition(const QStr
         resolveOverKeyword(assignment_body, assignmentData);
     }
 
+    // TODO: counts keyword
     return assignmentData;
 }
 
@@ -638,7 +681,7 @@ QSharedPointer<Statement> RuntimeProvider::resolveObjectAssignment(const QString
     QString varName = getDelimitedId(assignment_body);
 
     // assignment operator
-    if(assignment_body[0] != '=')
+    if(!assignment_body.isEmpty() && assignment_body[0] != '=')
     {
         throw syntax_error_exception("Invalid assignment: %s (missing assignment operator)", codeline.toStdString().c_str());
     }

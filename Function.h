@@ -2,6 +2,7 @@
 #define _FUNCTION_H_
 
 #include "util.h"
+#include <sstream>
 
 #include <QSharedPointer>
 #include <QString>
@@ -99,6 +100,14 @@ private:
 };
 
 QSharedPointer<Function> temporaryFunction(const QString &definition);
+
+template<class T> QSharedPointer<Function> temporaryFunction(T definition)
+{
+    std::stringstream ss;
+    ss << definition;
+
+    return temporaryFunction(QString::fromStdString(ss.str()));
+}
 
 
 #endif

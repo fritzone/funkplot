@@ -11,29 +11,10 @@ Highlighter::Highlighter(QTextDocument *parent, RuntimeProvider *rp) : QSyntaxHi
 
     keywordFormat.setForeground(Qt::darkBlue);
     keywordFormat.setFontWeight(QFont::Bold);
-    static const QString keywordPatterns[] = {
-       QStringLiteral("\\brotate\\b"),
-       QStringLiteral("\\bfunction\\b"),
-       QStringLiteral("\\bplot\\b"),
-       QStringLiteral("\\bover\\b"),
-       QStringLiteral("\\bcontinuous\\b"),
-       QStringLiteral("\\blet\\b"),
-       QStringLiteral("\\bof\\b"),
-       QStringLiteral("\\bstep\\b"),
-       QStringLiteral("\\bcounts\\b"),
-       QStringLiteral("\\bforeach\\b"),
-       QStringLiteral("\\bset\\b"),
-       QStringLiteral("\\bin\\b"),
-       QStringLiteral("\\bwith\\b"),
-       QStringLiteral("\\bdo\\b"),
-       QStringLiteral("\\bdone\\b"),
-       QStringLiteral("\\brange\\b"),
-       QStringLiteral("\\baround\\b"),
-       QStringLiteral("\\bsegments\\b"),
-       QStringLiteral("\\bpoints\\b"),
-    };
+    static auto keywordPatterns = Keywords::all();
+
     for (const QString &pattern : keywordPatterns) {
-        rule.pattern = QRegularExpression(pattern);
+        rule.pattern = QRegularExpression("\\b" + pattern + "\\b");
         rule.format = keywordFormat;
         highlightingRules.append(rule);
     }

@@ -232,8 +232,8 @@ template <typename T> int sgn(T val) {
 void consumeSpace(QString &s);
 QString getDelimitedId(QString&, QSet<char>, char &delim);
 QString getDelimitedId(QString&, QSet<char> = {' '});
-std::string extract_proper_expression(const char *&p, std::set<char> seps);
-QString extract_proper_expression(QString &p, QSet<QChar> seps);
+std::string extract_proper_expression(const char *&p, std::set<char> seps, std::set<std::string> first_not_accepted_identifier = {});
+QString extract_proper_expression(QString &p, QSet<QChar> seps = {' '}, QSet<QString> fnai = {});
 QPointF rotatePoint(float cx, float cy, float angle, QPointF p);
 
 #endif

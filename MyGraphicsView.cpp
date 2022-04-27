@@ -8,6 +8,12 @@
 MyGraphicsView::MyGraphicsView(QWidget *parent) : QGraphicsView(parent) 
 {
     this->installEventFilter(this);
+
+    setObjectName(QString::fromUtf8("graphicsView"));
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    initScene();
 }
 
 void MyGraphicsView::mousePressEvent(QMouseEvent *event)

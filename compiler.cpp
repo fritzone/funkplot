@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
-
+#include "util.h"
 #include "Function.h"
 
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
@@ -62,10 +62,31 @@ TEST_CASE( "Divide", "[simfun]" )
     delete f;
 
 } */
-
+/*
 TEST_CASE( "Power", "[simfun]" )
 {
     Function *f = new Function("function f(x) = pow(x, cos(x / 2) + x)");
+    f->SetVariable("x", 0);
+
+    double cc=f->Calculate(nullptr);
+    REQUIRE(cc == 0);
+    REQUIRE(f->get_name() == "f");
+    delete f;
+
+}*/
+
+/*TEST_CASE( "UnwantedWordExtractor", "[parser]" )
+{
+    std::string s = "sin(x) over";
+    const char* b = &s[0];
+    std::string ex = extract_proper_expression(b, std::set<char>{} ,std::set<std::string>{"over"} );
+}
+*/
+
+
+TEST_CASE( "Indexed", "[simfun]" )
+{
+    Function *f = new Function("function f(x) = x[2]");
     f->SetVariable("x", 0);
 
     double cc=f->Calculate(nullptr);

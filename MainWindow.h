@@ -55,7 +55,7 @@ private:
     Ui::MainWindow *ui;
 
     // in case we resize/zoom/scroll the window, these objects will be used to redraw the scene
-    friend struct Sett;
+    friend struct Set;
     friend struct Assignment;
     DrawingForm* m_df;/*
     RuntimeProvider *m_rp;

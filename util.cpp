@@ -217,30 +217,64 @@ QPointF rotatePoint(float cx, float cy, float angle, QPointF p)
     return p;
 }
 
-std::string extract_proper_expression(const char *&p, std::set<char> seps)
+std::string extract_proper_expression(const char *&p, std::set<char> seps, std::set<std::string> first_not_accepted_identifier)
 {
     std::string res = "";
     bool done = false;
     int current_par_level = 1;
+    std::string current_word = "";
+    const auto first_p = p;
+
     while(!done)
     {
+        if(*p == ' ') // see the current word
+        {
+            if(first_not_accepted_identifier.find(current_word) != first_not_accepted_identifier.end())
+            {
+                // shortcut return, go back to the caller we just parsed a word we were not supposed to
+                p -= current_word.length();
+                res = res.erase(res.length() - current_word.length());
+                // remove the last space
+                while(res.length() > 0 && res.at(res.length() - 1) == ' ')
+                {
+                    res = res.erase(res.length() - 1);
+                    p --;
+                }
+
+                // looks sort of redundant ...
+                while(*p && isspace(*p))
+                {
+                    p++;
+                }
+                return res;
+            }
+            else
+            {
+                current_word = "";
+            }
+        }
+
         bool added = false;
         if(*p == '(')
         {
             current_par_level ++;
             res += *p;
+            if(*p != ' ') current_word += *p;
+
             added = true;
         }
         else
-            if(*p == ')')
+        if(*p == ')')
+        {
+            current_par_level--;
+            if(current_par_level >= 1)
             {
-                current_par_level--;
-                if(current_par_level >= 1)
-                {
-                    res += *p;
-                    added = true;
-                }
+                res += *p;
+                if(*p != ' ') current_word += *p;
+
+                added = true;
             }
+        }
 
 
         // see if we can leave: no more parentheses and the current one is separator
@@ -262,12 +296,38 @@ std::string extract_proper_expression(const char *&p, std::set<char> seps)
             if(!added)
             {
                 res += *p;
+
+                if(*p != ' ') current_word += *p;
             }
         }
 
         p++;
 
-        if(!*p) done = true;
+        if(!*p)
+        {
+            done = true;
+
+            if(first_not_accepted_identifier.find(current_word) != first_not_accepted_identifier.end())
+            {
+                // shortcut return, go back to the caller we just parsed a word we were not supposed to
+                p -= current_word.length();
+                res = res.erase(res.length() - current_word.length());
+                // remove the last space
+                while(res.length() > 0 && res.at(res.length() - 1) == ' ')
+                {
+                    res = res.erase(res.length() - 1);
+                    p --;
+                }
+
+                // looks sort of redundant ...
+                while(*p && isspace(*p))
+                {
+                    p++;
+                }
+                return res;
+            }
+
+        }
 
     }
 
@@ -280,7 +340,7 @@ std::string extract_proper_expression(const char *&p, std::set<char> seps)
     return res;
 }
 
-QString extract_proper_expression(QString &p, QSet<QChar> seps)
+QString extract_proper_expression(QString &p, QSet<QChar> seps, QSet<QString> fnai)
 {
     std::string s = p.toStdString();
     std::set<char> t;

@@ -21,7 +21,7 @@ bool FunctionDefinition::execute(RuntimeProvider *mw)
     return true;
 }
 
-bool Sett::execute(RuntimeProvider *rp)
+bool Set::execute(RuntimeProvider *rp)
 {
     if(what == "color")
     {

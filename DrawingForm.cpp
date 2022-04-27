@@ -19,18 +19,13 @@ DrawingForm::DrawingForm(RuntimeProvider *rp, QWidget *parent) :
 {
     ui->setupUi(this);
 
-    int window_type = 2; // 0 - qgraphicscene, 1 - qwidget, 2 - qt3d
+    int window_type = 1; // 0 - qgraphicscene, 1 - qwidget, 2 - qt3d
 
     switch(window_type)
     {
     case 0:
     {
         graphicsView = new MyGraphicsView(ui->frmDrawing);
-        graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
-        graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
-        graphicsView->initScene();
 
 #if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
         QOpenGLWidget* gl = new QOpenGLWidget();
@@ -39,12 +34,10 @@ DrawingForm::DrawingForm(RuntimeProvider *rp, QWidget *parent) :
         gl->setFormat(format);
         graphicsView->setViewport(gl);
 #endif
-
         ui->verticalLayout->addWidget(graphicsView);
         Graphics_view_zoom* z = new Graphics_view_zoom(graphicsView);
         z->set_modifiers(Qt::NoModifier);
         m_ar = graphicsView;
-
 
         connect(graphicsView, &MyGraphicsView::redraw, this, [this]()
                 {
@@ -56,30 +49,17 @@ DrawingForm::DrawingForm(RuntimeProvider *rp, QWidget *parent) :
     case 1:
     {
         m_pr = new PlotRenderer(this);
-
         ui->verticalLayout->addWidget(m_pr);
-
         m_ar = m_pr;
         break;
     }
 
     case 2:
     {
-        // TODO: implement when on a fresh enough qt which supports this
         view = new ProjectedRenderer;
-
-        // Camera
-
-
-
-
         ui->verticalLayout->addWidget(QWidget::createWindowContainer( view, this));
-
         m_ar = view;
-
     }
-
-
     }
 
     drawCoordinateSystem();

@@ -1,79 +1,16 @@
 #ifndef CODEENGINE_H
 #define CODEENGINE_H
 
+#include "Keywords.h"
 #include "Function.h"
+#include "Statement.h"
+#include "Stepped.h"
 
 #include <QString>
 #include <QVector>
 #include <QSharedPointer>
 
 class RuntimeProvider;
-
-namespace Keywords
-{
-const QString KW_ROTATE = "rotate";        // rotate <scene|point|assignment_of_points|object> with X [degrees|radians] [around <point>]
-const QString KW_FUNCTION = "function";    // function f(x) = x * 2 + 5
-const QString KW_PLOT = "plot";            // plot f over (-2, 2) [continuous]
-const QString KW_OVER = "over";            // plot f over (-2, 2) [continuous]
-const QString KW_CONTINUOUS = "continuous";// plot f over (-2, 2) [continuous|step<cnt=0.01>]
-const QString KW_LET = "let";              // let something = points of f over (-2, 2) [continuous|step<cnt|0.01>] or let something = point at x, y or let something = a + b + c
-const QString KW_OF  = "of";               // let something = points of f over (-2, 2) [continuous|step<cnt|0.01>]
-const QString KW_STEP = "step";            // plot f over (-2, 2) [continuous|step<cnt|0.01>]
-const QString KW_COUNTS = "counts";        // plot f over (-2, 2) [continuous|step<cnt|0.01>|counts<X[points|segments]> ]
-const QString KW_FOREACH = "foreach";      // foreach p in something do ... done
-const QString KW_SET = "set";              // set color name, set color #RGB, set color #RRGGBB, set color #RRGGBBAA, set color R,G,B[,A], set color name,alpha
-const QString KW_IN = "in";                // foreach p in something do ... done
-const QString KW_DO = "do";                // foreach p in something do ... done
-const QString KW_DONE = "done";            // foreach p in something do ... done
-const QString KW_RANGE = "range";          // foreach p in range (0, 1) do ... done
-const QString KW_SEGMENTS = "segments";    // plot f over (-2, 2) [continuous|step<cnt|0.01>|counts<X[points|segments]> ]
-const QString KW_POINTS = "points";        // plot f over (-2, 2) [continuous|step<cnt|0.01>|counts<X[points|segments]> ]
-};
-
-struct Statement
-{
-    explicit Statement(const QString& s) : statement(s) {}
-    Statement() = delete;
-
-    virtual ~Statement() = default;
-
-    QString statement;
-    QSharedPointer<Statement> parent = nullptr;
-    RuntimeProvider* runtimeProvider = nullptr; // this is the "scope" of the running piece of code
-
-    // executes this statement
-    virtual bool execute(RuntimeProvider* mw) = 0;
-
-    // return the keyword this statement represents
-    virtual QString keyword() const = 0;
-};
-
-struct Stepped
-{
-    Stepped() noexcept;
-
-    bool continuous = false;
-    QSharedPointer<Function> step;
-    bool counted = false;
-    QSharedPointer<Function> start;
-    QSharedPointer<Function> end;
-
-};
-
-struct Sett : public Statement
-{
-
-    explicit Sett(const QString& s) : Statement(s) {}
-
-    bool execute(RuntimeProvider* rp) override;
-    QString keyword() const override
-    {
-        return Keywords::KW_SET;
-    }
-
-    QString what;
-    QString value;
-};
 
 struct Done : public Statement
 {
@@ -127,7 +64,7 @@ struct Loop : public Statement
     bool execute(RuntimeProvider* rp) override;
     QString keyword() const override
     {
-        return Keywords::KW_FOREACH;
+        return Keywords::KW_FOR;
     }
 
     void updateLoopVariable(double);

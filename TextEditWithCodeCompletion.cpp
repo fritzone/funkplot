@@ -46,7 +46,7 @@ TextEditWithCodeCompletion::TextEditWithCodeCompletion(QWidget* p, RuntimeProvid
 
     m_highlighter.reset(new Highlighter(document(), rp));
 
-    setPlainText("function f(x) = sin(x)\nplot f");
+    setPlainText("let i = 0\nfunction f(x) = sin(x)\nlet ps = points of f counts 256\nfor i = 0 to 256 step 1 do\nplot ps[i]\ndone");
 
 }
 
