@@ -94,7 +94,7 @@ int isoperator(char c)
 
 int isparanthesis(char c)
 {
-    return c=='(' || c==')';
+    return c=='(' || c==')' || c == '[' || c == ']';
 }
 
 int isnumber(const char *s)

@@ -88,8 +88,8 @@ TEST_CASE( "Indexed", "[simfun]" )
 {
     Function *f = new Function("function f(x) = x[2]");
     f->SetVariable("x", 0);
-
-    double cc=f->Calculate(nullptr);
+    IndexedAccess* ia = nullptr;
+    double cc=f->Calculate(nullptr, ia);
     REQUIRE(cc == 0);
     REQUIRE(f->get_name() == "f");
     delete f;

@@ -80,9 +80,9 @@ void Function::SetVariable(const std::string& varn, double valu)
 //    qDebug() << "varn:" << varn.c_str() << "set to:" << valu;
 }
 
-double Function::Calculate(RuntimeProvider *rp)
+double Function::Calculate(RuntimeProvider *rp, IndexedAccess*& ia)
 {
-    return calc(root, rp);
+    return calc(root, rp, ia);
 }
 
 const std::string &Function::get_name() const
@@ -240,6 +240,17 @@ void Function::doit(const char* expr, tree* node)
                 throw syntax_error_exception("Possible error in formula: %s No open paranthesis for a closed one.", expr);
             }
             else
+            if(strchr(expr, '[') && strchr (expr, ']')) // is this an indexed expression=, like a[2]
+            {
+                auto indxd = extract_proper_expression(expr, {'['}); // consumes the [ too
+                auto indx = extract_proper_expression(expr, {']'});
+                node ->info = "[]";
+                node->left = new tree;
+                node->right = new tree;
+                doit(indxd.c_str(), node->left);
+                doit(indx.c_str(), node->right);
+            }
+            else
             {
                 node->info = expr;
                 node->left = nullptr;
@@ -275,17 +286,31 @@ int Function::l0mlt(const char* expr)
     return l0ops(expr, '*', '/', '%');
 }
 
-double Function::calc(tree* node, RuntimeProvider* rp)
+double Function::calc(tree* node, RuntimeProvider* rp, IndexedAccess*& ia)
 {
     if (node->left)
     {
         if (node->right)
         {
-            return op(node->info, calc(node->left, rp), calc(node->right, rp));
+            auto r = calc(node->right, rp, ia);
+            if(node->info == "[]")
+            {
+                ia = new IndexedAccess;
+                ia->indexedVariable = QString::fromStdString(node->left->info);
+                ia->index = r;
+
+                return std::numeric_limits<double>::quiet_NaN();
+            }
+            else
+            {
+                auto l = calc(node->left, rp, ia);
+
+                return op(node->info, l, r, rp);
+            }
         }
         else
         {
-            return op(node->info, calc(node->left, rp), 0);
+            return op(node->info, calc(node->left, rp, ia), 0, rp);
         }
     }
     else
@@ -316,7 +341,7 @@ void Function::free_tree(tree *node)
     delete node;
 }
 
-double Function::op(const std::string& s, double op1, double op2)
+double Function::op(const std::string& s, double op1, double op2, RuntimeProvider* rp)
 {
     auto it = std::find_if(supported_functions.begin(), supported_functions.end(), [s](fun_desc_solve fds){ return fds.name == s;});
     if(it != supported_functions.end())

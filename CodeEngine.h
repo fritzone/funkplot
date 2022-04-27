@@ -127,6 +127,8 @@ struct Assignment : public Stepped, public Statement
     {
         return {nullptr, nullptr};
     }
+
+    QVector<QPointF> precalculatedPoints;
 };
 
 struct PointsOfObjectAssignment : public Assignment

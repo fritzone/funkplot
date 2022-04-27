@@ -1,5 +1,6 @@
 #include "RuntimeProvider.h"
 #include "constants.h"
+#include "util.h"
 
 const QString STR_FUNCTION = Keywords::KW_FUNCTION + " ";    // function f(x) = x * 2 + 5
 const QString STR_PLOT = Keywords::KW_PLOT + " ";            // plot f over (-2, 2) [continuous]
@@ -116,8 +117,9 @@ bool RuntimeProvider::resolveAsPoint(QSharedPointer<Plot> plot)
             auto fcp = adef->fullCoordProvider();
             if( std::get<0>(fcp) && std::get<1>(fcp) )
             {
-                double x = std::get<0>(fcp)->Calculate(this);
-                double y = std::get<1>(fcp)->Calculate(this);
+                IndexedAccess* ia = nullptr;
+                double x = std::get<0>(fcp)->Calculate(this, ia);
+                double y = std::get<1>(fcp)->Calculate(this, ia);
                 m_pointDrawer(x, y);
                 return true;
             }
@@ -156,7 +158,6 @@ void RuntimeProvider::set_ShouldReport(bool newShouldReport)
     m_shouldReport = newShouldReport;
 }
 
-
 void RuntimeProvider::execute()
 {
     try
@@ -191,7 +192,7 @@ void RuntimeProvider::drawPlot(QSharedPointer<Plot> plot)
 }
 
 void RuntimeProvider::resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPointer<Assignment> assignment,
-                                          bool& continuous, double& plotStart, double& plotEnd, bool& counted, double &stepValue, int& count)
+                                          bool& continuous, double& plotStart, double& plotEnd, bool& counted, double &stepValue, int& count, bool useDefaultValues)
 {
     QSharedPointer<Function> stepFun = nullptr;
 
@@ -201,34 +202,44 @@ void RuntimeProvider::resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPoin
         {
             if(! assignment->startValueProvider())
             {
-                reportError("Invalid plotting interval for " + assignment->varName + ". There is no clear start value defined for it.");
-                return;
+                if(!useDefaultValues)
+                {
+                    reportError("Invalid plotting interval for " + assignment->varName + ". There is no clear start value defined for it.");
+                    return;
+                }
             }
             else
             {
-                plotStart = assignment->startValueProvider()->Calculate(this);
+                IndexedAccess* ia = nullptr;
+                plotStart = assignment->startValueProvider()->Calculate(this, ia);
             }
         }
         else
         {
-            plotStart = plot->start->Calculate(this);
+            IndexedAccess* ia = nullptr;
+            plotStart = plot->start->Calculate(this, ia);
         }
 
         if(!plot->end)
         {
             if(! assignment->endValueProvider())
             {
-                reportError("Invalid plotting interval. There is no clear end value defined for it.");
-                return;
+                if(!useDefaultValues)
+                {
+                    reportError("Invalid plotting interval. There is no clear end value defined for it.");
+                    return;
+                }
             }
             else
             {
-                plotEnd = assignment->endValueProvider()->Calculate(this);
+                IndexedAccess* ia = nullptr;
+                plotEnd = assignment->endValueProvider()->Calculate(this, ia);
             }
         }
         else
         {
-            plotEnd = plot->end->Calculate(this);
+            IndexedAccess* ia = nullptr;
+            plotEnd = plot->end->Calculate(this, ia);
         }
         continuous = assignment->continuous || plot->continuous;
         counted |= assignment->counted;
@@ -241,18 +252,21 @@ void RuntimeProvider::resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPoin
         continuous = plot->continuous;
         if(plot->start)
         {
-            plotStart = plot->start->Calculate(this);
+            IndexedAccess* ia = nullptr;
+            plotStart = plot->start->Calculate(this, ia);
         }
 
         if(plot->end)
         {
-            plotEnd = plot->end->Calculate(this);
+            IndexedAccess* ia = nullptr;
+            plotEnd = plot->end->Calculate(this, ia);
         }
     }
 
     if(stepFun)
     {
-        count = stepFun->Calculate(this);
+        IndexedAccess* ia = nullptr;
+        count = stepFun->Calculate(this, ia);
         if(counted)
         {
             if(count > 1)
@@ -472,39 +486,7 @@ QSharedPointer<Statement> RuntimeProvider::createLoop(const QString &codeline, Q
             result->loop_target->name = loop_over;
         }
 
-        if(!l_decl.startsWith(Keywords::KW_DO))
-        {
-            throw syntax_error_exception("for statement does not contain the do keyword");
-        }
 
-        bool done = false;
-        while(!codelines.isEmpty() && !done)
-        {
-            QSharedPointer<Statement> st = nullptr;
-
-            try
-            {
-                st = resolveCodeline(codelines, result->body, result);
-            }
-            catch(...)
-            {
-                throw;
-            }
-
-            if(st)
-            {
-                done = st->keyword() == Keywords::KW_DONE;
-            }
-            else
-            {
-                throw syntax_error_exception("something is wrong with this expression: %s", codeline.toStdString().c_str());
-            }
-        }
-
-        if(!done)
-        {
-            throw syntax_error_exception("for body does not end with done");
-        }
 
     }
     else
@@ -556,6 +538,40 @@ QSharedPointer<Statement> RuntimeProvider::createLoop(const QString &codeline, Q
     else
     {
         throw syntax_error_exception("invalid for statement");
+    }
+
+    if(!l_decl.startsWith(Keywords::KW_DO))
+    {
+        throw syntax_error_exception("for statement does not contain the do keyword");
+    }
+
+    bool done = false;
+    while(!codelines.isEmpty() && !done)
+    {
+        QSharedPointer<Statement> st = nullptr;
+
+        try
+        {
+            st = resolveCodeline(codelines, result->body, result);
+        }
+        catch(...)
+        {
+            throw;
+        }
+
+        if(st)
+        {
+            done = st->keyword() == Keywords::KW_DONE;
+        }
+        else
+        {
+            throw syntax_error_exception("something is wrong with this expression: %s", codeline.toStdString().c_str());
+        }
+    }
+
+    if(!done)
+    {
+        throw syntax_error_exception("for body does not end with done");
     }
 
     return result;
@@ -620,7 +636,7 @@ QSharedPointer<Statement> RuntimeProvider::createPlot(const QString& codeline)
 
     QString plot_body = codeline.mid(STR_PLOT.length());
     // function name
-    QString funToPlot = extract_proper_expression(plot_body, {}, {Keywords::KW_OVER, Keywords::KW_CONTINUOUS});
+    QString funToPlot = extract_proper_expression(plot_body, {' '}, {Keywords::KW_OVER, Keywords::KW_CONTINUOUS});
     plotData->plotTarget = funToPlot;
     consumeSpace(plot_body);
 
@@ -632,6 +648,8 @@ QSharedPointer<Statement> RuntimeProvider::createPlot(const QString& codeline)
 
     return plotData;
 }
+
+
 
 QSharedPointer<Assignment> RuntimeProvider::providePointsOfDefinition(const QString& codeline, QString assignment_body, const QString& varName, const QString& targetProperties)
 {
@@ -666,6 +684,21 @@ QSharedPointer<Assignment> RuntimeProvider::providePointsOfDefinition(const QStr
     }
 
     // TODO: counts keyword
+
+    if (assignment_body.startsWith(STR_COUNTS))
+    {
+        assignment_body = assignment_body.mid(STR_COUNTS.length());
+        QString strPointCount = getDelimitedId(assignment_body);
+        double stp = strPointCount.toDouble();
+        assignmentData->step = temporaryFunction(strPointCount);
+        assignmentData->counted = true;
+
+        if(codeline == Keywords::KW_SEGMENTS)
+        {
+            assignmentData->step = temporaryFunction(strPointCount + " + 1");
+            assignmentData->continuous = true;
+        }
+    }
     return assignmentData;
 }
 

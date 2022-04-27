@@ -9,7 +9,8 @@ bool ArythmeticAssignment::execute(RuntimeProvider *rp)
 {
     if(arythmetic)
     {
-        double v = arythmetic->Calculate(rp);
+        IndexedAccess* ia = nullptr;
+        double v = arythmetic->Calculate(rp, ia);
         rp->variables()[varName] = v;
     }
 
@@ -48,15 +49,17 @@ bool Set::execute(RuntimeProvider *rp)
                 {
                 case 4: // R,G,B,A
                 {
-                    a = temporaryFunction(values[3].simplified())->Calculate(rp);
+                    IndexedAccess* ia = nullptr;
+                    a = temporaryFunction(values[3].simplified())->Calculate(rp, ia);
                 }
                     [[fallthrough]];
 
                 case 3: // R,G,B
                 {
-                    qreal r = temporaryFunction(values[0].simplified())->Calculate(rp);
-                    qreal g = temporaryFunction(values[1].simplified())->Calculate(rp);
-                    qreal b = temporaryFunction(values[2].simplified())->Calculate(rp);
+                    IndexedAccess* ia = nullptr;
+                    qreal r = temporaryFunction(values[0].simplified())->Calculate(rp, ia);
+                    qreal g = temporaryFunction(values[1].simplified())->Calculate(rp, ia);
+                    qreal b = temporaryFunction(values[2].simplified())->Calculate(rp, ia);
 
                     qreal finalR = r;
                     qreal finalG = g;
@@ -90,8 +93,8 @@ bool Set::execute(RuntimeProvider *rp)
                     {
                         auto cui = Colors::colormap.at(s);
 
-
-                        a = temporaryFunction(values[1].simplified())->Calculate(rp);;
+                        IndexedAccess* ia = nullptr;
+                        a = temporaryFunction(values[1].simplified())->Calculate(rp, ia);
                         qreal finalA = a;
 
                         if(a <= 1.0)
@@ -107,8 +110,8 @@ bool Set::execute(RuntimeProvider *rp)
                         if(value.startsWith("#"))
                         {
                             auto rgb = Colors::decodeHexRgb(value.toLocal8Bit().data());
-
-                            a = temporaryFunction(values[1].simplified())->Calculate(rp);
+                            IndexedAccess* ia = nullptr;
+                            a = temporaryFunction(values[1].simplified())->Calculate(rp, ia);
                             qreal finalA = a;
 
                             if(a <= 1.0)
@@ -185,10 +188,11 @@ RangeIteratorLoopTarget::RangeIteratorLoopTarget(QSharedPointer<Loop> l)
 
 bool RangeIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider* rp)
 {
-    double v = startFun->Calculate(rp);
-    double e = endFun->Calculate(rp);
+    IndexedAccess* ia = nullptr;
+    double v = startFun->Calculate(rp, ia);
+    double e = endFun->Calculate(rp, ia);
 
-    double stepv = stepFun->Calculate(rp);
+    double stepv = stepFun->Calculate(rp, ia);
 
     if(v < e && stepv < 0.0 || v > e && stepv > 0.0)
     {
@@ -199,7 +203,8 @@ bool RangeIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider* rp)
     {
         theLoop->updateLoopVariable(v);
         lp();
-        stepv = stepFun->Calculate(rp);
+        IndexedAccess* ia = nullptr;
+        stepv = stepFun->Calculate(rp, ia);
         v += stepv;
 
         if(stepv < 0.0 && v < e)
@@ -267,7 +272,8 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
                 while(xx <= x)
                 {
                     tempFun->SetVariable("$", xx);
-                    double yy = tempFun->Calculate(rp);
+                    IndexedAccess* ia = nullptr;
+                    double yy = tempFun->Calculate(rp, ia);
                     p = QPointF(xx, yy);
                     theLoop->updateLoopVariable( p );
 
@@ -331,15 +337,18 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
     {
         if(assignment->startValueProvider())
         {
-            plotStart = assignment->startValueProvider()->Calculate(rp);
+            IndexedAccess* ia = nullptr;
+            plotStart = assignment->startValueProvider()->Calculate(rp, ia);
         }
         if( assignment->endValueProvider())
         {
-            plotEnd = assignment->endValueProvider()->Calculate(rp);
+            IndexedAccess* ia = nullptr;
+            plotEnd = assignment->endValueProvider()->Calculate(rp, ia);
         }
 
         continuous = assignment->continuous;
-        step = assignment->step->Calculate(rp);
+        IndexedAccess* ia = nullptr;
+        step = assignment->step->Calculate(rp, ia);
         count = step;
         if(assignment->counted)
         {
@@ -368,7 +377,8 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
         {
 
             funToUse->SetVariable(pars[0].c_str(), x);
-            double y = funToUse->Calculate(rp);
+            IndexedAccess* ia = nullptr;
+            double y = funToUse->Calculate(rp, ia);
 
             points_of_loop_exec(x, y, continuous);
             pointsDrawn ++;
@@ -380,7 +390,8 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
         {
             // the last points always goes to plotEnd
             funToUse->SetVariable(pars[0].c_str(), plotEnd);
-            double y = funToUse->Calculate(rp);
+            IndexedAccess* ia = nullptr;
+            double y = funToUse->Calculate(rp, ia);
 
             points_of_loop_exec(plotEnd, y, continuous);
         }
@@ -416,11 +427,11 @@ bool Rotation::execute(RuntimeProvider *rp)
                 auto fcp = adef->fullCoordProvider();
                 if( std::get<0>(fcp) && std::get<1>(fcp) )
                 {
+                    IndexedAccess* ia = nullptr;
+                    double x = std::get<0>(fcp)->Calculate(rp, ia);
+                    double y = std::get<1>(fcp)->Calculate(rp, ia);
 
-                    double x = std::get<0>(fcp)->Calculate(rp);
-                    double y = std::get<1>(fcp)->Calculate(rp);
-
-                    double a = degree->Calculate(rp);
+                    double a = degree->Calculate(rp, ia);
                     if(unit != "radians")
                     {
                         a = qDegreesToRadians(a);
@@ -429,7 +440,7 @@ bool Rotation::execute(RuntimeProvider *rp)
                     auto rotfX = temporaryFunction(aroundX);
                     auto rotfY = temporaryFunction(aroundY);
 
-                    auto p = rotatePoint(rotfX->Calculate(rp), rotfY->Calculate(rp), a, {x, y});
+                    auto p = rotatePoint(rotfX->Calculate(rp, ia), rotfY->Calculate(rp, ia), a, {x, y});
 
                     adef.dynamicCast<PointDefinitionAssignment>()->rotated_x = p.x();
                     adef.dynamicCast<PointDefinitionAssignment>()->rotated_y = p.y();

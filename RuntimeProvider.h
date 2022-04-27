@@ -33,9 +33,65 @@ public:
 
     QMap<QString, double>& variables();
 
+    template<class EX> class Executor
+    {
+    public:
+        explicit Executor(EX e) : executor(e) {}
+
+        void execute(QSharedPointer<Plot> plot, QSharedPointer<Assignment> assignment, QSharedPointer<Function> funToUse, RuntimeProvider* rp, bool useDefaultIntrval)
+        {
+            bool continuous = true;
+            double plotStart = -1.0;
+            double plotEnd = 1.0;
+            bool counted = plot->counted;
+            double stepValue = 0.01;
+            int count = -1;
+            rp->resolvePlotInterval(plot, assignment, continuous, plotStart, plotEnd, counted, stepValue, count, useDefaultIntrval);
+            qDebug() << "needing:" << count << "points";
+
+            auto pars = funToUse->get_domain_variables();
+            if(pars.size() == 1)
+            {
+                int pointsDrawn = 0;
+                for(double x=plotStart; x<=plotEnd; x += stepValue)
+                {
+
+                    funToUse->SetVariable(pars[0].c_str(), x);
+                    IndexedAccess* ia = nullptr;
+                    double y = funToUse->Calculate(rp, ia);
+
+                    executor(x, y, continuous);
+
+                    pointsDrawn ++;
+
+                }
+
+                qDebug() << "drawn:" << pointsDrawn << "points";
+
+                if(!counted || (counted &&  pointsDrawn < count ))
+                {
+                    // the last points always goes to plotEnd
+                    funToUse->SetVariable(pars[0].c_str(), plotEnd);
+                    IndexedAccess* ia = nullptr;
+                    double y = funToUse->Calculate(rp, ia);
+
+                    executor(plotEnd, y, continuous);
+                }
+            }
+            else
+            {
+                rp->reportError("Invalid function to plot: " + plot->plotTarget + ". Multidomain functions are not supported yet");
+                return;
+            }
+        }
+    private:
+        EX executor;
+    };
+
     template<class E>
     void genericPlotIterator(QSharedPointer<Plot> plot, const E executor)
     {
+
         QSharedPointer<Assignment> assignment(nullptr);
 
         // first test: see if this is a function we need to plot
@@ -47,54 +103,65 @@ public:
             {
                 // try it as a function, hopefully that will work
                 auto tf = temporaryFunction(plot->plotTarget);
-                double v = tf->Calculate(this);
+                IndexedAccess* ia = nullptr;
+                double v = tf->Calculate(this, ia);
+                if(v == std::numeric_limits<double>::quiet_NaN() && !ia)
+                {
+                    reportError("Invalid data to plot: " + plot->plotTarget);
+                }
+                else
+                {
+                    // let's see if this is an assignment which was indexed
+                    QSharedPointer<Function> funToUse = getFunction(ia->indexedVariable, assignment);
+                    if(!funToUse && !assignment)
+                    {
+                        reportError("Invalid data to plot: " + plot->plotTarget);
+                    }
+                    else
+                    {
+                        if(assignment->precalculatedPoints.isEmpty())
+                        {
+                            QVector<QPointF> allPoints;
+                            auto pointGatherer = [&allPoints](double x, double y, bool c)
+                            {
+                                allPoints.append({x, y});
+                            };
 
-                reportError("Invalid data to plot: " + plot->plotTarget);
+                            Executor<decltype(pointGatherer)> pgex(pointGatherer);
+                            pgex.execute(plot, assignment, funToUse, this, true);
+
+                            if(allPoints.isEmpty())
+                            {
+                                reportError("Invalid data to plot: " + plot->plotTarget);
+                                return;
+                            }
+
+                            assignment->precalculatedPoints = allPoints;
+                        }
+
+                        // fetch the point with the given index
+                        if(ia->index < assignment->precalculatedPoints.size())
+                        {
+                            double x = assignment->precalculatedPoints[ia->index].x();
+                            double y = assignment->precalculatedPoints[ia->index].y();
+
+                            m_pointDrawer(x, y);
+                        }
+                        else
+                        {
+                            reportError("Index out of bounds for " + plot->plotTarget + ". Found:" + QString::number(assignment->precalculatedPoints.size() - 1) + " points, requested: " + QString::number(ia->index) );
+
+                        }
+
+                    }
+                }
             }
             return;
         }
 
-        bool continuous = true;
-        double plotStart = -1.0;
-        double plotEnd = 1.0;
-        bool counted = plot->counted;
-        double stepValue = 0.01;
-        int count = -1;
-        resolvePlotInterval(plot, assignment, continuous, plotStart, plotEnd, counted, stepValue, count);
-        qDebug() << "needing:" << count << "points";
+        Executor<E> ex(executor);
+        ex.execute(plot, assignment, funToUse, this, false);
 
-        auto pars = funToUse->get_domain_variables();
-        if(pars.size() == 1)
-        {
-            int pointsDrawn = 0;
-            for(double x=plotStart; x<=plotEnd; x += stepValue)
-            {
-
-                funToUse->SetVariable(pars[0].c_str(), x);
-                double y = funToUse->Calculate(this);
-
-                executor(x, y, continuous);
-
-                pointsDrawn ++;
-
-            }
-
-            qDebug() << "drawn:" << pointsDrawn << "points";
-
-            if(!counted || (counted &&  pointsDrawn < count ))
-            {
-                // the last points always goes to plotEnd
-                funToUse->SetVariable(pars[0].c_str(), plotEnd);
-                double y = funToUse->Calculate(this);
-
-                executor(plotEnd, y, continuous);
-            }
-        }
-        else
-        {
-            reportError("Invalid function to plot: " + plot->plotTarget + ". Multidomain functions are not supported yet");
-            return;
-        }
     }
 
     QSharedPointer<Function> getFunction(const QString &name, QSharedPointer<Assignment>& assignment);
@@ -107,7 +174,7 @@ public:
     void setPen(int, int, int, int);
     void drawPlot(QSharedPointer<Plot> plot);
     void resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPointer<Assignment> assignment,
-                             bool &continuous, double &plotStart, double &plotEnd, bool &counted, double &stepValue, int &count);
+                             bool &continuous, double &plotStart, double &plotEnd, bool &counted, double &stepValue, int &count, bool useDefaultValues);
 
     QSharedPointer<Statement> resolveCodeline(QStringList& codelines, QVector<QSharedPointer<Statement>>& statements, QSharedPointer<Statement> parentScope);
 

@@ -11,6 +11,15 @@
 
 class RuntimeProvider;
 
+/**
+ * @brief The IndexedAccess struct will be created upon accessing and indexed expression. Will be
+ * evaluated at the RuntimeProvider level
+ */
+struct IndexedAccess
+{
+    QString indexedVariable;
+    int index;
+};
 
 /*
  * This Class represents one function. A function needs:
@@ -40,7 +49,7 @@ public:
 	/*
 	 * This returns the value of the function for the given variables
 	 */
-    double Calculate(RuntimeProvider *rp);
+    double Calculate(RuntimeProvider *rp, IndexedAccess *&ia);
 
     const std::string &get_name() const;
 
@@ -80,14 +89,14 @@ private:
 	/*
 	 * This calculates the value of the expression, for defined values, and also numbers
 	 */
-    double calc(tree*node, RuntimeProvider *rp);
+    double calc(tree*node, RuntimeProvider *rp, IndexedAccess*& ia);
 
     void free_tree(tree* node);
 
 	/*
 	 * This depending on s returns the result of the operation betwen op1, op2
 	 */
-    double op(const std::string &s, double op1, double op2);
+    double op(const std::string &s, double op1, double op2, RuntimeProvider *rp);
 
 	/*
 	 * returns true if s is a defined variable or a number
