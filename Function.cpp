@@ -265,9 +265,9 @@ int Function::l0ops(const char* expr, char op1, char op2, char op3)
     unsigned int i = 0, level = 0;
     while (i < strlen(expr))
     {
-        if (expr[i] == '(')
+        if (expr[i] == '(' || expr[i] == '[')
             level++;
-        if (expr[i] == ')')
+        if (expr[i] == ')' || expr[i] == ']')
             level--;
         if ((expr[i] == op1 || expr[i] == op2 || (expr[i] == op3 && op3) ) && level == 0)
             return i;
@@ -295,11 +295,21 @@ double Function::calc(tree* node, RuntimeProvider* rp, IndexedAccess*& ia)
             auto r = calc(node->right, rp, ia);
             if(node->info == "[]")
             {
-                ia = new IndexedAccess;
-                ia->indexedVariable = QString::fromStdString(node->left->info);
-                ia->index = r;
+                // do this only if node->left->info is a point type variable
 
-                return std::numeric_limits<double>::quiet_NaN();
+                if(rp->typeOfVariable(node->left->info.c_str()) == 'p')
+                {
+
+                    ia = new IndexedAccess;
+                    ia->indexedVariable = QString::fromStdString(node->left->info);
+                    ia->index = r;
+
+                    return std::numeric_limits<double>::quiet_NaN();
+                }
+                else
+                {
+                    return rp->getIndexedVariableValue(node->left->info.c_str(), r);
+                }
             }
             else
             {

@@ -95,7 +95,7 @@ struct Plot : public Stepped, public Statement, public QEnableSharedFromThis<Plo
     bool execute(RuntimeProvider* rp) override;
 };
 
-struct Assignment : public Stepped, public Statement
+struct Assignment : public Stepped, public Statement, public QEnableSharedFromThis<Assignment>
 {
     explicit Assignment(const QString& s) : Statement(s) {}
 
@@ -127,6 +127,8 @@ struct Assignment : public Stepped, public Statement
     {
         return {nullptr, nullptr};
     }
+
+    void resolvePrecalculatedPointsForIndexedAccess(QSharedPointer<Plot> plot, QSharedPointer<Function> funToUse, RuntimeProvider *rp);
 
     QVector<QPointF> precalculatedPoints;
 };

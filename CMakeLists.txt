@@ -68,6 +68,7 @@ add_library(funplot STATIC
     Statement.h
     Stepped.h
     Set.h
+    Executor.h
 
     constants.h
 )

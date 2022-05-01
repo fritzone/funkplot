@@ -3,6 +3,7 @@
 
 #include "CodeEngine.h"
 #include "Set.h"
+#include "Executor.h"
 
 #include <QMap>
 #include <QString>
@@ -33,60 +34,6 @@ public:
 
     QMap<QString, double>& variables();
 
-    template<class EX> class Executor
-    {
-    public:
-        explicit Executor(EX e) : executor(e) {}
-
-        void execute(QSharedPointer<Plot> plot, QSharedPointer<Assignment> assignment, QSharedPointer<Function> funToUse, RuntimeProvider* rp, bool useDefaultIntrval)
-        {
-            bool continuous = true;
-            double plotStart = -1.0;
-            double plotEnd = 1.0;
-            bool counted = plot->counted;
-            double stepValue = 0.01;
-            int count = -1;
-            rp->resolvePlotInterval(plot, assignment, continuous, plotStart, plotEnd, counted, stepValue, count, useDefaultIntrval);
-            qDebug() << "needing:" << count << "points";
-
-            auto pars = funToUse->get_domain_variables();
-            if(pars.size() == 1)
-            {
-                int pointsDrawn = 0;
-                for(double x=plotStart; x<=plotEnd; x += stepValue)
-                {
-
-                    funToUse->SetVariable(pars[0].c_str(), x);
-                    IndexedAccess* ia = nullptr;
-                    double y = funToUse->Calculate(rp, ia);
-
-                    executor(x, y, continuous);
-
-                    pointsDrawn ++;
-
-                }
-
-                qDebug() << "drawn:" << pointsDrawn << "points";
-
-                if(!counted || (counted &&  pointsDrawn < count ))
-                {
-                    // the last points always goes to plotEnd
-                    funToUse->SetVariable(pars[0].c_str(), plotEnd);
-                    IndexedAccess* ia = nullptr;
-                    double y = funToUse->Calculate(rp, ia);
-
-                    executor(plotEnd, y, continuous);
-                }
-            }
-            else
-            {
-                rp->reportError("Invalid function to plot: " + plot->plotTarget + ". Multidomain functions are not supported yet");
-                return;
-            }
-        }
-    private:
-        EX executor;
-    };
 
     template<class E>
     void genericPlotIterator(QSharedPointer<Plot> plot, const E executor)
@@ -101,59 +48,9 @@ public:
         {
             if(!resolveAsPoint(plot))
             {
-                // try it as a function, hopefully that will work
-                auto tf = temporaryFunction(plot->plotTarget);
-                IndexedAccess* ia = nullptr;
-                double v = tf->Calculate(this, ia);
-                if(v == std::numeric_limits<double>::quiet_NaN() && !ia)
+                if(!resolveAsIndexedPlotDrawing(plot, assignment))
                 {
-                    reportError("Invalid data to plot: " + plot->plotTarget);
-                }
-                else
-                {
-                    // let's see if this is an assignment which was indexed
-                    QSharedPointer<Function> funToUse = getFunction(ia->indexedVariable, assignment);
-                    if(!funToUse && !assignment)
-                    {
-                        reportError("Invalid data to plot: " + plot->plotTarget);
-                    }
-                    else
-                    {
-                        if(assignment->precalculatedPoints.isEmpty())
-                        {
-                            QVector<QPointF> allPoints;
-                            auto pointGatherer = [&allPoints](double x, double y, bool c)
-                            {
-                                allPoints.append({x, y});
-                            };
-
-                            Executor<decltype(pointGatherer)> pgex(pointGatherer);
-                            pgex.execute(plot, assignment, funToUse, this, true);
-
-                            if(allPoints.isEmpty())
-                            {
-                                reportError("Invalid data to plot: " + plot->plotTarget);
-                                return;
-                            }
-
-                            assignment->precalculatedPoints = allPoints;
-                        }
-
-                        // fetch the point with the given index
-                        if(ia->index < assignment->precalculatedPoints.size())
-                        {
-                            double x = assignment->precalculatedPoints[ia->index].x();
-                            double y = assignment->precalculatedPoints[ia->index].y();
-
-                            m_pointDrawer(x, y);
-                        }
-                        else
-                        {
-                            reportError("Index out of bounds for " + plot->plotTarget + ". Found:" + QString::number(assignment->precalculatedPoints.size() - 1) + " points, requested: " + QString::number(ia->index) );
-
-                        }
-
-                    }
+                    return;
                 }
             }
             return;
@@ -168,6 +65,7 @@ public:
 
     void reportError(const QString& err);
     bool resolveAsPoint(QSharedPointer<Plot> plot);
+    bool resolveAsIndexedPlotDrawing(QSharedPointer<Plot> plot, QSharedPointer<Assignment> assignment);
     void reset();
     void execute();
     void setCurrentStatement(const QString &newCurrentStatement);
@@ -188,14 +86,30 @@ public:
     void resolveOverKeyword(QString codeline, QSharedPointer<Stepped>);
     QSharedPointer<Assignment> providePointsOfDefinition(const QString &codeline, QString assignment_body, const QString &varName, const QString &targetProperties);
     QVector<QSharedPointer<Assignment> > &get_assignments();
-
+    QSharedPointer<Assignment> get_assignment(const QString& n);
+    QSharedPointer<Function> get_function(const QString& n);
     std::vector<std::string> get_builtin_functions() const;
     std::vector<std::string> get_functions() const;
     std::vector<std::string> get_variables() const;
     void parse(QStringList codelines);
-
+    void addOrUpdateAssignment(QSharedPointer<Assignment>);
     bool get_shouldReport() const;
     void set_ShouldReport(bool newShouldReport);
+
+    /**
+     * @brief typeOfVariable returns the type of the variable:
+     *
+     * n - for numeric
+     * p - for points
+     * l - for plot
+     * f - for function
+     * x - for unknown
+     *
+     * @param n
+     * @return
+     */
+    char typeOfVariable(const char* n);
+    double getIndexedVariableValue(const char* n, int index);
 
 private:
 

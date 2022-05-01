@@ -112,7 +112,7 @@ bool RuntimeProvider::resolveAsPoint(QSharedPointer<Plot> plot)
 {
     for(const auto& adef : qAsConst(assignments))
     {
-        if(plot->plotTarget == adef->varName)
+        if(plot->plotTarget == adef->varName || plot->plotTarget + ":" == adef->varName)
         {
             auto fcp = adef->fullCoordProvider();
             if( std::get<0>(fcp) && std::get<1>(fcp) )
@@ -126,6 +126,54 @@ bool RuntimeProvider::resolveAsPoint(QSharedPointer<Plot> plot)
         }
     }
     return false;
+}
+
+bool RuntimeProvider::resolveAsIndexedPlotDrawing(QSharedPointer<Plot> plot, QSharedPointer<Assignment> assignment)
+{
+    // try it as an indexed, hopefully that will work
+    auto tf = temporaryFunction(plot->plotTarget);
+    IndexedAccess* ia = nullptr;
+    double v = tf->Calculate(this, ia);
+
+    if(v == std::numeric_limits<double>::quiet_NaN() && !ia)
+    {
+        reportError("Invalid data to plot: " + plot->plotTarget);
+    }
+    else
+    if(ia)
+    {
+        // let's see if this is an assignment which was indexed
+        QSharedPointer<Function> funToUse = getFunction(ia->indexedVariable, assignment);
+        if(!funToUse && !assignment)
+        {
+            reportError("Invalid data to plot: " + plot->plotTarget);
+            return false;
+        }
+        else
+        {
+            assignment->resolvePrecalculatedPointsForIndexedAccess(plot, funToUse, this);
+            // fetch the point with the given index
+            if(ia->index < assignment->precalculatedPoints.size())
+            {
+                double x = assignment->precalculatedPoints[ia->index].x();
+                double y = assignment->precalculatedPoints[ia->index].y();
+
+                m_pointDrawer(x, y);
+            }
+            else
+            {
+                reportError("Index out of bounds for " + plot->plotTarget + ". Found:" + QString::number(assignment->precalculatedPoints.size() - 1) + " points, requested: " + QString::number(ia->index) );
+                return false;
+            }
+        }
+    }
+    else
+    {
+        reportError("Invalid data to plot: " + plot->plotTarget);
+        return false;
+    }
+
+    return true;
 }
 
 void RuntimeProvider::reset()
@@ -148,6 +196,23 @@ void RuntimeProvider::parse(QStringList codelines)
 
 }
 
+void RuntimeProvider::addOrUpdateAssignment(QSharedPointer<Assignment> a)
+{
+    auto pa = get_assignment(a->varName);
+    if(pa)
+    {
+        if(pa.dynamicCast<PointDefinitionAssignment>())
+        {
+            pa.dynamicCast<PointDefinitionAssignment>()->x = a.dynamicCast<PointDefinitionAssignment>()->x;
+            pa.dynamicCast<PointDefinitionAssignment>()->y = a.dynamicCast<PointDefinitionAssignment>()->y;
+        }
+    }
+    else
+    {
+        assignments.append(a);
+    }
+}
+
 bool RuntimeProvider::get_shouldReport() const
 {
     return m_shouldReport;
@@ -156,6 +221,25 @@ bool RuntimeProvider::get_shouldReport() const
 void RuntimeProvider::set_ShouldReport(bool newShouldReport)
 {
     m_shouldReport = newShouldReport;
+}
+
+char RuntimeProvider::typeOfVariable(const char *n)
+{
+    if(m_vars.contains(n)) return 'n';
+    for(const auto& adef : qAsConst(assignments))
+    {
+        if(adef->varName == n)
+        {
+            return 'p';
+        }
+    }
+
+    return 'x';
+}
+
+double RuntimeProvider::getIndexedVariableValue(const char *n, int index)
+{
+    return -1;
 }
 
 void RuntimeProvider::execute()
@@ -587,7 +671,7 @@ QSharedPointer<Statement> RuntimeProvider::createRotation(const QString &codelin
     {
         throw syntax_error_exception("rotate statement does not contain <b>with</b> keyword");
     }
-    QString rotation_amount = getDelimitedId(r_decl);
+    QString rotation_amount = extract_proper_expression(r_decl, {' '}, QSet<QString>{QString("degrees"), QString("radians"), "around"} );
     QString rotation_unit = getDelimitedId(r_decl);
 
     QSharedPointer<Rotation> result;
@@ -602,6 +686,10 @@ QSharedPointer<Statement> RuntimeProvider::createRotation(const QString &codelin
     result->unit = rotation_unit;
 
     QString around_kw = getDelimitedId(r_decl);
+    if(!around_kw.isEmpty() && around_kw != Keywords::KW_AROUND)
+    {
+        throw syntax_error_exception("Unknown keyword in rotation: " , around_kw);
+    }
     QString nextWord = getDelimitedId(r_decl);
     if(nextWord == "point")
     {
@@ -704,8 +792,6 @@ QSharedPointer<Assignment> RuntimeProvider::providePointsOfDefinition(const QStr
 
 QSharedPointer<Statement> RuntimeProvider::resolveObjectAssignment(const QString &codeline)
 {
-
-
     // let keyword
     QString assignment_body = codeline.mid(STR_LET.length());
     consumeSpace(assignment_body);
@@ -842,6 +928,33 @@ void RuntimeProvider::resolveOverKeyword(QString codeline, QSharedPointer<Steppe
 QVector<QSharedPointer<Assignment> >& RuntimeProvider::get_assignments()
 {
     return assignments;
+}
+
+QSharedPointer<Assignment> RuntimeProvider::get_assignment(const QString &n)
+{
+    for(auto& fds : this->assignments)
+    {
+        if(fds->varName == n)
+        {
+            return fds;
+        }
+    }
+
+    return nullptr;
+}
+
+QSharedPointer<Function> RuntimeProvider::get_function(const QString &n)
+{
+    for(const auto& fds : this->functions)
+    {
+        if(fds.data()->f->get_name() == n.toStdString())
+        {
+            return fds.data()->f;
+        }
+    }
+
+    return nullptr;
+
 }
 
 std::vector<std::string> RuntimeProvider::get_builtin_functions() const

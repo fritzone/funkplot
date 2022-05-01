@@ -2,6 +2,7 @@
 
 #include "RuntimeProvider.h"
 #include "colors.h"
+#include "constants.h"
 #include "qmath.h"
 #include <QDebug>
 
@@ -9,9 +10,123 @@ bool ArythmeticAssignment::execute(RuntimeProvider *rp)
 {
     if(arythmetic)
     {
-        IndexedAccess* ia = nullptr;
-        double v = arythmetic->Calculate(rp, ia);
-        rp->variables()[varName] = v;
+        IndexedAccess* ia_m = nullptr;
+        double v = arythmetic->Calculate(rp, ia_m);
+
+        // if this is an indexed something ...
+        if(ia_m)
+        {
+            // same logic as in RuntimeProvider.h
+            char at = rp->typeOfVariable(ia_m->indexedVariable.toLocal8Bit().data());
+            qDebug() << at;
+
+            // assigning to a point
+            if(at == 'p')
+            {
+                auto p = rp->get_assignment(ia_m->indexedVariable);
+                if(p)
+                {
+                    if(p->targetProperties == "points")
+                    {
+                        if(p->precalculatedPoints.isEmpty())
+                        {
+                            // get the start/end of the "Stepped" object
+                            IndexedAccess* ia = nullptr;
+                            auto svp = p->startValueProvider();
+                            double v = svp ? svp->Calculate(rp, ia) : -1.0;
+                            auto evp = p->endValueProvider();
+                            double e = evp ? evp->Calculate(rp, ia) : 1.0;
+                            auto stepFun = p->step;
+                            double stepv = DEFAULT_RANGE_STEP;
+
+                            if(stepFun)
+                            {
+                                IndexedAccess* ia = nullptr;
+                                auto count = stepFun->Calculate(rp, ia);
+                                if(p->counted)
+                                {
+                                    if(count > 1)
+                                    {
+                                        stepv = (e - v) / (count - 1);
+                                    }
+                                    else
+                                    {
+                                        stepv = (e - v);
+                                    }
+                                }
+                            }
+
+
+                            if(v < e && stepv < 0.0 || v > e && stepv > 0.0)
+                            {
+                                throw syntax_error_exception("Infinite loop detected, check your range");
+                            }
+                            // and calculate the points
+                            auto f = rp->get_function(p->providedFunction());
+                            if(!f)
+                            {
+                                throw syntax_error_exception("No function for points assignment");
+                            }
+                            QVector<QPointF> allPoints;
+                            auto pars = f->get_domain_variables();
+                            if(pars.size() == 1)
+
+                                do
+                                {
+
+
+                                    IndexedAccess* ia = nullptr;
+                                    f->SetVariable(pars[0].c_str(), v);
+
+
+                                    auto fv = f->Calculate(rp, ia);
+                                    allPoints.push_back({v, fv});
+
+                                    v += stepv;
+
+                                    if(stepv < 0.0 && v < e)
+                                    {
+                                        break;
+                                    }
+
+                                    if(stepv > 0.0 && v > e)
+                                    {
+                                        break;
+                                    }
+
+
+                                }
+                                while(true);
+
+                            p->precalculatedPoints = allPoints;
+                        }
+
+                        if(ia_m->index < p->precalculatedPoints.size())
+                        {
+                            double px = p->precalculatedPoints[ia_m->index].x();
+                            double py = p->precalculatedPoints[ia_m->index].y();
+
+                            QSharedPointer<PointDefinitionAssignment> assignmentData;
+                            assignmentData.reset(new PointDefinitionAssignment(this->statement));
+
+                            assignmentData->x = temporaryFunction(QString::number(px, 'f', 6));
+                            assignmentData->y = temporaryFunction(QString::number(py, 'f', 6));
+                            assignmentData->varName = varName + ":";
+                            rp->addOrUpdateAssignment(assignmentData);
+                        }
+
+                    }
+                }
+            }
+            else
+            {
+
+            }
+        }
+        else
+        {
+            rp->variables()[varName] = v;
+        }
     }
 
     return true;
@@ -84,7 +199,7 @@ bool Set::execute(RuntimeProvider *rp)
                     }
 
                     rp->setPen(static_cast<int>(finalR), static_cast<int>(finalG),
-                             static_cast<int>(finalB), static_cast<int>(finalA));
+                               static_cast<int>(finalB), static_cast<int>(finalA));
                     break;
                 }
                 case 2: // colorname,A
@@ -417,7 +532,7 @@ bool Rotation::execute(RuntimeProvider *rp)
 {
     for(auto& adef : rp->get_assignments())
     {
-        if(what == adef->varName)
+        if(what == adef->varName || what + ":" == adef->varName)
         {
             // first implemented rotation: a point
             if(adef.dynamicCast<PointDefinitionAssignment>())
@@ -452,4 +567,26 @@ bool Rotation::execute(RuntimeProvider *rp)
         }
     }
     return false;
+}
+
+void Assignment::resolvePrecalculatedPointsForIndexedAccess(QSharedPointer<Plot> plot, QSharedPointer<Function> funToUse, RuntimeProvider* rp)
+{
+    if(precalculatedPoints.isEmpty())
+    {
+        QVector<QPointF> allPoints;
+        auto pointGatherer = [&allPoints](double x, double y, bool c)
+        {
+            allPoints.append({x, y});
+        };
+
+        Executor<decltype(pointGatherer)> pgex(pointGatherer);
+        pgex.execute(plot, sharedFromThis(), funToUse, rp, true);
+
+        if(allPoints.isEmpty())
+        {
+            rp->reportError("Invalid data to plot: " + plot->plotTarget);
+        }
+
+        precalculatedPoints = allPoints;
+    }
 }

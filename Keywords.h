@@ -36,7 +36,9 @@ const QString KW_RANGE = KEYWORD("range");          // foreach p in range (0, 1)
 const QString KW_SEGMENTS = KEYWORD("segments");    // plot f over (-2, 2) [continuous|step<cnt|0.01>|counts<X[points|segments]> ]
 const QString KW_POINTS = KEYWORD("points");        // plot f over (-2, 2) [continuous|step<cnt|0.01>|counts<X[points|segments]> ]
 const QString KW_FOR = KEYWORD("for");              // for i = 1 to 256 step 1 do ... done
-const QString KW_TO = KEYWORD("to");              // for i = 1 to 256 step 1 do ... done
+const QString KW_TO = KEYWORD("to");                // for i = 1 to 256 step 1 do ... done
+const QString KW_AROUND = KEYWORD("around");        // rotate <scene|point|assignment_of_points|object> with X [degrees|radians] [around <point>]
+const QString KW_WITH = KEYWORD("with");            // rotate <scene|point|assignment_of_points|object> with X [degrees|radians] [around <point>]
 
 static QVector<QString> all()
 {
