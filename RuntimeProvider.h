@@ -27,7 +27,7 @@ public:
     explicit RuntimeProvider(CB_ErrorReporter, CB_PointDrawer, CB_StatementTracker, CB_PenSetter, CB_PlotDrawer);
     virtual ~RuntimeProvider() = default;
 
-    int defd(const std::string& s);
+    int defd(const std::string& s, Assignment *&assg);
     double value(const std::string& s);
     void setValue(const QString&s, double v);
     void setValue(const QString&s, QPointF v);
@@ -75,15 +75,15 @@ public:
                              bool &continuous, double &plotStart, double &plotEnd, bool &counted, double &stepValue, int &count, bool useDefaultValues);
 
     QSharedPointer<Statement> resolveCodeline(QStringList& codelines, QVector<QSharedPointer<Statement>>& statements, QSharedPointer<Statement> parentScope);
-
+    void createVariableDeclaration(const QString& codeline);
     QSharedPointer<Statement> createPlot(const QString &codeline);
-    QSharedPointer<Statement> resolveObjectAssignment(const QString &codeline);
+    QSharedPointer<Statement> createAssignment(const QString &codeline);
     QSharedPointer<Statement> createFunction(const QString& codeline);
     QSharedPointer<Statement> createSet(const QString &codeline);
     QSharedPointer<Statement> createLoop(const QString &codeline, QStringList& codelines);
     QSharedPointer<Statement> createRotation(const QString &codeline, QStringList& codelines);
 
-    void resolveOverKeyword(QString codeline, QSharedPointer<Stepped>);
+    void resolveOverKeyword(QString codeline, QSharedPointer<Stepped>, Statement *s);
     QSharedPointer<Assignment> providePointsOfDefinition(const QString &codeline, QString assignment_body, const QString &varName, const QString &targetProperties);
     QVector<QSharedPointer<Assignment> > &get_assignments();
     QSharedPointer<Assignment> get_assignment(const QString& n);
@@ -108,7 +108,7 @@ public:
      * @param n
      * @return
      */
-    char typeOfVariable(const char* n);
+    QString typeOfVariable(const char* n);
     double getIndexedVariableValue(const char* n, int index);
 
 private:
@@ -129,6 +129,10 @@ private:
     CB_PlotDrawer m_plotDrawer;
 
     bool m_shouldReport = true;
+
+    // this contains all the variables (key) and their type (value)
+    // the var section initializes this
+    QMap<QString, QString> m_allVariables;
 };
 
 #endif // RUNTIMEPROVIDER_H

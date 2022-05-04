@@ -7,6 +7,7 @@
 
 
 #define KEYWORD(w) add_kw(w)
+#define TYPE(w) add_type(w)
 
 namespace Keywords
 {
@@ -39,6 +40,7 @@ const QString KW_FOR = KEYWORD("for");              // for i = 1 to 256 step 1 d
 const QString KW_TO = KEYWORD("to");                // for i = 1 to 256 step 1 do ... done
 const QString KW_AROUND = KEYWORD("around");        // rotate <scene|point|assignment_of_points|object> with X [degrees|radians] [around <point>]
 const QString KW_WITH = KEYWORD("with");            // rotate <scene|point|assignment_of_points|object> with X [degrees|radians] [around <point>]
+const QString KW_VAR = KEYWORD("var");              // var i : <numeric|point|array>
 
 static QVector<QString> all()
 {
@@ -47,4 +49,25 @@ static QVector<QString> all()
 
 };
 
+namespace Types
+{
+
+static QVector<QString> all_supported_types;
+
+static QString add_type(QString nt)
+{
+    all_supported_types.append(nt);
+    return nt;
+}
+
+const QString TYPE_NUMBER = TYPE("number");
+const QString TYPE_LIST = TYPE("list");
+const QString TYPE_POINT = TYPE("point");
+
+static QVector<QString> all()
+{
+    return all_supported_types;
+}
+
+}
 #endif // KEYWORDS_H

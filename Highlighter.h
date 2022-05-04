@@ -30,6 +30,7 @@ private:
     QRegularExpression commentEndExpression;
 
     QTextCharFormat keywordFormat;
+    QTextCharFormat typeFormat;
     QTextCharFormat classFormat;
     QTextCharFormat singleLineCommentFormat;
     QTextCharFormat multiLineCommentFormat;

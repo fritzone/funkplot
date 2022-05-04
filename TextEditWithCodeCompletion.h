@@ -51,6 +51,8 @@ public:
         m_disabledRows.remove(m_disabledRows.indexOf(row));
     }
 
+    void resetHighlighter();
+
 private slots:
     void onTimer();
     void onListItemDoubleClicked(QModelIndex);
@@ -68,7 +70,7 @@ private:
     QStringList m_tabs;
     RuntimeProvider* m_rp = nullptr;
     FrameForLineNumbers *m_frameForLineNumbers;
-    QVector<int> m_disabledRows;
+    QVector<int> m_disabledRows {};
 };
 
 #endif // QTEXTEDITWITHCODECOMPLETION_H

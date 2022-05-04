@@ -187,7 +187,7 @@ struct PointDefinitionAssignment : public Assignment
         {
             QString spx = QString::number(rotated_x, 'f', 10);
             QString spy = QString::number(rotated_y, 'f', 10);
-            return {temporaryFunction(spx), temporaryFunction(spy)};
+            return {temporaryFunction(spx, this), temporaryFunction(spy, this)};
         }
         else
         {

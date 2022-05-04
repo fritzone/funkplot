@@ -10,6 +10,7 @@
 #include <set>
 
 class RuntimeProvider;
+struct Assignment;
 
 /**
  * @brief The IndexedAccess struct will be created upon accessing and indexed expression. Will be
@@ -38,7 +39,7 @@ public:
 	 * expr is a semantically logic formula: f(par1,...parx)=formula. If the formula is wrong,
 	 * then life suxx for the programmer :(( but not me. The programmer, who created the function
 	 */
-    Function(const char *expr);
+    Function(const char *expr, Statement *s);
     virtual ~Function();
 
 	/*
@@ -49,7 +50,7 @@ public:
 	/*
 	 * This returns the value of the function for the given variables
 	 */
-    double Calculate(RuntimeProvider *rp, IndexedAccess *&ia);
+    double Calculate(RuntimeProvider *rp, IndexedAccess *&ia, Assignment *&a);
 
     const std::string &get_name() const;
 
@@ -89,7 +90,7 @@ private:
 	/*
 	 * This calculates the value of the expression, for defined values, and also numbers
 	 */
-    double calc(tree*node, RuntimeProvider *rp, IndexedAccess*& ia);
+    double calc(tree*node, RuntimeProvider *rp, IndexedAccess*& ia, Assignment *&a);
 
     void free_tree(tree* node);
 
@@ -101,21 +102,21 @@ private:
 	/*
 	 * returns true if s is a defined variable or a number
 	 */
-    int defd(const std::string &s, RuntimeProvider *rp);
+    int defd(const std::string &s, RuntimeProvider *rp, Assignment *&assig);
 
 	//this takes the value from the hashtable for s
     double value(const std::string &s, RuntimeProvider *rp);
 
 };
 
-QSharedPointer<Function> temporaryFunction(const QString &definition);
+QSharedPointer<Function> temporaryFunction(const QString &definition, Statement *s);
 
-template<class T> QSharedPointer<Function> temporaryFunction(T definition)
+template<class T> QSharedPointer<Function> temporaryFunction(T definition, Statement* s)
 {
     std::stringstream ss;
     ss << definition;
 
-    return temporaryFunction(QString::fromStdString(ss.str()));
+    return temporaryFunction(QString::fromStdString(ss.str()), s);
 }
 
 

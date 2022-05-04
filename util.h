@@ -28,6 +28,8 @@
 #include <QPointF>
 #include <set>
 
+class Statement;
+
 struct fun_desc_solve
 {
     std::string name;
@@ -184,9 +186,11 @@ typedef int (*ENUMERATOR)(void *, void *);
 // the info tag is either a number or an operator or a function name or a variable :((
 struct tree
 {
-	tree* left;
-    tree* right;
+    tree* left = nullptr;
+    tree* right = nullptr;
+    tree* parent = nullptr;
     std::string info;
+    Statement* stmt = nullptr;
 };
 
 //return the substring of src before pos. pos is NOT included in the result

@@ -9,6 +9,7 @@ Highlighter::Highlighter(QTextDocument *parent, RuntimeProvider *rp) : QSyntaxHi
 {
     HighlightingRule rule;
 
+    // keywords
     keywordFormat.setForeground(Qt::darkBlue);
     keywordFormat.setFontWeight(QFont::Bold);
     static auto keywordPatterns = Keywords::all();
@@ -16,6 +17,17 @@ Highlighter::Highlighter(QTextDocument *parent, RuntimeProvider *rp) : QSyntaxHi
     for (const QString &pattern : keywordPatterns) {
         rule.pattern = QRegularExpression("\\b" + pattern + "\\b");
         rule.format = keywordFormat;
+        highlightingRules.append(rule);
+    }
+
+    // types
+    typeFormat.setForeground(Qt::blue);
+    typeFormat.setFontWeight(QFont::Bold);
+    static auto typePatterns = Types::all();
+
+    for (const QString &pattern : typePatterns) {
+        rule.pattern = QRegularExpression("\\b" + pattern + "\\b");
+        rule.format = typeFormat;
         highlightingRules.append(rule);
     }
 

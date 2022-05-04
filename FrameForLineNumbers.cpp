@@ -31,6 +31,7 @@ void FrameForLineNumbers::beginLineNumbers()
 void FrameForLineNumbers::addLineNumber(int nr, int y, bool disabled)
 {
     NumberPosition np(nr, y, disabled);
+    qDebug() << nr <<" @ " << y << " d=" << disabled;
     m_nrs.append(np);
 }
 

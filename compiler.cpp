@@ -86,10 +86,10 @@ TEST_CASE( "Power", "[simfun]" )
 
 TEST_CASE( "Indexed", "[simfun]" )
 {
-    Function *f = new Function("function f(x) = x[2 + i]");
+    Function *f = new Function("function f(x) = x[2 + i]", nullptr);
     f->SetVariable("x", 0);
-    IndexedAccess* ia = nullptr;
-    double cc=f->Calculate(nullptr, ia);
+    IndexedAccess* ia = nullptr; Assignment* a = nullptr;
+    double cc=f->Calculate(nullptr, ia, a);
     REQUIRE(cc == 0);
     REQUIRE(f->get_name() == "f");
     delete f;

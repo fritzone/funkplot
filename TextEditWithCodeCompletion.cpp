@@ -45,10 +45,6 @@ TextEditWithCodeCompletion::TextEditWithCodeCompletion(QWidget* p, RuntimeProvid
     setFrameShadow(QPlainTextEdit::Plain);
 
     m_highlighter.reset(new Highlighter(document(), rp));
-
-    setPlainText("let i = 0\nfunction f(x) = sin(x)\nlet ps = points of f counts 256\nfor i = 0 to 256 step 1 do\nlet cp = ps[i]\nplot cp\ndone");
-//    setPlainText("function f(x) = sin(x)\nplot f over(-10, 10)");
-
 }
 
 void TextEditWithCodeCompletion::onTimer()
@@ -91,11 +87,23 @@ void TextEditWithCodeCompletion::updateLineNumbers()
         m_frameForLineNumbers->beginLineNumbers();
 
         int i = 1;
-        for(QTextBlock block=pDoc->begin(); block!= pDoc->end(); block = block.next())
+        QPointF p = contentOffset();
+        int prev_y = std::numeric_limits<int>::min();
+
+        for(QTextBlock block = pDoc->begin(); block!= pDoc->end(); block = block.next())
         {
+
             QRectF f = blockBoundingGeometry(block);
-            QPointF p = contentOffset();
-            m_frameForLineNumbers->addLineNumber(i, f.top() + p.y() + 2, m_disabledRows.indexOf(i) != -1);
+            int y = f.top() + p.y() + 2;
+            qDebug() << "block "<< i << "=" << block.text() << "f=" << f << " p=" << p << "prev_y:" << prev_y << "y: " << y;
+
+            if(prev_y >= y)
+            {
+                y = prev_y + f.height();
+            }
+
+            m_frameForLineNumbers->addLineNumber(i, y, m_disabledRows.indexOf(i) != -1);
+            prev_y = y;
             i++;
         }
 
@@ -108,13 +116,20 @@ void TextEditWithCodeCompletion::onVScroll(int)
     updateLineNumbers();
 }
 
-void TextEditWithCodeCompletion::keyPressEvent(QKeyEvent *e)
+void TextEditWithCodeCompletion::resetHighlighter()
 {
     QStringList codelines = toPlainText().split("\n");
     m_rp->set_ShouldReport(false);
     m_rp->parse(codelines);
     m_rp->set_ShouldReport(true);
     m_highlighter.reset(new Highlighter(document(), m_rp));
+
+    updateLineNumbers();
+
+}
+
+void TextEditWithCodeCompletion::keyPressEvent(QKeyEvent *e)
+{
 
     Qt::KeyboardModifiers m = e->modifiers();
 
@@ -187,7 +202,7 @@ void TextEditWithCodeCompletion::keyPressEvent(QKeyEvent *e)
     }
 
     QPlainTextEdit::keyPressEvent(e);
-    updateLineNumbers();
+    resetHighlighter();
 }
 
 
@@ -224,6 +239,8 @@ void TextEditWithCodeCompletion::insertText(const QString & text)
     int i = 0;
     while(i <text.length() && i<wordBeforeCursor.length() && wordBeforeCursor.at(i) == text.at(i)) i++;
     insertPlainText(text.mid(i));
+
+    resetHighlighter();
 }
 
 void TextEditWithCodeCompletion::populateCodeCompletionListbox()

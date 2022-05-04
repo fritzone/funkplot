@@ -225,6 +225,19 @@ std::string extract_proper_expression(const char *&p, std::set<char> seps, std::
     std::string current_word = "";
     const auto first_p = p;
 
+    bool fnai_found = false;
+    {
+        std::string backup_p = p;
+        for(const auto& s : first_not_accepted_identifier)
+        {
+            if(backup_p.find(s) != std::string::npos)
+            {
+                fnai_found = true;
+                break;
+            }
+        }
+    }
+
     while(!done)
     {
         if(*p == ' ') // see the current word
@@ -285,8 +298,9 @@ std::string extract_proper_expression(const char *&p, std::set<char> seps, std::
                 done = true;
             }
 
-            // except if the current one is a closing parenthesys and the separator is also a parenthesis
-            if(  !(*p == ')' && seps.count(*p) > 0))
+
+            // except if the current one is a closing parenthesys and the separator is also a parenthesis, or that there is no fnai in the string
+            if(  !(*p == ')' && seps.count(*p) > 0) && !fnai_found)
             {
                 done = true;
             }
@@ -349,11 +363,17 @@ QString extract_proper_expression(QString &p, QSet<QChar> seps, QSet<QString> fn
         t.insert(c.toLatin1());
     }
 
+    std::set<std::string> fnais;
+    for(const auto& f : fnai)
+    {
+        fnais.insert(f.toStdString());
+    }
+
     char* ss = (char*)calloc(s.length() + 1, sizeof(char));
     strncpy(ss, s.c_str(), s.length());
     const char* css = ss;
 
-    std::string rs = extract_proper_expression(css, t);
+    std::string rs = extract_proper_expression(css, t, fnais);
     std::string ts(css);
     p = QString::fromStdString(ts);
     QString result = QString::fromStdString(rs);

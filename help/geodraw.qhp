@@ -6,6 +6,8 @@
         <toc>
             <section title="Geodraw introduction" ref="./intro.html">
             </section>
+            <section title="First steps" ref="./first_steps.html">
+            </section>
             <section title="Geodraw syntax reference" ref="./syntax.html">
                 <section title="foreach keyword" ref="./keyword_foreach.html"></section>
                 <section title="function keyword" ref="./keyword_function.html"></section>
@@ -20,6 +22,7 @@
         </keywords>
         <files>
             <file>intro.html</file>
+            <file>first_steps.html</file>
             <file>syntax.html</file>
             <file>keyword_foreach.html</file>
             <file>keyword_function.html</file>

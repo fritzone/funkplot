@@ -1,13 +1,14 @@
 #include "Function.h"
 #include "util.h"
 #include "RuntimeProvider.h"
+#include "CodeEngine.h"
 #include <QDebug>
 #include <math.h>
 #include <string.h>
 #include <memory>
 #include <set>
 
-Function::Function(const char *expr) : funBody(expr)
+Function::Function(const char *expr, Statement* s) : funBody(expr)
 {
 //    qDebug() << "Creating fun:" << expr;
 
@@ -61,6 +62,7 @@ Function::Function(const char *expr) : funBody(expr)
     root = new tree;
     root->left = nullptr;
     root->right = nullptr;
+    root->stmt = s;
 
     doit(cexpr_p2, root);
     free(reinterpret_cast<void*>(cexpr_p2));
@@ -80,9 +82,9 @@ void Function::SetVariable(const std::string& varn, double valu)
 //    qDebug() << "varn:" << varn.c_str() << "set to:" << valu;
 }
 
-double Function::Calculate(RuntimeProvider *rp, IndexedAccess*& ia)
+double Function::Calculate(RuntimeProvider *rp, IndexedAccess*& ia, Assignment*& a)
 {
-    return calc(root, rp, ia);
+    return calc(root, rp, ia, a);
 }
 
 const std::string &Function::get_name() const
@@ -146,10 +148,13 @@ void Function::doit(const char* expr, tree* node)
 
         node->info = c2str(expr[zlop]);
         node->left = new tree;
+        node->left->parent = node;
+
         doit(beforer, node->left);
         delete[] beforer;
 
         node->right = new tree;
+        node->right->parent = node;
         doit(afterer, node->right);
         delete[] afterer;
     }
@@ -213,9 +218,11 @@ void Function::doit(const char* expr, tree* node)
                     std::string p2 =extract_proper_expression(expr3, {')'});
 
                     node->left = new tree;
+                    node->left->parent = node;
                     doit(p1.c_str(), node->left);
 
                     node->right = new tree;
+                    node->right->parent = node;
                     doit(p2.c_str(), node->right);
                 }
                 else
@@ -231,6 +238,7 @@ void Function::doit(const char* expr, tree* node)
                         throw syntax_error_exception("Possible error in statement: %s Meaningless use of a function (%s)", expr, iffunc);
                     }
                     node->left = new tree;
+                    node->left->parent = node;
                     doit(expr3, node->left);
                 }
 
@@ -246,7 +254,9 @@ void Function::doit(const char* expr, tree* node)
                 auto indx = extract_proper_expression(expr, {']'});
                 node ->info = "[]";
                 node->left = new tree;
+                node->left->parent = node;
                 node->right = new tree;
+                node->right->parent = node;
                 doit(indxd.c_str(), node->left);
                 doit(indx.c_str(), node->right);
             }
@@ -286,13 +296,13 @@ int Function::l0mlt(const char* expr)
     return l0ops(expr, '*', '/', '%');
 }
 
-double Function::calc(tree* node, RuntimeProvider* rp, IndexedAccess*& ia)
+double Function::calc(tree* node, RuntimeProvider* rp, IndexedAccess*& ia, Assignment*& a)
 {
     if (node->left)
     {
         if (node->right)
         {
-            auto r = calc(node->right, rp, ia);
+            auto r = calc(node->right, rp, ia, a);
             if(node->info == "[]")
             {
                 // do this only if node->left->info is a point type variable
@@ -313,25 +323,31 @@ double Function::calc(tree* node, RuntimeProvider* rp, IndexedAccess*& ia)
             }
             else
             {
-                auto l = calc(node->left, rp, ia);
+                auto l = calc(node->left, rp, ia, a);
 
                 return op(node->info, l, r, rp);
             }
         }
         else
         {
-            return op(node->info, calc(node->left, rp, ia), 0, rp);
+            return op(node->info, calc(node->left, rp, ia, a), 0, rp);
         }
     }
     else
     {
-        if (defd(node->info, rp))
+        if (defd(node->info, rp, a))
         {
             return value(node->info, rp);
         }
         else
         {
-            throw syntax_error_exception("[E001] Possible error in formula statement: %s is not understood.", node->info);
+            if(!a)
+            {
+                // find the root of this:
+                tree* t = node;
+                while(t && t->parent) t = t->parent;
+                throw syntax_error_exception("Possible error in <b>%s</b> statement: %s is not understood.", t->stmt->statement.toLocal8Bit().data(), node->info);
+            }
         }
     }
 }
@@ -362,7 +378,7 @@ double Function::op(const std::string& s, double op1, double op2, RuntimeProvide
     return -1;
 }
 
-int Function::defd(const std::string& s, RuntimeProvider* rp)
+int Function::defd(const std::string& s, RuntimeProvider* rp, Assignment*& assig)
 {
     if (vars.count(s))
     {
@@ -373,7 +389,8 @@ int Function::defd(const std::string& s, RuntimeProvider* rp)
         return 1;
     }
 
-    if(rp->defd(s))
+    // if the assig is not nullptr after the call, this is a complex object, defined in the rp
+    if(rp->defd(s, assig))
     {
         return 1;
     }
@@ -396,7 +413,8 @@ double Function::value(const std::string& s, RuntimeProvider* rp)
         return vars[s];
     }
 
-    if(rp->defd(s))
+    Assignment* assig = nullptr;
+    if(rp->defd(s, assig))
     {
         return rp->value(s);
     }
@@ -405,8 +423,8 @@ double Function::value(const std::string& s, RuntimeProvider* rp)
 }
 
 
-QSharedPointer<Function> temporaryFunction(const QString &definition)
+QSharedPointer<Function> temporaryFunction(const QString &definition, Statement* s)
 {
     QString funString = QString::fromStdString(random_string(16)) +  "($) = " + definition;
-    return QSharedPointer<Function>(new Function(funString.toLocal8Bit().data()));
+    return QSharedPointer<Function>(new Function(funString.toLocal8Bit().data(), s));
 }

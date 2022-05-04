@@ -28,8 +28,8 @@ public:
             {
 
                 funToUse->SetVariable(pars[0].c_str(), x);
-                IndexedAccess* ia = nullptr;
-                double y = funToUse->Calculate(rp, ia);
+                IndexedAccess* ia = nullptr; Assignment* a = nullptr;
+                double y = funToUse->Calculate(rp, ia, a);
 
                 executor(x, y, continuous);
 
@@ -41,8 +41,8 @@ public:
             {
                 // the last points always goes to plotEnd
                 funToUse->SetVariable(pars[0].c_str(), plotEnd);
-                IndexedAccess* ia = nullptr;
-                double y = funToUse->Calculate(rp, ia);
+                IndexedAccess* ia = nullptr; Assignment* a = nullptr;
+                double y = funToUse->Calculate(rp, ia, a);
 
                 executor(plotEnd, y, continuous);
             }
