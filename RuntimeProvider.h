@@ -29,6 +29,7 @@ public:
 
     int defd(const std::string& s, Assignment *&assg);
     double value(const std::string& s);
+    double value(const std::string& obj, const std::string& attr);
     void setValue(const QString&s, double v);
     void setValue(const QString&s, QPointF v);
 

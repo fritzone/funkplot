@@ -343,10 +343,21 @@ double Function::calc(tree* node, RuntimeProvider* rp, IndexedAccess*& ia, Assig
         {
             if(!a)
             {
-                // find the root of this:
-                tree* t = node;
-                while(t && t->parent) t = t->parent;
-                throw syntax_error_exception("Possible error in <b>%s</b> statement: %s is not understood.", t->stmt->statement.toLocal8Bit().data(), node->info);
+                // see if node->info is a member access
+                if(node->info.find('.') != std::string::npos)
+                {
+                    std::string obj = node->info.substr(0, node->info.find('.'));
+                    std::string attr = node->info.substr(node->info.find('.') + 1);
+
+                    return rp->value(obj, attr);
+                }
+                else
+                {
+                    // find the root of this:
+                    tree* t = node;
+                    while(t && t->parent) t = t->parent;
+                    throw syntax_error_exception("Possible error in <b>%s</b> statement: <b>%s</b> is not understood.", t->stmt->statement.toLocal8Bit().data(), node->info);
+                }
             }
         }
     }

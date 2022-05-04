@@ -11,7 +11,7 @@ bool ArythmeticAssignment::execute(RuntimeProvider *rp)
     {
         try
         {
-            IndexedAccess* ia_m = nullptr; Assignment* a;
+            IndexedAccess* ia_m = nullptr; Assignment* a = nullptr;
             double v = arythmetic->Calculate(rp, ia_m, a);
 
             // if this is an indexed something ...

@@ -51,6 +51,21 @@ double RuntimeProvider::value(const std::string &s)
     return std::numeric_limits<double>::quiet_NaN();
 }
 
+double RuntimeProvider::value(const std::string &obj, const std::string &attr)
+{
+    auto a = get_assignment(QString::fromStdString(obj));
+
+    auto fcp = a->fullCoordProvider();
+    if( std::get<0>(fcp) && std::get<1>(fcp) )
+    {
+        IndexedAccess* ia = nullptr; Assignment* a = nullptr;
+        if(attr == "x") return std::get<0>(fcp)->Calculate(this, ia, a);
+        if(attr == "y") return std::get<1>(fcp)->Calculate(this, ia, a);
+    }
+
+    return std::numeric_limits<double>::quiet_NaN();
+}
+
 void RuntimeProvider::setValue(const QString &s, double v)
 {
     m_vars[s] = v;
@@ -246,7 +261,7 @@ QString RuntimeProvider::typeOfVariable(const char *n)
     if(m_vars.contains(n)) return "n";
     for(const auto& adef : qAsConst(assignments))
     {
-        if(adef->varName == n)
+        if(adef->varName == n && !m_allVariables.contains(n))
         {
             return "p";
         }
@@ -392,7 +407,7 @@ QSharedPointer<Statement> RuntimeProvider::resolveCodeline(QStringList& codeline
     QString codeline = codelines[0];
     codelines.pop_front();
     codeline = codeline.simplified();
-
+    if(!codeline.isEmpty())
     try
     {
 
@@ -472,7 +487,11 @@ void RuntimeProvider::createVariableDeclaration(const QString &codeline)
         QStringList declI = s.split(" ", Qt::SkipEmptyParts);
         if(declI.size() != 2)
         {
-            throw syntax_error_exception("Invalid variable assignment: ", s);
+            throw syntax_error_exception("Invalid variable assignment <b>%s</b> ", s);
+        }
+        if(!QSet<QString>{"number", "point", "array"}.contains(declI[1].simplified() ))
+        {
+            throw syntax_error_exception("Invalid variable type <b>%s</b> in <b>%s", declI[1].simplified(), s);
         }
         m_allVariables.insert(declI[0].simplified(), declI[1].simplified());
     }
@@ -788,14 +807,19 @@ QSharedPointer<Statement> RuntimeProvider::createPlot(const QString& codeline)
 
     if(!ff)
     {
-        QSharedPointer<FunctionDefinition> fd;
-        fd.reset(new FunctionDefinition(codeline) );
-        QString plgfn = "plot_fn_" +QString::number(functions.size()) + "(x) =";
-        Function* f = new Function(QString(plgfn + funToPlot).toStdString().c_str(), plotData.get());
+        auto a = get_assignment(funToPlot);
 
-        fd->f = QSharedPointer<Function>(f);
-        funToPlot = QString::fromStdString(fd->f->get_name());
-        functions.push_back(fd);
+        if(!a)
+        {
+            QSharedPointer<FunctionDefinition> fd;
+            fd.reset(new FunctionDefinition(codeline) );
+            QString plgfn = "plot_fn_" +QString::number(functions.size()) + "(x) =";
+            Function* f = new Function(QString(plgfn + funToPlot).toStdString().c_str(), plotData.get());
+
+            fd->f = QSharedPointer<Function>(f);
+            funToPlot = QString::fromStdString(fd->f->get_name());
+            functions.push_back(fd);
+        }
     }
 
     plotData->plotTarget = funToPlot;
