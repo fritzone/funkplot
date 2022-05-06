@@ -53,6 +53,8 @@ public:
 
     void resetHighlighter();
 
+    QString fetchTheWordBeforeTheCursor();
+
 private slots:
     void onTimer();
     void onListItemDoubleClicked(QModelIndex);

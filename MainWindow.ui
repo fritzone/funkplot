@@ -13,22 +13,32 @@
   <property name="windowTitle">
    <string>FunPlotter</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="main.qrc">
+    <normaloff>:/icons/icons/fx.png</normaloff>:/icons/icons/fx.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_3">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QTabWidget" name="tabWidget">
-      <property name="currentIndex">
-       <number>-1</number>
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
       </property>
-      <property name="documentMode">
-       <bool>false</bool>
-      </property>
-      <property name="tabsClosable">
-       <bool>true</bool>
-      </property>
-      <property name="movable">
-       <bool>true</bool>
-      </property>
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="currentIndex">
+        <number>-1</number>
+       </property>
+       <property name="documentMode">
+        <bool>false</bool>
+       </property>
+       <property name="tabsClosable">
+        <bool>true</bool>
+       </property>
+       <property name="movable">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QTextEdit" name="textEdit"/>
      </widget>
     </item>
    </layout>
@@ -46,7 +56,7 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionSaveAs">
    <property name="icon">
-    <iconset resource="main.qrc">
+    <iconset resource="ribbon/examples/Test/res.qrc">
      <normaloff>:/icons/icons/48px-Document-save-as.png</normaloff>:/icons/icons/48px-Document-save-as.png</iconset>
    </property>
    <property name="text">
@@ -55,7 +65,7 @@
   </action>
   <action name="actionOpen">
    <property name="icon">
-    <iconset resource="main.qrc">
+    <iconset resource="ribbon/examples/Test/res.qrc">
      <normaloff>:/icons/icons/48px-Document-open.png</normaloff>:/icons/icons/48px-Document-open.png</iconset>
    </property>
    <property name="text">
@@ -64,7 +74,7 @@
   </action>
   <action name="actionSave">
    <property name="icon">
-    <iconset resource="main.qrc">
+    <iconset resource="ribbon/examples/Test/res.qrc">
      <normaloff>:/icons/icons/48px-Document-save.png</normaloff>:/icons/icons/48px-Document-save.png</iconset>
    </property>
    <property name="text">
@@ -82,7 +92,7 @@
   </action>
   <action name="actionHelp">
    <property name="icon">
-    <iconset resource="main.qrc">
+    <iconset resource="ribbon/examples/Test/res.qrc">
      <normaloff>:/icons/icons/Help-browser.png</normaloff>:/icons/icons/Help-browser.png</iconset>
    </property>
    <property name="text">
@@ -91,7 +101,7 @@
   </action>
   <action name="actionNew">
    <property name="icon">
-    <iconset resource="main.qrc">
+    <iconset resource="ribbon/examples/Test/res.qrc">
      <normaloff>:/icons/icons/48px-Document-new.png</normaloff>:/icons/icons/48px-Document-new.png</iconset>
    </property>
    <property name="text">
@@ -100,7 +110,7 @@
   </action>
   <action name="actionExport">
    <property name="icon">
-    <iconset resource="main.qrc">
+    <iconset resource="ribbon/examples/Test/res.qrc">
      <normaloff>:/icons/icons/48px-Image-x-generic.png</normaloff>:/icons/icons/48px-Image-x-generic.png</iconset>
    </property>
    <property name="text">
@@ -109,7 +119,7 @@
   </action>
   <action name="actionSyntax">
    <property name="icon">
-    <iconset resource="main.qrc">
+    <iconset resource="ribbon/examples/Test/res.qrc">
      <normaloff>:/icons/icons/light_bulb.png</normaloff>:/icons/icons/light_bulb.png</iconset>
    </property>
    <property name="text">
@@ -127,6 +137,7 @@
   </action>
  </widget>
  <resources>
+  <include location="ribbon/examples/Test/res.qrc"/>
   <include location="main.qrc"/>
  </resources>
  <connections/>

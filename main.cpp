@@ -63,5 +63,7 @@ int main(int argc, char *argv[])
     mainWindow.addDockWidget(drawingDock, KDDockWidgets::Location_OnRight);
     mainWindow.setPersistentCentralWidget(mainDock);
 
+    mainWindow.setWindowIcon(QIcon(":/icons/icons/fx.png"));
+
     return a.exec();
 }

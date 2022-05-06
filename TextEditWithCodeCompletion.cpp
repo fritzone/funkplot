@@ -10,6 +10,9 @@
 #include <QApplication>
 #include <QEvent>
 #include <QScrollBar>
+#include <colors.h>
+#include <QLabel>
+#include <QHBoxLayout>
 
 int TextEditWithCodeCompletion::TablePositionInText::colorCounter = -1;
 
@@ -49,7 +52,6 @@ TextEditWithCodeCompletion::TextEditWithCodeCompletion(QWidget* p, RuntimeProvid
 
 void TextEditWithCodeCompletion::onTimer()
 {
-#if 0
     if(!m_lst->isVisible())
     {
         QPoint p = cursorRect().bottomRight();
@@ -58,7 +60,6 @@ void TextEditWithCodeCompletion::onTimer()
         m_timer.stop();
         populateCodeCompletionListbox();
     }
-#endif
 }
 
 void TextEditWithCodeCompletion::onListItemDoubleClicked(QModelIndex idx)
@@ -167,7 +168,6 @@ void TextEditWithCodeCompletion::keyPressEvent(QKeyEvent *e)
     if(m.testFlag(Qt::ControlModifier))
     {
         int t = e->key();
-#if 0
         if(e->key() == Qt::Key_Space)
         {
             QPoint p = cursorRect().bottomRight();
@@ -177,7 +177,7 @@ void TextEditWithCodeCompletion::keyPressEvent(QKeyEvent *e)
             updateLineNumbers();
             return;
         }
-#endif
+
         if(t == Qt::Key_Enter ||t == Qt::Key_Return) // Ctrl + Enter is supposed to run the query if we have a connection
         {
             // TODO: Run the plotter
@@ -195,10 +195,40 @@ void TextEditWithCodeCompletion::keyPressEvent(QKeyEvent *e)
 
     if(m_lst->isVisible())
     {
-        QPlainTextEdit::keyPressEvent(e);
-        populateCodeCompletionListbox();
-        updateLineNumbers();
-        return;
+        if (   e->key() == Qt::Key_Home
+            || e->key() == Qt::Key_End
+            || e->key() == Qt::Key_Up
+            || e->key() == Qt::Key_Down
+            || e->key() == Qt::Key_PageUp
+            || e->key() == Qt::Key_PageDown
+           )
+        {
+            m_lst->keyPressEvent(e);
+            return;
+        }
+
+        if(e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter)
+        {
+            QString tti = m_lst->currentItem()->text();
+            if(!tti.isEmpty())
+            {
+                insertText(m_lst->currentItem()->text());
+            }
+            else
+            {
+                auto w = m_lst->currentItem()->data(Qt::UserRole);
+                insertText(w.toString());
+            }
+            m_lst->hide();
+            return;
+        }
+        else
+        {
+            QPlainTextEdit::keyPressEvent(e);
+            populateCodeCompletionListbox();
+            updateLineNumbers();
+            return;
+        }
     }
 
     QPlainTextEdit::keyPressEvent(e);
@@ -231,7 +261,7 @@ void TextEditWithCodeCompletion::insertText(const QString & text)
     int cp = textCursor().position() - 1;
     QString wordBeforeCursor = "";
     // and find the word
-    while(cp > -1 && g.at(cp) != ' ' && g.at(cp) != '.' && g.at(cp) != ',')
+    while(cp > -1 && g.at(cp) != ' ' && g.at(cp) != '.' && g.at(cp) != ',' && !std::isspace(g.at(cp).toLatin1()))
     {
         wordBeforeCursor.prepend(g.at(cp--));
     }
@@ -243,10 +273,8 @@ void TextEditWithCodeCompletion::insertText(const QString & text)
     resetHighlighter();
 }
 
-void TextEditWithCodeCompletion::populateCodeCompletionListbox()
+QString TextEditWithCodeCompletion::fetchTheWordBeforeTheCursor()
 {
-    m_lst->clear();
-
     int cp = textCursor().position() - 1;
 
     // 1. find the word which was before the cursor
@@ -254,21 +282,77 @@ void TextEditWithCodeCompletion::populateCodeCompletionListbox()
     QString wordBeforeCursor = "";
     QString keywordBeforeCursor = "";
     // remove all the spaces that are between the cursor and the last word to left
-    while(cp > 0 && g.at(cp) == ' ')
+    while(cp > 0 && std::isspace(g.at(cp).toLatin1()))
     {
         cp--;
     }
 
     // and find the word
-    while(cp > -1 && g.at(cp) != ' ' && g.at(cp) != '=' && g.at(cp) != ')' && g.at(cp) != '(' && g.at(cp) != ',')
+    while(cp > -1 && g.at(cp) != ' ' && g.at(cp) != '=' && g.at(cp) != ')' && g.at(cp) != '(' && g.at(cp) != ',' && !std::isspace(g.at(cp).toLatin1()))
     {
         wordBeforeCursor.prepend(g.at(cp--));
     }
 
-    // 2. Find the last keyword which was before the cursor
-    bool foundKeyword = false;
+    return wordBeforeCursor;
+}
 
+void TextEditWithCodeCompletion::populateCodeCompletionListbox()
+{
+    m_lst->clear();
 
+    QString wordBeforeCursor = fetchTheWordBeforeTheCursor();
+
+    qDebug() << wordBeforeCursor;
+
+    if(wordBeforeCursor == "color")
+    {
+        for(const auto& c : Colors::colormap)
+        {
+            QPixmap qpi(32, 32);
+            auto cui = Colors::colormap.at(c.first);
+            qpi.fill(QColor(cui.r, cui.g, cui.b, 255));
+            QListWidgetItem* qlwi = new QListWidgetItem(QIcon(qpi), QString::fromStdString(c.first));
+            m_lst->addItem(qlwi);
+        }
+
+        return;
+    }
+
+    if(wordBeforeCursor == Keywords::KW_PLOT)
+    {
+        auto fs = m_rp->get_functions();
+        for(const auto& f : fs)
+        {
+            QListWidgetItem* qlwi = new QListWidgetItem(QIcon(":/icons/icons/function.png"), QString::fromStdString(f));
+            m_lst->addItem(qlwi);
+        }
+
+        for(const auto& f : supported_functions)
+        {
+            if(f.standalone_plottable)
+            {
+                auto qlwi = new QListWidgetItem;
+                auto widget = new QWidget;
+                auto widgetText =  new QLabel(QString::fromStdString("<span style=\"color:#00008b;\">" + f.name + "</span><span style=\"color:#000000;\"> (" + f.desc + ")</span>"));
+                auto widgetLayout = new QHBoxLayout;
+
+                widgetLayout->addWidget(widgetText);
+                widgetLayout->setSizeConstraint(QLayout::SetFixedSize);
+                widget->setLayout(widgetLayout);
+                qlwi->setIcon(QIcon(":/icons/icons/function.png"));
+                m_lst->addItem(qlwi);
+
+                qlwi->setSizeHint(widget->sizeHint());
+                qlwi->setData(Qt::UserRole, QString::fromStdString(f.name));
+                m_lst->setItemWidget(qlwi, widget);
+            }
+
+        }
+
+        return;
+    }
+
+    m_lst->hide();
 }
 
 

@@ -110,6 +110,8 @@ public:
      * @return
      */
     QString typeOfVariable(const char* n);
+    QString typeOfVariable(const QString& s);
+
     double getIndexedVariableValue(const char* n, int index);
 
 private:

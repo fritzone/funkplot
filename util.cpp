@@ -217,7 +217,7 @@ QPointF rotatePoint(float cx, float cy, float angle, QPointF p)
     return p;
 }
 
-std::string extract_proper_expression(const char *&p, std::set<char> seps, std::set<std::string> first_not_accepted_identifier)
+std::string extract_proper_expression(const char *&p, std::set<char> seps, std::set<std::string> first_not_accepted_identifier, bool till_end)
 {
     std::string res = "";
     bool done = false;
@@ -289,20 +289,26 @@ std::string extract_proper_expression(const char *&p, std::set<char> seps, std::
             }
         }
 
-
         // see if we can leave: no more parentheses and the current one is separator
+        // but we did not request till the end and we have no fnai
         if(seps.count(*p) > 0 and current_par_level <= 1)
         {
             if(current_par_level == 0)
             {
-                done = true;
+                if(!fnai_found && !till_end)
+                {
+                    done = true;
+                }
             }
 
-
             // except if the current one is a closing parenthesys and the separator is also a parenthesis, or that there is no fnai in the string
+            // or if there is no fnai and we requested till the end
             if(  !(*p == ')' && seps.count(*p) > 0) && !fnai_found)
             {
-                done = true;
+                if(!till_end)
+                {
+                    done = true;
+                }
             }
         }
         else
@@ -354,7 +360,7 @@ std::string extract_proper_expression(const char *&p, std::set<char> seps, std::
     return res;
 }
 
-QString extract_proper_expression(QString &p, QSet<QChar> seps, QSet<QString> fnai)
+QString extract_proper_expression(QString &p, QSet<QChar> seps, QSet<QString> fnai, bool till_end)
 {
     std::string s = p.toStdString();
     std::set<char> t;
@@ -373,7 +379,7 @@ QString extract_proper_expression(QString &p, QSet<QChar> seps, QSet<QString> fn
     strncpy(ss, s.c_str(), s.length());
     const char* css = ss;
 
-    std::string rs = extract_proper_expression(css, t, fnais);
+    std::string rs = extract_proper_expression(css, t, fnais, till_end);
     std::string ts(css);
     p = QString::fromStdString(ts);
     QString result = QString::fromStdString(rs);

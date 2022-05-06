@@ -307,7 +307,7 @@ double Function::calc(tree* node, RuntimeProvider* rp, IndexedAccess*& ia, Assig
             {
                 // do this only if node->left->info is a point type variable
 
-                if(rp->typeOfVariable(node->left->info.c_str()) == 'p')
+                if(rp->typeOfVariable(node->left->info.c_str()) == Types::TYPE_LIST)
                 {
 
                     ia = new IndexedAccess;

@@ -18,11 +18,11 @@ bool ArythmeticAssignment::execute(RuntimeProvider *rp)
             if(ia_m)
             {
                 // same logic as in RuntimeProvider.h
-                QString at = rp->typeOfVariable(ia_m->indexedVariable.toLocal8Bit().data());
+                QString at = rp->typeOfVariable(varName);
                 qDebug() << at;
 
                 // assigning to a point
-                if(at == "p")
+                if(at == "p" || at == "point")
                 {
                     auto p = rp->get_assignment(ia_m->indexedVariable);
                     if(p)

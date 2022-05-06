@@ -35,43 +35,46 @@ struct fun_desc_solve
     std::string name;
     std::string desc;
     std::function<double(double,double)> solver;
+    bool standalone_plottable;
+
 };
+
 
 static const std::vector<fun_desc_solve> supported_functions
 {
      // basic stuff
-     {"+", "Simple addition", [](double v, double v2) -> double { return v + v2; } },
-     {"-", "Simple substraction", [](double v, double v2) -> double { return v - v2; } },
-     {"*", "Simple multiplication", [](double v, double v2) -> double { return v * v2; } },
-     {"%", "Simple modulo operator", [](double v, double v2) -> double { return  v2 == 0 ? std::numeric_limits<double>::quiet_NaN() : (static_cast<int>(v) % static_cast<int>(v2)); } },
-     {"/", "Simple division", [](double v, double v2) -> double { return  v2 == 0 ? std::numeric_limits<double>::quiet_NaN() : v / v2; } },
+     {"+", "Simple addition", [](double v, double v2) -> double { return v + v2; }, false },
+     {"-", "Simple substraction", [](double v, double v2) -> double { return v - v2; }, false },
+     {"*", "Simple multiplication", [](double v, double v2) -> double { return v * v2; }, false },
+     {"%", "Simple modulo operator", [](double v, double v2) -> double { return  v2 == 0 ? std::numeric_limits<double>::quiet_NaN() : (static_cast<int>(v) % static_cast<int>(v2)); }, false },
+     {"/", "Simple division", [](double v, double v2) -> double { return  v2 == 0 ? std::numeric_limits<double>::quiet_NaN() : v / v2; }, false },
 
      //trygonometry, simple
-     {"sin", "The sine function", [](double v, double v2) -> double { return std::sin(v); } },
-     {"cos", "The cosine function", [](double v, double v2) -> double { return std::cos(v); } },
-     {"tan", "The tangent function", [](double v, double v2) -> double { return std::tan(v); } },
-     {"cot", "The cotangent function", [](double v, double v2) -> double { return std::sin(v) != 0 ? std::cos(v) / std::sin(v) : std::numeric_limits<double>::quiet_NaN(); } },
-     {"sec", "The secant function", [](double v, double v2) -> double { return std::cos(v) != 0 ? 1.0 / std::cos(v) : std::numeric_limits<double>::quiet_NaN(); } },
-     {"cosec", "The cosecant function", [](double v, double v2) -> double { return std::sin(v)!= 0 ? 1.0 / std::sin(v) : std::numeric_limits<double>::quiet_NaN(); } },
+     {"sin", "The sine function", [](double v, double v2) -> double { return std::sin(v); }, true },
+     {"cos", "The cosine function", [](double v, double v2) -> double { return std::cos(v); } , true},
+     {"tan", "The tangent function", [](double v, double v2) -> double { return std::tan(v); } , true},
+     {"cot", "The cotangent function", [](double v, double v2) -> double { return std::sin(v) != 0 ? std::cos(v) / std::sin(v) : std::numeric_limits<double>::quiet_NaN(); }, true },
+     {"sec", "The secant function", [](double v, double v2) -> double { return std::cos(v) != 0 ? 1.0 / std::cos(v) : std::numeric_limits<double>::quiet_NaN(); } , true},
+     {"cosec", "The cosecant function", [](double v, double v2) -> double { return std::sin(v)!= 0 ? 1.0 / std::sin(v) : std::numeric_limits<double>::quiet_NaN(); } , true},
 
      //trygonometry, arc*/inverse functions
-     {"asin", "The arcsine function", [](double v, double v2) -> double { if(v >= -1 && v <= 1) return std::asin(v); return std::numeric_limits<double>::quiet_NaN();} },
-     {"acos", "The arccosine function", [](double v, double v2) -> double { if(v >= -1 && v <= 1) return std::acos(v); return std::numeric_limits<double>::quiet_NaN();} },
+     {"asin", "The arcsine function", [](double v, double v2) -> double { if(v >= -1 && v <= 1) return std::asin(v); return std::numeric_limits<double>::quiet_NaN();} , true},
+     {"acos", "The arccosine function", [](double v, double v2) -> double { if(v >= -1 && v <= 1) return std::acos(v); return std::numeric_limits<double>::quiet_NaN();} , true},
      {"atan", "The arctangent function", [](double v, double v2) -> double { return std::atan(v); } },
-     {"actg", "The arc-cotangent function", [](double v, double v2) -> double { if(std::tan(1.0/v) != 0) return 1 / std::tan(1.0/v); return std::numeric_limits<double>::quiet_NaN(); } },
-     {"asec", "The arcsecant function", [](double v, double v2) -> double { return std::cos(1.0/v) != 0 ? 1.0 / std::cos(1.0/v) : std::numeric_limits<double>::quiet_NaN(); } },
-     {"acosec", "The arc-cosecant function", [](double v, double v2) -> double { return std::sin(1.0/v)!= 0 ? 1.0 / std::sin(1.0/v) : std::numeric_limits<double>::quiet_NaN(); } },
+     {"actg", "The arc-cotangent function", [](double v, double v2) -> double { if(std::tan(1.0/v) != 0) return 1 / std::tan(1.0/v); return std::numeric_limits<double>::quiet_NaN(); } , true},
+     {"asec", "The arcsecant function", [](double v, double v2) -> double { return std::cos(1.0/v) != 0 ? 1.0 / std::cos(1.0/v) : std::numeric_limits<double>::quiet_NaN(); } , true},
+     {"acosec", "The arc-cosecant function", [](double v, double v2) -> double { return std::sin(1.0/v)!= 0 ? 1.0 / std::sin(1.0/v) : std::numeric_limits<double>::quiet_NaN(); } , true},
 
      // Algebraic functions
-     {"exp", "The exponential function", [](double v, double v2) -> double { return std::exp(v); } },
-     {"log", "The common logarithmic function", [](double v, double v2) -> double { return std::log10(v); } },
-     {"ln", "The logarithmic function", [](double v, double v2) -> double { return std::log(v); } },
-     {"sqrt", "The square root function", [](double v, double v2) -> double { return std::sqrt(v); } },
-     {"pow", "The power function", [](double v, double v2) -> double { return std::pow(v, v2); } },
+     {"exp", "The exponential function", [](double v, double v2) -> double { return std::exp(v); } , true},
+     {"log", "The common logarithmic function", [](double v, double v2) -> double { return std::log10(v); } , true},
+     {"ln", "The logarithmic function", [](double v, double v2) -> double { return std::log(v); } , true},
+     {"sqrt", "The square root function", [](double v, double v2) -> double { return std::sqrt(v); } , true},
+     {"pow", "The power function", [](double v, double v2) -> double { return std::pow(v, v2); } , false},
 
      // Some easy stuff
-     {"inc", "Increment by one", [](double v, double v2) -> double { return v + 1; } },
-     {"dec", "Decrement by one", [](double v, double v2) -> double { return v - 1; } },
+     {"inc", "Increment by one", [](double v, double v2) -> double { return v + 1; } , false},
+     {"dec", "Decrement by one", [](double v, double v2) -> double { return v - 1; } , false},
 
 };
 
@@ -236,8 +239,8 @@ template <typename T> int sgn(T val) {
 void consumeSpace(QString &s);
 QString getDelimitedId(QString&, QSet<char>, char &delim);
 QString getDelimitedId(QString&, QSet<char> = {' '});
-std::string extract_proper_expression(const char *&p, std::set<char> seps, std::set<std::string> first_not_accepted_identifier = {});
-QString extract_proper_expression(QString &p, QSet<QChar> seps = {' '}, QSet<QString> fnai = {});
+std::string extract_proper_expression(const char *&p, std::set<char> seps, std::set<std::string> first_not_accepted_identifier = {}, bool till_end = false);
+QString extract_proper_expression(QString &p, QSet<QChar> seps = {' '}, QSet<QString> fnai = {}, bool till_end = false);
 QPointF rotatePoint(float cx, float cy, float angle, QPointF p);
 
 #endif

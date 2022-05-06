@@ -4,6 +4,7 @@
 #include <QSyntaxHighlighter>
 #include <QFont>
 #include <QDebug>
+#include <colors.h>
 
 Highlighter::Highlighter(QTextDocument *parent, RuntimeProvider *rp) : QSyntaxHighlighter(parent)
 {
@@ -74,6 +75,20 @@ Highlighter::Highlighter(QTextDocument *parent, RuntimeProvider *rp) : QSyntaxHi
         rule.format = functionFormat;
         highlightingRules.append(rule);
     }
+
+    // the colors
+    functionFormat.setFontItalic(true);
+    functionFormat.setFontWeight(2);
+    functionFormat.setForeground(Qt::cyan);
+    for (const auto &f : Colors::colormap)
+    {
+        QString pattern = "\\b" + QString::fromStdString(f.first) + "\\b";
+        rule.pattern = QRegularExpression(pattern);
+        rule.format = functionFormat;
+        highlightingRules.append(rule);
+    }
+
+
 
 
     // comments, start with a #

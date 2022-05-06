@@ -110,6 +110,8 @@ else()
   qt5_add_resources(GUI_QRC_FILES main.qrc)
 endif()
 
+set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/ggui.rc")
+
 add_executable(ggui WIN32
     main.cpp
     AbstractDrawer.cpp AbstractDrawer.h
@@ -127,6 +129,7 @@ add_executable(ggui WIN32
 
     ${GUI_UI_FILES}
     ${GUI_QRC_FILES}
+	${APP_ICON_RESOURCE_WINDOWS}
 )
 
 set(QtLibList

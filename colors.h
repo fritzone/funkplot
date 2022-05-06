@@ -58,7 +58,7 @@ constexpr color Bisque         = RGB_888(0xFF, 0xE4, 0xC4);
 constexpr color NavajoWhite    = RGB_888(0xFF, 0xDE, 0xAD);
 constexpr color Wheat          = RGB_888(0xF5, 0xDE, 0xB3);
 constexpr color Burlywood      = RGB_888(0xDE, 0xB8, 0x87);
-constexpr color Tan            = RGB_888(0xD2, 0xB4, 0x8C);
+constexpr color Tanned         = RGB_888(0xD2, 0xB4, 0x8C);
 constexpr color RosyBrown      = RGB_888(0xBC, 0x8F, 0x8F);
 constexpr color SandyBrown     = RGB_888(0xF4, 0xA4, 0x60);
 constexpr color Goldenrod      = RGB_888(0xDA, 0xA5, 0x20);
@@ -172,7 +172,7 @@ static const std::map<const std::string, color> colormap = {
     {"lightgoldenrodyellow", LightGoldenrodYellow}, {"papayawhip", PapayaWhip}, {"moccasin", Moccasin},
     {"peachpuff", PeachPuff}, {"palegoldenrod", PaleGoldenrod}, {"khaki", Khaki}, {"darkkhaki", DarkKhaki},
     {"gold", Gold}, {"cornsilk", Cornsilk}, {"blanchedalmond", BlanchedAlmond}, {"bisque", Bisque},
-    {"navajowhite", NavajoWhite}, {"wheat", Wheat}, {"burlywood", Burlywood}, {"tan", Tan},
+    {"navajowhite", NavajoWhite}, {"wheat", Wheat}, {"burlywood", Burlywood}, {"tanned", Tanned},
     {"rosybrown", RosyBrown}, {"sandybrown", SandyBrown}, {"goldenrod", Goldenrod},
     {"darkgoldenrod", DarkGoldenrod}, {"peru", Peru}, {"chocolate", Chocolate}, {"saddlebrown", SaddleBrown},
     {"sienna", Sienna}, {"brown", Brown}, {"maroon", Maroon}, {"darkolivegreen", DarkOliveGreen},

@@ -34,6 +34,7 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QDateTime>
 
 #include <functional>
 
@@ -129,12 +130,15 @@ void MainWindow::reportError(QString err)
         firstMessage = false;
     }
     label->setText(err);
-    qWarning() << err;
+    ui->textEdit->append(err);
 }
 
 
 void MainWindow::runCurrentCode()
 {
+    reportError("");
+    ui->textEdit->append("-------------- " + QDateTime::currentDateTime().toString());
+
     m_df->reset();
     m_df->drawCoordinateSystem();
 

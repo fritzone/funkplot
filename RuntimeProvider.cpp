@@ -274,6 +274,11 @@ QString RuntimeProvider::typeOfVariable(const char *n)
     return "x";
 }
 
+QString RuntimeProvider::typeOfVariable(const QString &s)
+{
+    return typeOfVariable(s.toLocal8Bit().data());
+}
+
 double RuntimeProvider::getIndexedVariableValue(const char *n, int index)
 {
     return -1;
@@ -407,6 +412,9 @@ QSharedPointer<Statement> RuntimeProvider::resolveCodeline(QStringList& codeline
     QString codeline = codelines[0];
     codelines.pop_front();
     codeline = codeline.simplified();
+    codeline.replace("(", " ( ");
+    codeline.replace(")", " ) ");
+    codeline = codeline.trimmed();
     if(!codeline.isEmpty())
     try
     {
@@ -489,7 +497,7 @@ void RuntimeProvider::createVariableDeclaration(const QString &codeline)
         {
             throw syntax_error_exception("Invalid variable assignment <b>%s</b> ", s);
         }
-        if(!QSet<QString>{"number", "point", "array"}.contains(declI[1].simplified() ))
+        if(!Types::all().contains(declI[1].simplified() ))
         {
             throw syntax_error_exception("Invalid variable type <b>%s</b> in <b>%s", declI[1].simplified(), s);
         }
@@ -800,7 +808,7 @@ QSharedPointer<Statement> RuntimeProvider::createPlot(const QString& codeline)
 
     QString plot_body = codeline.mid(STR_PLOT.length());
     // function name
-    QString funToPlot = extract_proper_expression(plot_body, {' '}, {Keywords::KW_OVER, Keywords::KW_CONTINUOUS});
+    QString funToPlot = extract_proper_expression(plot_body, {' '}, {Keywords::KW_OVER, Keywords::KW_CONTINUOUS}, true);
 
     // let's see if we have a function for this already
     QSharedPointer<Function> ff = get_function(funToPlot);
@@ -814,7 +822,42 @@ QSharedPointer<Statement> RuntimeProvider::createPlot(const QString& codeline)
             QSharedPointer<FunctionDefinition> fd;
             fd.reset(new FunctionDefinition(codeline) );
             QString plgfn = "plot_fn_" +QString::number(functions.size()) + "(x) =";
-            Function* f = new Function(QString(plgfn + funToPlot).toStdString().c_str(), plotData.get());
+
+            // make the funToPlot look acceptable by adding (x) to each builtin function if any
+            QString funToPlotFinal = funToPlot.simplified();
+            // firstly remove the space before each parenthesis if found
+            funToPlotFinal.replace(" (", "(");
+            // then each func(x) will be replaced with func to not to have (x)(x)
+            for(const auto& f : supported_functions)
+            {
+                if(f.standalone_plottable)
+                {
+                    funToPlotFinal.replace(QString::fromStdString(f.name) + "(x)", QString::fromStdString(f.name));
+                }
+            }
+
+            for(const auto& f : supported_functions)
+            {
+                if(f.standalone_plottable)
+                {
+                    funToPlotFinal.replace(QString::fromStdString(f.name) + "(", QString::fromStdString(f.name) + "#");
+                }
+            }
+
+            // and the other way around to make it legal
+            for(const auto& f : supported_functions)
+            {
+                if(f.standalone_plottable)
+                {
+                    funToPlotFinal.replace(QString::fromStdString(f.name), QString::fromStdString(f.name) + "(x)");
+                }
+            }
+            funToPlotFinal.replace("(x)#", "(");
+
+
+            qDebug() << funToPlotFinal;
+
+            Function* f = new Function(QString(plgfn + funToPlotFinal).toStdString().c_str(), plotData.get());
 
             fd->f = QSharedPointer<Function>(f);
             funToPlot = QString::fromStdString(fd->f->get_name());
@@ -997,8 +1040,18 @@ void RuntimeProvider::resolveOverKeyword(QString codeline, QSharedPointer<Steppe
     // first parameter
     char delim;
     QString first_par = getDelimitedId(codeline, {',', ' '}, delim);
-    QString second_par = getDelimitedId(codeline, {' ', close_char}, delim);
 
+    // skipping , or anything else
+    while(!codeline.isEmpty() && (codeline.at(0) == ' ' || codeline.at(0) == ','))
+    {
+        codeline = codeline.mid(1);
+    }
+    QString second_par = getDelimitedId(codeline, {' ', close_char}, delim);
+    // skipping , or anything else
+    while(!codeline.isEmpty() && (codeline.at(0) == ' ' || codeline.at(0) == close_char) )
+    {
+        codeline = codeline.mid(1);
+    }
     if(codeline.startsWith(Keywords::KW_CONTINUOUS))
     {
         stepped->continuous = true;
