@@ -42,13 +42,16 @@ Function::Function(const char *expr, Statement* s) : funBody(expr)
         if (pve != nullptr)
         {
             ppar[pve - ppar] = 0;
-            std::string vn = ppar;
+            std::string sst(ppar);
+            std::string vn = strim(sst);
             vars[vn] = std::numeric_limits<double>::quiet_NaN();
             ppar = pve + 1;
         }
         else
         {
-            std::string ujv = ppar;
+            std::string sst(ppar);
+
+            std::string ujv = strim(sst);
             vars[ujv] = std::numeric_limits<double>::quiet_NaN();
             ppar = nullptr;
         }
@@ -78,7 +81,9 @@ Function::~Function()
 
 void Function::SetVariable(const std::string& varn, double valu)
 {
-    vars[varn] = valu;
+    std::string sst(varn);
+
+    vars[sst] = valu;
 //    qDebug() << "varn:" << varn.c_str() << "set to:" << valu;
 }
 

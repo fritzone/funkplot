@@ -55,7 +55,7 @@ double RuntimeProvider::value(const std::string &obj, const std::string &attr)
 {
     auto a = get_assignment(QString::fromStdString(obj));
 
-    auto fcp = a->fullCoordProvider();
+    auto fcp = a->fullCoordProvider(this);
     if( std::get<0>(fcp) && std::get<1>(fcp) )
     {
         IndexedAccess* ia = nullptr; Assignment* a = nullptr;
@@ -136,7 +136,7 @@ void RuntimeProvider::reportError(const QString &err)
     {
         if(m_shouldReport)
         {
-            m_errorReporter(err);
+            m_errorReporter(m_codelinesSize - m_codelines.size(), err);
         }
     }
 }
@@ -147,7 +147,7 @@ bool RuntimeProvider::resolveAsPoint(QSharedPointer<Plot> plot)
     {
         if(plot->plotTarget == adef->varName || plot->plotTarget + ":" == adef->varName)
         {
-            auto fcp = adef->fullCoordProvider();
+            auto fcp = adef->fullCoordProvider(this);
             if( std::get<0>(fcp) && std::get<1>(fcp) )
             {
                 IndexedAccess* ia = nullptr; Assignment* a = nullptr;
@@ -217,14 +217,23 @@ void RuntimeProvider::reset()
     m_setts.clear();
     statements.clear();
     m_vars.clear();
-
+    m_allVariables.clear();
+    m_penSetter(0, 0, 0, 1);
 }
 
-void RuntimeProvider::parse(QStringList codelines)
+void RuntimeProvider::parse(const QStringList& codelines)
 {
-    while(!codelines.empty())
+    m_codelines = codelines;
+
+    while(m_codelines.last().isEmpty())
     {
-        resolveCodeline(codelines, statements, nullptr);
+        m_codelines.removeLast();
+    }
+    m_codelinesSize = m_codelines.size();
+
+    while(!m_codelines.empty())
+    {
+        resolveCodeline(m_codelines, statements, nullptr);
     }
 
 }
@@ -258,7 +267,13 @@ void RuntimeProvider::set_ShouldReport(bool newShouldReport)
 
 QString RuntimeProvider::typeOfVariable(const char *n)
 {
-    if(m_vars.contains(n)) return "n";
+    // this is a numeric type variable, held in m_Vars
+    if(m_vars.contains(n))
+    {
+        return "n";
+    }
+
+    // this is a point/array assiogned variable, held in the assignments
     for(const auto& adef : qAsConst(assignments))
     {
         if(adef->varName == n && !m_allVariables.contains(n))
@@ -266,6 +281,8 @@ QString RuntimeProvider::typeOfVariable(const char *n)
             return "p";
         }
     }
+
+    // this variable was declared, but not assigned to yet
     if(m_allVariables.contains(n))
     {
         return m_allVariables[n];
@@ -330,7 +347,7 @@ void RuntimeProvider::resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPoin
             {
                 if(!useDefaultValues)
                 {
-                    reportError("Invalid plotting interval for " + assignment->varName + ". There is no clear start value defined for it.");
+                    reportError("Invalid plotting interval for <b>" + assignment->varName + "</b>. There is no clear start value defined for it.");
                     return;
                 }
             }
@@ -415,6 +432,7 @@ QSharedPointer<Statement> RuntimeProvider::resolveCodeline(QStringList& codeline
     codeline.replace("(", " ( ");
     codeline.replace(")", " ) ");
     codeline = codeline.trimmed();
+//    codeline = codeline.simplified();
     if(!codeline.isEmpty())
     try
     {
@@ -487,21 +505,31 @@ QSharedPointer<Statement> RuntimeProvider::resolveCodeline(QStringList& codeline
 
 void RuntimeProvider::createVariableDeclaration(const QString &codeline)
 {
+    // variable declarations are like: var
     QString vd_body = codeline.mid(Keywords::KW_VAR.length());
     consumeSpace(vd_body);
     QStringList allDeclarations = vd_body.split(",", Qt::SkipEmptyParts);
     for(const auto &s : allDeclarations)
     {
         QStringList declI = s.split(" ", Qt::SkipEmptyParts);
-        if(declI.size() != 2)
+        if(declI.size() < 2)
         {
-            throw syntax_error_exception("Invalid variable assignment <b>%s</b> ", s);
+            throw syntax_error_exception("Invalid variable declaration: <b>%s</b>", s.toStdString().c_str());
         }
-        if(!Types::all().contains(declI[1].simplified() ))
+
+        QString type = declI.last();
+
+        if(!Types::all().contains(type))
         {
-            throw syntax_error_exception("Invalid variable type <b>%s</b> in <b>%s", declI[1].simplified(), s);
+            throw syntax_error_exception("Invalid variable type <b>%s</b> in <b>%s", type, s);
         }
-        m_allVariables.insert(declI[0].simplified(), declI[1].simplified());
+
+        declI.removeLast();
+
+        for(const auto& vn : declI)
+        {
+            m_allVariables.insert(vn, type);
+        }
     }
 }
 
@@ -780,7 +808,7 @@ QSharedPointer<Statement> RuntimeProvider::createRotation(const QString &codelin
         nextWord = getDelimitedId(r_decl);
         if(nextWord != "at")
         {
-            throw syntax_error_exception("Invalid reference: %s (missing at keyword)", codeline.toStdString().c_str());
+            throw syntax_error_exception("Invalid reference: %s (missing <b><pre>at</pre></b> keyword)", codeline.toStdString().c_str());
         }
 
         if(!r_decl.isEmpty())
@@ -815,53 +843,80 @@ QSharedPointer<Statement> RuntimeProvider::createPlot(const QString& codeline)
 
     if(!ff)
     {
+        // or maybe an assignment
         auto a = get_assignment(funToPlot);
-
         if(!a)
         {
-            QSharedPointer<FunctionDefinition> fd;
-            fd.reset(new FunctionDefinition(codeline) );
-            QString plgfn = "plot_fn_" +QString::number(functions.size()) + "(x) =";
-
-            // make the funToPlot look acceptable by adding (x) to each builtin function if any
-            QString funToPlotFinal = funToPlot.simplified();
-            // firstly remove the space before each parenthesis if found
-            funToPlotFinal.replace(" (", "(");
-            // then each func(x) will be replaced with func to not to have (x)(x)
-            for(const auto& f : supported_functions)
+            // let's see if there is a variable defined with this name, which was not assigned yet. That's an error
+            if(Types::all().contains(typeOfVariable(funToPlot)))
             {
-                if(f.standalone_plottable)
-                {
-                    funToPlotFinal.replace(QString::fromStdString(f.name) + "(x)", QString::fromStdString(f.name));
-                }
+                throw syntax_error_exception("Invalid plot: <b>%s</b> was declared, but not defined to hold a value", funToPlot.toStdString().c_str());
             }
 
-            for(const auto& f : supported_functions)
+            // let's see if we are plotting a single point of a series of plots: plot ps[2]
+
+            IndexedAccess* ia_m = nullptr; Assignment* a = nullptr;
+            auto tempFun = temporaryFunction(funToPlot, plotData.get());
+            double v = tempFun->Calculate(this, ia_m, a);
+            // if this is an indexed something ... let's hope down there someone will take care of it :)
+            if(!ia_m)
             {
-                if(f.standalone_plottable)
-                {
-                    funToPlotFinal.replace(QString::fromStdString(f.name) + "(", QString::fromStdString(f.name) + "#");
-                }
-            }
 
-            // and the other way around to make it legal
-            for(const auto& f : supported_functions)
+                QSharedPointer<FunctionDefinition> fd;
+                fd.reset(new FunctionDefinition(codeline) );
+                QString plgfn = "plot_fn_" +QString::number(functions.size()) + "(x) =";
+
+                // make the funToPlot look acceptable by adding (x) to each builtin function if any
+                QString funToPlotFinal = funToPlot.simplified();
+                // firstly remove the space before each parenthesis if found
+                funToPlotFinal.replace(" (", "(");
+                // then each func(x) will be replaced with func to not to have (x)(x)
+                for(const auto& f : supported_functions)
+                {
+                    if(f.standalone_plottable)
+                    {
+                        funToPlotFinal.replace(QString::fromStdString(f.name) + "(x)", QString::fromStdString(f.name));
+                    }
+                }
+
+                for(const auto& f : supported_functions)
+                {
+                    if(f.standalone_plottable)
+                    {
+                        funToPlotFinal.replace(QString::fromStdString(f.name) + "(", QString::fromStdString(f.name) + "#");
+                    }
+                }
+
+                // and the other way around to make it legal
+                for(const auto& f : supported_functions)
+                {
+                    if(f.standalone_plottable)
+                    {
+                        funToPlotFinal.replace(QString::fromStdString(f.name), QString::fromStdString(f.name) + "(x)");
+                    }
+                }
+                funToPlotFinal.replace("(x)#", "(");
+
+
+                qDebug() << funToPlotFinal;
+
+                Function* f = new Function(QString(plgfn + funToPlotFinal).toStdString().c_str(), plotData.get());
+
+                fd->f = QSharedPointer<Function>(f);
+                funToPlot = QString::fromStdString(fd->f->get_name());
+                functions.push_back(fd);
+            }
+            else
             {
-                if(f.standalone_plottable)
-                {
-                    funToPlotFinal.replace(QString::fromStdString(f.name), QString::fromStdString(f.name) + "(x)");
-                }
+                delete ia_m;
             }
-            funToPlotFinal.replace("(x)#", "(");
-
-
-            qDebug() << funToPlotFinal;
-
-            Function* f = new Function(QString(plgfn + funToPlotFinal).toStdString().c_str(), plotData.get());
-
-            fd->f = QSharedPointer<Function>(f);
-            funToPlot = QString::fromStdString(fd->f->get_name());
-            functions.push_back(fd);
+        }
+        else
+        {
+            if(typeOfVariable(funToPlot) == "n")
+            {
+                throw syntax_error_exception("Invalid plot: <b>%s</b> was declared to be <b>numeric</b>, but it is impossible to plot a number", funToPlot.toStdString().c_str());
+            }
         }
     }
 
@@ -910,8 +965,6 @@ QSharedPointer<Assignment> RuntimeProvider::providePointsOfDefinition(const QStr
     {
         resolveOverKeyword(assignment_body, result, result.get());
     }
-
-    // TODO: counts keyword
 
     if (assignment_body.startsWith(STR_COUNTS))
     {
@@ -962,54 +1015,94 @@ QSharedPointer<Statement> RuntimeProvider::createAssignment(const QString &codel
     {
         if(targetProperties == "point") // or just a simple point
         {
+            if(typeOfVariable(varName) != "p" && typeOfVariable(varName) != "point")
+            {
+                throw syntax_error_exception("Conflicting type assignment: <b>point</b> assigned to a non point type variable: <b>%s (%s)</b>", varName.toStdString().c_str(), typeOfVariable(varName).toStdString().c_str());
+            }
+
             QString nextWord = getDelimitedId(assignment_body);
             if(nextWord != "at")
             {
-                throw syntax_error_exception("Invalid point assignment: %s (missing at keyword)", codeline.toStdString().c_str());
+                QSharedPointer<PointDefinitionAssignmentToOtherPoint> result;
+                result.reset(new PointDefinitionAssignmentToOtherPoint(codeline));
+                result->otherPoint = nextWord;
+                result->varName = varName;
+
+                assignments.append(result);
+
+                return result;
+
+//                throw syntax_error_exception("Invalid point assignment: %s (missing at keyword)", codeline.toStdString().c_str());
             }
-
-            consumeSpace(assignment_body);
-
-            if(!assignment_body.isEmpty() && assignment_body[0] == '(')
+            else
             {
-                // skip (
-                assignment_body = assignment_body.mid(1);
+
+                consumeSpace(assignment_body);
+
+                if(!assignment_body.isEmpty() && assignment_body[0] == '(')
+                {
+                    // skip (
+                    assignment_body = assignment_body.mid(1);
+                }
+
+                QString px = extract_proper_expression(assignment_body, {','});
+                QString py = extract_proper_expression(assignment_body , {')'});
+
+                QSharedPointer<PointDefinitionAssignment> result;
+                result.reset(new PointDefinitionAssignment(codeline));
+
+                result->x = temporaryFunction(px, result.get());
+                result->y = temporaryFunction(py, result.get());
+                result->varName = varName;
+                assignments.append(result);
+
+                return result;
             }
-
-            QString px = extract_proper_expression(assignment_body, {','});
-            QString py = extract_proper_expression(assignment_body , {')'});
-
-            QSharedPointer<PointDefinitionAssignment> result;
-            result.reset(new PointDefinitionAssignment(codeline));
-
-            result->x = temporaryFunction(px, result.get());
-            result->y = temporaryFunction(py, result.get());
-            result->varName = varName;
-            assignments.append(result);
-
-            return result;
         }
         else
         {
-            QSharedPointer<ArythmeticAssignment> result;
-            result.reset(new ArythmeticAssignment(codeline));
 
-            QString expression = targetProperties;
-            expression += assignment_body;
-            result->arythmetic = temporaryFunction(expression, result.get());
-            assignments.append(result);
+            if(typeOfVariable(varName) == "p" || typeOfVariable(varName) == "point")
+            {
+                QSharedPointer<PointDefinitionAssignmentToOtherPoint> result;
+                result.reset(new PointDefinitionAssignmentToOtherPoint(codeline));
+                result->otherPoint = targetProperties; // yeah, stupid
+                result->varName = varName;
 
-            result->varName = varName;
-            assignments.append(result);
+                assignments.append(result);
 
-            return result;
+                return result;
+            }
+            else
+            {
+
+                if(typeOfVariable(varName) != "n" && typeOfVariable(varName) != "numeric")
+                {
+                    throw syntax_error_exception("Invalid assignment: <b>%s</b> (<b>arythmetic expression</b> assigned to <b>%s</b>)", varName.toStdString().c_str(), typeOfVariable(varName).toStdString().c_str());
+                }
+
+                QSharedPointer<ArythmeticAssignment> result;
+                result.reset(new ArythmeticAssignment(codeline));
+
+                QString expression = targetProperties;
+                expression += assignment_body;
+                result->arythmetic = temporaryFunction(expression, result.get());
+                assignments.append(result);
+
+                result->varName = varName;
+                assignments.append(result);
+
+                return result;
+            }
 
         }
     }
 
-    // here we are sure we want the points of a plot
-
-    // of keyword
+    // here we are sure we want the points of a plot, variable type should be list
+    if(typeOfVariable(varName) != "l" && typeOfVariable(varName) != "array")
+    {
+        throw syntax_error_exception("Invalid assignment: <b>%s</b> (<b>array</b> assigned to <b>%s</b>)", varName.toStdString().c_str(), typeOfVariable(varName).toStdString().c_str());
+    }
     QSharedPointer<Assignment> assignmentData = providePointsOfDefinition(codeline, assignment_body, varName, targetProperties);
     assignments.append(assignmentData);
     return assignmentData;
@@ -1147,13 +1240,28 @@ std::vector<std::string> RuntimeProvider::get_functions() const
 
 std::vector<std::string> RuntimeProvider::get_variables() const
 {
-    std::vector<std::string> functions;
-
+    std::vector<std::string> variables;
     for(const auto& fds : this->assignments)
     {
-        functions.push_back(fds->varName.toStdString());
+        variables.push_back(fds->varName.toStdString());
     }
 
-    return functions;
+    return variables;
 
+}
+
+std::vector<std::string> RuntimeProvider::get_declared_variables() const
+{
+    auto defd = get_variables();
+    std::vector<std::string> variables;
+
+    for(const auto& s : m_allVariables.keys())
+    {
+        if(std::find(defd.begin(), defd.end(), s.toStdString()) == defd.end())
+        {
+            variables.push_back(s.toStdString());
+        }
+    }
+
+    return variables;
 }

@@ -132,6 +132,10 @@ void TextEditWithCodeCompletion::resetHighlighter()
 void TextEditWithCodeCompletion::keyPressEvent(QKeyEvent *e)
 {
 
+    if(m_frameForLineNumbers)
+    {
+        m_frameForLineNumbers->highlightLine(-1, "");
+    }
     Qt::KeyboardModifiers m = e->modifiers();
 
     if(m_disabledRows.indexOf(textCursor().blockNumber() + 1) != -1)

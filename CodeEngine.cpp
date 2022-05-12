@@ -5,6 +5,115 @@
 #include "qmath.h"
 #include <QDebug>
 
+void Assignment::dealWithIndexedAssignmentTOPoint(RuntimeProvider *rp, IndexedAccess* ia_m)
+{
+    QString at = rp->typeOfVariable(varName);
+    qDebug() << at;
+
+    // assigning to a point
+    if(at == "p" || at == "point")
+    {
+        auto p = rp->get_assignment(ia_m->indexedVariable);
+        if(p)
+        {
+            if(p->targetProperties == "points")
+            {
+                if(p->precalculatedPoints.isEmpty())
+                {
+                    // get the start/end of the "Stepped" object
+                    IndexedAccess* ia = nullptr; Assignment* a = nullptr;
+                    auto svp = p->startValueProvider();
+                    double v = svp ? svp->Calculate(rp, ia, a) : -1.0;
+                    auto evp = p->endValueProvider();
+                    double e = evp ? evp->Calculate(rp, ia, a) : 1.0;
+                    auto stepFun = p->step;
+                    double stepv = DEFAULT_RANGE_STEP;
+
+                    if(stepFun)
+                    {
+                        IndexedAccess* ia = nullptr; Assignment* a = nullptr;
+                        auto count = stepFun->Calculate(rp, ia, a);
+                        if(p->counted)
+                        {
+                            if(count > 1)
+                            {
+                                stepv = (e - v) / (count - 1);
+                            }
+                            else
+                            {
+                                stepv = (e - v);
+                            }
+                        }
+                    }
+
+
+                    if(v < e && stepv < 0.0 || v > e && stepv > 0.0)
+                    {
+                        throw syntax_error_exception("Infinite loop detected, check your range");
+                    }
+                    // and calculate the points
+                    auto f = rp->get_function(p->providedFunction());
+                    if(!f)
+                    {
+                        throw syntax_error_exception("No function for points assignment");
+                    }
+                    QVector<QPointF> allPoints;
+                    auto pars = f->get_domain_variables();
+                    if(pars.size() == 1)
+                    {
+                        do
+                        {
+
+
+                            IndexedAccess* ia = nullptr; Assignment* a = nullptr;
+                            f->SetVariable(pars[0].c_str(), v);
+
+
+                            auto fv = f->Calculate(rp, ia, a);
+                            allPoints.push_back({v, fv});
+
+                            v += stepv;
+
+                            if(stepv < 0.0 && v < e)
+                            {
+                                break;
+                            }
+
+                            if(stepv > 0.0 && v > e)
+                            {
+                                break;
+                            }
+
+
+                        }
+                        while(true);
+                    }
+                    p->precalculatedPoints = allPoints;
+                }
+
+                if(ia_m->index < p->precalculatedPoints.size())
+                {
+                    double px = p->precalculatedPoints[ia_m->index].x();
+                    double py = p->precalculatedPoints[ia_m->index].y();
+
+                    QSharedPointer<PointDefinitionAssignment> assignmentData;
+                    assignmentData.reset(new PointDefinitionAssignment(this->statement));
+
+                    assignmentData->x = temporaryFunction(QString::number(px, 'f', 6), this);
+                    assignmentData->y = temporaryFunction(QString::number(py, 'f', 6), this);
+                    assignmentData->varName = varName + ":";
+                    rp->addOrUpdateAssignment(assignmentData);
+                }
+
+            }
+        }
+    }
+    else
+    {
+        // TODO: not a point
+    }
+}
+
 bool ArythmeticAssignment::execute(RuntimeProvider *rp)
 {
     if(arythmetic)
@@ -18,111 +127,7 @@ bool ArythmeticAssignment::execute(RuntimeProvider *rp)
             if(ia_m)
             {
                 // same logic as in RuntimeProvider.h
-                QString at = rp->typeOfVariable(varName);
-                qDebug() << at;
-
-                // assigning to a point
-                if(at == "p" || at == "point")
-                {
-                    auto p = rp->get_assignment(ia_m->indexedVariable);
-                    if(p)
-                    {
-                        if(p->targetProperties == "points")
-                        {
-                            if(p->precalculatedPoints.isEmpty())
-                            {
-                                // get the start/end of the "Stepped" object
-                                IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-                                auto svp = p->startValueProvider();
-                                double v = svp ? svp->Calculate(rp, ia, a) : -1.0;
-                                auto evp = p->endValueProvider();
-                                double e = evp ? evp->Calculate(rp, ia, a) : 1.0;
-                                auto stepFun = p->step;
-                                double stepv = DEFAULT_RANGE_STEP;
-
-                                if(stepFun)
-                                {
-                                    IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-                                    auto count = stepFun->Calculate(rp, ia, a);
-                                    if(p->counted)
-                                    {
-                                        if(count > 1)
-                                        {
-                                            stepv = (e - v) / (count - 1);
-                                        }
-                                        else
-                                        {
-                                            stepv = (e - v);
-                                        }
-                                    }
-                                }
-
-
-                                if(v < e && stepv < 0.0 || v > e && stepv > 0.0)
-                                {
-                                    throw syntax_error_exception("Infinite loop detected, check your range");
-                                }
-                                // and calculate the points
-                                auto f = rp->get_function(p->providedFunction());
-                                if(!f)
-                                {
-                                    throw syntax_error_exception("No function for points assignment");
-                                }
-                                QVector<QPointF> allPoints;
-                                auto pars = f->get_domain_variables();
-                                if(pars.size() == 1)
-                                {
-                                    do
-                                    {
-
-
-                                        IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-                                        f->SetVariable(pars[0].c_str(), v);
-
-
-                                        auto fv = f->Calculate(rp, ia, a);
-                                        allPoints.push_back({v, fv});
-
-                                        v += stepv;
-
-                                        if(stepv < 0.0 && v < e)
-                                        {
-                                            break;
-                                        }
-
-                                        if(stepv > 0.0 && v > e)
-                                        {
-                                            break;
-                                        }
-
-
-                                    }
-                                    while(true);
-                                }
-                                p->precalculatedPoints = allPoints;
-                            }
-
-                            if(ia_m->index < p->precalculatedPoints.size())
-                            {
-                                double px = p->precalculatedPoints[ia_m->index].x();
-                                double py = p->precalculatedPoints[ia_m->index].y();
-
-                                QSharedPointer<PointDefinitionAssignment> assignmentData;
-                                assignmentData.reset(new PointDefinitionAssignment(this->statement));
-
-                                assignmentData->x = temporaryFunction(QString::number(px, 'f', 6), this);
-                                assignmentData->y = temporaryFunction(QString::number(py, 'f', 6), this);
-                                assignmentData->varName = varName + ":";
-                                rp->addOrUpdateAssignment(assignmentData);
-                            }
-
-                        }
-                    }
-                }
-                else
-                {
-                    // TODO: not a point
-                }
+                dealWithIndexedAssignmentTOPoint(rp, ia_m);
             }
             else
             if(a) // an assignment?
@@ -135,7 +140,7 @@ bool ArythmeticAssignment::execute(RuntimeProvider *rp)
                 {
                     // rewriting the current assignment
 
-                    auto fcp = a->fullCoordProvider();
+                    auto fcp = a->fullCoordProvider(rp);
                     if( std::get<0>(fcp) && std::get<1>(fcp) )
                     {
                         IndexedAccess* ia = nullptr; Assignment* a = nullptr;
@@ -391,6 +396,20 @@ bool PointDefinitionAssignment::execute(RuntimeProvider *rp)
     return true;
 }
 
+std::tuple<QSharedPointer<Function>, QSharedPointer<Function> > PointDefinitionAssignment::fullCoordProvider(RuntimeProvider *rp)
+{
+    if(rotated)
+    {
+        QString spx = QString::number(rotated_x, 'f', 10);
+        QString spy = QString::number(rotated_y, 'f', 10);
+        return {temporaryFunction(spx, this), temporaryFunction(spy, this)};
+    }
+    else
+    {
+        return {x, y};
+    }
+}
+
 FunctionIteratorLoopTarget::FunctionIteratorLoopTarget(QSharedPointer<Loop> l)
 {
     theLoop = l;
@@ -582,7 +601,7 @@ bool Rotation::execute(RuntimeProvider *rp)
             {
                 adef.dynamicCast<PointDefinitionAssignment>()->rotated = false;
 
-                auto fcp = adef->fullCoordProvider();
+                auto fcp = adef->fullCoordProvider(rp);
                 if( std::get<0>(fcp) && std::get<1>(fcp) )
                 {
                     IndexedAccess* ia = nullptr; Assignment* as = nullptr;
@@ -632,4 +651,36 @@ void Assignment::resolvePrecalculatedPointsForIndexedAccess(QSharedPointer<Plot>
 
         precalculatedPoints = allPoints;
     }
+}
+
+bool PointDefinitionAssignmentToOtherPoint::execute(RuntimeProvider *rp)
+{
+    auto ab = rp->get_assignment(otherPoint);
+    auto a = ab.dynamicCast<PointDefinitionAssignment>();
+
+    // means this is not a point assignment
+    if(!a)
+    {
+
+        IndexedAccess* ia_m = nullptr; Assignment* a = nullptr;
+        auto tempFun = temporaryFunction(otherPoint, this);
+        double v = tempFun->Calculate(rp, ia_m, a);
+        // if this is an indexed something ...
+        if(ia_m)
+        {
+            // same logic as in RuntimeProvider.h
+            dealWithIndexedAssignmentTOPoint(rp, ia_m);
+            delete ia_m;
+            return true;
+        }
+
+        return false;
+    }
+
+    rotated = a->rotated;
+    x = a->x;
+    y = a->y;
+    rotated_x = a->rotated_x;
+    rotated_y = a->rotated_y;
+    return true;
 }

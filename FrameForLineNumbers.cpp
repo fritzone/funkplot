@@ -2,6 +2,8 @@
 #include <QPainter>
 #include <QDebug>
 #include <QFont>
+#include <QToolTip>
+#include <QApplication>
 
 FrameForLineNumbers::FrameForLineNumbers(QWidget *parent) : QFrame(parent), m_nrs()
 {
@@ -40,6 +42,18 @@ void FrameForLineNumbers::endLineNumbers()
     update();
 }
 
+void FrameForLineNumbers::highlightLine(int l, QString a)
+{
+    m_highlightedLine = l;
+    update();
+    repaint();
+    qApp->processEvents();
+
+    qDebug() << m_highlightedLinePos;
+
+    QToolTip::showText(this->mapToGlobal(m_highlightedLinePos), a, this, QRect(this->mapToGlobal(m_highlightedLinePos), QSize{400, 200}));
+}
+
 void FrameForLineNumbers::paintEvent(QPaintEvent *)
 {
     QPainter a(this);
@@ -50,8 +64,7 @@ void FrameForLineNumbers::paintEvent(QPaintEvent *)
     QFont f;
     f.setFamily("Courier New");
     f.setBold(false);
-    int TSIZE= 16;
-    f.setPixelSize(TSIZE - 1);
+    f.setPixelSize(15);
     a.setFont(f);
 
     for(int i=0; i<m_nrs.size(); i++)
@@ -63,7 +76,7 @@ void FrameForLineNumbers::paintEvent(QPaintEvent *)
         else
         if(m_nrs.at(i).nr < 1000) s = " " + s;
 
-        QRect r(0, m_nrs.at(i).y, this->rect().width(), i < m_nrs.size() - 1 ? m_nrs.at(i + 1).y - m_nrs.at(i).y : TSIZE);
+        QRect r(0, m_nrs.at(i).y, this->rect().width(), i < m_nrs.size() - 1 ? m_nrs.at(i + 1).y - m_nrs.at(i).y : 16);
         if(m_nrs[i].disabled)
         {
             a.setPen(Qt::darkGray);
@@ -71,6 +84,12 @@ void FrameForLineNumbers::paintEvent(QPaintEvent *)
         else
         {
             a.setPen(Qt::black);
+        }
+
+        if(i == m_highlightedLine - 1)
+        {
+            a.setPen(Qt::red);
+            m_highlightedLinePos = r.topRight();
         }
 
         QTextOption to;

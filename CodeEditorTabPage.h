@@ -19,13 +19,17 @@ public:
     ~CodeEditorTabPage();
 
     TextEditWithCodeCompletion *get_textEdit() const;
+    void highlightLine(int, QString);
+
+    void restoreTextEditState();
+    void saveTextEditState();
 
 private:
     Ui::CodeEditorTabPage *ui;
 
     TextEditWithCodeCompletion *textEdit = nullptr;
     FrameForLineNumbers* frmLineNrs = nullptr;
-
+    QTextCursor cursor;
 };
 
 #endif // CODEEDITORTABPAGE_H

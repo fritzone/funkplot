@@ -24,6 +24,8 @@ public:
     void addLineNumber(int nr, int y, bool disabled);
     void endLineNumbers();
 
+    void highlightLine(int, QString);
+
 protected:
 
     void paintEvent(QPaintEvent *);
@@ -33,6 +35,8 @@ signals:
 public slots:
 private:
     QVector<NumberPosition> m_nrs;
+    int m_highlightedLine = -1;
+    QPoint m_highlightedLinePos{-1, -1};
 };
 
 #endif // FRAMEFORLINENUMBERS_H

@@ -65,6 +65,18 @@ Highlighter::Highlighter(QTextDocument *parent, RuntimeProvider *rp) : QSyntaxHi
         highlightingRules.append(rule);
     }
 
+    // the declared variables
+    functionFormat.setFontItalic(true);
+    functionFormat.setForeground(Qt::darkRed);
+    for (const auto &f : rp->get_declared_variables() )
+    {
+        QString pattern = "\\b" + QString::fromStdString(f) + "\\b";
+        rule.pattern = QRegularExpression(pattern);
+        rule.format = functionFormat;
+        highlightingRules.append(rule);
+    }
+
+
     // the built in angle chooser (degrees/radians)
     functionFormat.setFontItalic(true);
     functionFormat.setForeground(Qt::darkGray);

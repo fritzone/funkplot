@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     MainWindow* mainWidget;
 
     RuntimeProvider* rp = new RuntimeProvider (
-        [&df, &mainWidget](QString e) { mainWidget->reportError(e); },
+        [&df, &mainWidget](int l, QString e) { mainWidget->reportError(l, e); },
         [&df, &mainWidget](double x, double y) {df->drawPoint(x ,y); },
         [&df, &mainWidget](QString s) { mainWidget->setCurrentStatement(s); },
         [&df, &mainWidget](int r, int g, int b, int a) { df->setDrawingPen(r, g, b, a); },

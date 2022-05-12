@@ -28,6 +28,12 @@ find_package(QT NAMES Qt6
     REQUIRED
 )
 
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache) # Less useful to do it for linking, see edit2
+endif(CCACHE_FOUND)
+
 message(Qt${QT_VERSION_MAJOR} found)
 
 set(QT_COMPONENTS Core Gui Widgets OpenGL 3DCore 3DRender 3DInput 3DLogic 3DExtras 3DAnimation)

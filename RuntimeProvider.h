@@ -18,7 +18,7 @@ class RuntimeProvider
 {
 public:
 
-    using CB_ErrorReporter = std::function<void(QString)>;
+    using CB_ErrorReporter = std::function<void(int, QString)>;
     using CB_PointDrawer = std::function<void(double,double)>;
     using CB_StatementTracker = std::function<void(QString)>;
     using CB_PenSetter = std::function<void(int r, int g, int b, int a)>;
@@ -58,7 +58,7 @@ public:
         }
 
         Executor<E> ex(executor);
-        ex.execute(plot, assignment, funToUse, this, false);
+        ex.execute(plot, assignment, funToUse, this, (assignment && assignment->startValueProvider()) ? false : true);
 
     }
 
@@ -92,7 +92,8 @@ public:
     std::vector<std::string> get_builtin_functions() const;
     std::vector<std::string> get_functions() const;
     std::vector<std::string> get_variables() const;
-    void parse(QStringList codelines);
+    std::vector<std::string> get_declared_variables() const;
+    void parse(const QStringList &codelines);
     void addOrUpdateAssignment(QSharedPointer<Assignment>);
     bool get_shouldReport() const;
     void set_ShouldReport(bool newShouldReport);
@@ -105,6 +106,8 @@ public:
      * l - for plot
      * f - for function
      * x - for unknown
+     *
+     * If the variable was declared, but not defined (ie: no assignment to it) it will return its type from keywords.h
      *
      * @param n
      * @return
@@ -136,6 +139,9 @@ private:
     // this contains all the variables (key) and their type (value)
     // the var section initializes this
     QMap<QString, QString> m_allVariables;
+
+    QStringList m_codelines;
+    int m_codelinesSize = -1;
 };
 
 #endif // RUNTIMEPROVIDER_H

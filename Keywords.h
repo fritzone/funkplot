@@ -40,7 +40,7 @@ const QString KW_FOR = KEYWORD("for");              // for i = 1 to 256 step 1 d
 const QString KW_TO = KEYWORD("to");                // for i = 1 to 256 step 1 do ... done
 const QString KW_AROUND = KEYWORD("around");        // rotate <scene|point|assignment_of_points|object> with X [degrees|radians] [around <point>]
 const QString KW_WITH = KEYWORD("with");            // rotate <scene|point|assignment_of_points|object> with X [degrees|radians] [around <point>]
-const QString KW_VAR = KEYWORD("var");              // var i : <numeric|point|array>
+const QString KW_VAR = KEYWORD("var");              // var i a b <numeric|point|array>[, bla bu b point]
 
 static QVector<QString> all()
 {
@@ -60,8 +60,8 @@ static QString add_type(QString nt)
     return nt;
 }
 
-const QString TYPE_NUMBER = TYPE("number");
-const QString TYPE_LIST = TYPE("list");
+const QString TYPE_NUMBER = TYPE("numeric");
+const QString TYPE_LIST = TYPE("array");
 const QString TYPE_POINT = TYPE("point");
 
 static QVector<QString> all()

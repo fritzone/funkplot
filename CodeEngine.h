@@ -123,14 +123,18 @@ struct Assignment : public Stepped, public Statement, public QEnableSharedFromTh
     }
 
 
-    virtual std::tuple<QSharedPointer<Function>, QSharedPointer<Function>> fullCoordProvider()
+    virtual std::tuple<QSharedPointer<Function>, QSharedPointer<Function>> fullCoordProvider(RuntimeProvider* rp)
     {
         return {nullptr, nullptr};
     }
 
     void resolvePrecalculatedPointsForIndexedAccess(QSharedPointer<Plot> plot, QSharedPointer<Function> funToUse, RuntimeProvider *rp);
 
+    void dealWithIndexedAssignmentTOPoint(RuntimeProvider *rp, IndexedAccess *ia_m);
+
     QVector<QPointF> precalculatedPoints;
+
+
 };
 
 struct PointsOfObjectAssignment : public Assignment
@@ -181,20 +185,15 @@ struct PointDefinitionAssignment : public Assignment
     double rotated_y = 0.0;
 
     bool execute(RuntimeProvider* rp) override;
-    std::tuple<QSharedPointer<Function>, QSharedPointer<Function>> fullCoordProvider() override
-    {
-        if(rotated)
-        {
-            QString spx = QString::number(rotated_x, 'f', 10);
-            QString spy = QString::number(rotated_y, 'f', 10);
-            return {temporaryFunction(spx, this), temporaryFunction(spy, this)};
-        }
-        else
-        {
-            return {x, y};
-        }
-    }
+    std::tuple<QSharedPointer<Function>, QSharedPointer<Function>> fullCoordProvider(RuntimeProvider* rp) override;
+};
 
+struct PointDefinitionAssignmentToOtherPoint : public PointDefinitionAssignment
+{
+    explicit PointDefinitionAssignmentToOtherPoint(const QString& s) : PointDefinitionAssignment(s) {}
+
+    QString otherPoint;
+    bool execute(RuntimeProvider* rp) override;
 };
 
 struct FunctionDefinition : public Statement

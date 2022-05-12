@@ -71,7 +71,7 @@ void PlotRenderer::paintEvent(QPaintEvent* /* event */)
 
         QPoint p = toScene(dp.point);
 
-        painter.drawEllipse(p.x() - 1, p.y() - 1, 2.0, 2.0);
+        painter.drawPoint(p);
     }
 
 }

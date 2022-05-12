@@ -35,6 +35,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QDateTime>
+#include <QTextDocumentFragment>
 
 #include <functional>
 
@@ -109,6 +110,32 @@ MainWindow::MainWindow(RuntimeProvider *rp, DrawingForm* df, QWidget *parent) :
 
     connect(ui->actionRun, &QAction::triggered, this, [this]() {runCurrentCode();});
 
+    connect(ui->textEdit, &QTextEdit::selectionChanged, this, [this]() {
+        auto c = ui->textEdit->textCursor();
+        c.select(QTextCursor::LineUnderCursor);
+        ui->textEdit->blockSignals(true);
+        ui->textEdit->setTextCursor(c);
+        ui->textEdit->blockSignals(false);
+        qDebug() << ui->textEdit->textCursor().selectedText();
+        auto b = ui->textEdit->textCursor().selection();
+        auto t = errorAndLineFromErrorText(b.toPlainText());
+        auto h = b.toHtml();
+        if(std::get<0>(t) != -1)
+        {
+            auto s = h.replace("[Line:" + QString::number(std::get<0>(t)) + "]", "");
+            label->setText(s);
+            m_currentProgram->highlightLine(std::get<0>(t), s);
+        }
+        else
+        {
+            m_currentProgram->highlightLine(-1, "");
+        }
+    });
+
+
+    // to catch the double clicks in the error text
+    //ui->textEdit->viewport()->installEventFilter(this);
+
 
 }
 
@@ -119,10 +146,8 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::reportError(QString err)
+void MainWindow::reportError(int l, QString err)
 {
-    static bool firstMessage = true;
-    static QLabel *label = nullptr;
     if(firstMessage)
     {
         label = new QLabel;
@@ -130,14 +155,23 @@ void MainWindow::reportError(QString err)
         firstMessage = false;
     }
     label->setText(err);
-    ui->textEdit->append(err);
+    if(!ui->textEdit->find("Line:" + QString::number(l)))
+    {
+        ui->textEdit->append( (l ? ("<b>[Line:" + QString::number(l) + "]</b> ") : "") + err);
+    }
+
 }
 
 
 void MainWindow::runCurrentCode()
 {
-    reportError("");
-    ui->textEdit->append("-------------- " + QDateTime::currentDateTime().toString());
+    m_currentProgram->m_tabPage->saveTextEditState();
+    m_currentProgram->highlightLine(-1, "");
+
+    reportError(0, "");
+    ui->textEdit->clear();
+    auto t = QDateTime::currentDateTime();
+    ui->textEdit->append("<b>START:</b> -------------- [" + t.toString() + "] --------------");
 
     m_df->reset();
     m_df->drawCoordinateSystem();
@@ -146,6 +180,31 @@ void MainWindow::runCurrentCode()
 
     m_df->contentChanged();
     m_df->repaint();
+    auto t1 = QDateTime::currentDateTime();
+    ui->textEdit->append("<b>END:</b> -------------- [" + t1.toString() + "] --------------");
+    ui->textEdit->append("<b>TOOK:</b> " + QString::number(t.msecsTo(t1)) + " msecs.");
+    m_currentProgram->m_tabPage->restoreTextEditState();
+}
+
+std::tuple<int, QString> MainWindow::errorAndLineFromErrorText(const QString &s)
+{
+    qDebug() << s;
+
+    QStringList ps = s.split("]");
+    if(ps.length() != 2)
+    {
+        return {-1, ""};
+    }
+
+    QStringList lns = ps[0].split(":");
+    if(lns.length() != 2)
+    {
+        return {-1, ""};
+    }
+
+    int ln = lns[1].toInt();
+
+    return {ln, ps[1].trimmed()};
 }
 
 void MainWindow::setCurrentStatement(const QString &newCurrentStatement)
@@ -171,4 +230,9 @@ void Program::run()
     m_rp->parse(codelines);
     m_rp->execute();
 
+}
+
+void Program::highlightLine(int l, QString s)
+{
+    m_tabPage->highlightLine(l, s);
 }

@@ -6,6 +6,7 @@
 #include <QMap>
 #include <QSet>
 #include <QDebug>
+#include <QLabel>
 
 #include "Function.h"
 #include "RuntimeProvider.h"
@@ -33,6 +34,8 @@ public:
     void setCurrentStatement(const QString &newCurrentStatement);
     void run();
 
+    void highlightLine(int,QString);
+
     CodeEditorTabPage* m_tabPage = nullptr;
     QString currentStatement;
     RuntimeProvider *m_rp = nullptr;
@@ -45,14 +48,20 @@ public:
     explicit MainWindow(RuntimeProvider *rp, DrawingForm* df, QWidget *parent = nullptr);
     ~MainWindow();
 
-    void reportError(QString err);
+    void reportError(int, QString err);
     void setCurrentStatement(const QString &newCurrentStatement);
-
     void runCurrentCode();
 
 private:
 
+    std::tuple<int, QString> errorAndLineFromErrorText(const QString&);
+
+private:
+
+
     Ui::MainWindow *ui;
+    bool firstMessage = true;
+    QLabel *label = nullptr;
 
     // in case we resize/zoom/scroll the window, these objects will be used to redraw the scene
     friend struct Set;
