@@ -10,6 +10,8 @@
 #include "DrawingForm.h"
 #include "RuntimeProvider.h"
 #include "CodeEditorTabPage.h"
+#include "PaletteListForm.h"
+#include "Program.h"
 
 #include <TabToolbar/TabToolbar.h>
 #include <TabToolbar/Page.h>
@@ -110,6 +112,7 @@ MainWindow::MainWindow(RuntimeProvider *rp, DrawingForm* df, QWidget *parent) :
 
     connect(ui->actionRun, &QAction::triggered, this, [this]() {runCurrentCode();});
 
+    // the error reporting textfield has a unique way of selecting its statement
     connect(ui->textEdit, &QTextEdit::selectionChanged, this, [this]() {
         auto c = ui->textEdit->textCursor();
         c.select(QTextCursor::LineUnderCursor);
@@ -132,10 +135,9 @@ MainWindow::MainWindow(RuntimeProvider *rp, DrawingForm* df, QWidget *parent) :
         }
     });
 
+    plf = new PaletteListForm(this);
 
-    // to catch the double clicks in the error text
-    //ui->textEdit->viewport()->installEventFilter(this);
-
+    connect(plf, SIGNAL(paletteChosen(QString)), m_currentProgram.get(), SLOT(paletteChosenFromMenu(QString)));
 
 }
 
@@ -212,27 +214,9 @@ void MainWindow::setCurrentStatement(const QString &newCurrentStatement)
     m_currentProgram->setCurrentStatement(newCurrentStatement);
 }
 
-Program::Program(QWidget *tabContainer, RuntimeProvider *rp) : m_rp(rp)
+
+void MainWindow::on_actionPalettes_triggered()
 {
-    m_tabPage = new CodeEditorTabPage(tabContainer, rp);
+    plf->showNormal();
 }
 
-void Program::setCurrentStatement(const QString &newCurrentStatement)
-{
-    currentStatement = newCurrentStatement;
-
-}
-
-void Program::run()
-{
-    m_rp->reset();
-    QStringList codelines = m_tabPage->get_textEdit()->toPlainText().split("\n");
-    m_rp->parse(codelines);
-    m_rp->execute();
-
-}
-
-void Program::highlightLine(int l, QString s)
-{
-    m_tabPage->highlightLine(l, s);
-}

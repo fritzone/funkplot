@@ -121,12 +121,13 @@ void TextEditWithCodeCompletion::resetHighlighter()
 {
     QStringList codelines = toPlainText().split("\n");
     m_rp->set_ShouldReport(false);
+    m_rp->reset();
+
     m_rp->parse(codelines);
     m_rp->set_ShouldReport(true);
     m_highlighter.reset(new Highlighter(document(), m_rp));
-
     updateLineNumbers();
-
+    // resetting the runtime provider ...
 }
 
 void TextEditWithCodeCompletion::keyPressEvent(QKeyEvent *e)
@@ -300,9 +301,27 @@ QString TextEditWithCodeCompletion::fetchTheWordBeforeTheCursor()
     return wordBeforeCursor;
 }
 
+QVector<QListWidgetItem *> TextEditWithCodeCompletion::generateColormapList()
+{
+    QVector<QListWidgetItem *> result;
+    for(const auto& c : Colors::colormap)
+    {
+        QPixmap qpi(32, 32);
+        auto cui = Colors::colormap.at(c.first);
+        qpi.fill(QColor(cui.r, cui.g, cui.b, 255));
+
+        QListWidgetItem* qlwi = new QListWidgetItem(QIcon(qpi), QString::fromStdString(c.first));
+        result.push_back(qlwi);
+    }
+    return result;
+}
+
 void TextEditWithCodeCompletion::populateCodeCompletionListbox()
 {
-    m_lst->clear();
+    while(m_lst->count()>0)
+    {
+        m_lst->takeItem(0);
+    }
 
     QString wordBeforeCursor = fetchTheWordBeforeTheCursor();
 
@@ -310,12 +329,9 @@ void TextEditWithCodeCompletion::populateCodeCompletionListbox()
 
     if(wordBeforeCursor == "color")
     {
-        for(const auto& c : Colors::colormap)
+        static QVector<QListWidgetItem *> l = generateColormapList();
+        for(const auto& qlwi : l)
         {
-            QPixmap qpi(32, 32);
-            auto cui = Colors::colormap.at(c.first);
-            qpi.fill(QColor(cui.r, cui.g, cui.b, 255));
-            QListWidgetItem* qlwi = new QListWidgetItem(QIcon(qpi), QString::fromStdString(c.first));
             m_lst->addItem(qlwi);
         }
 

@@ -141,6 +141,18 @@
     <string>About</string>
    </property>
   </action>
+  <action name="actionPalettes">
+   <property name="icon">
+    <iconset resource="main.qrc">
+     <normaloff>:/icons/palette.png</normaloff>:/icons/palette.png</iconset>
+   </property>
+   <property name="text">
+    <string>Palettes</string>
+   </property>
+   <property name="toolTip">
+    <string>Here you can create/edit palettes for your plots</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="ribbon/examples/Test/res.qrc"/>

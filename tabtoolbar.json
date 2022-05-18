@@ -54,6 +54,18 @@
           }
         ]
         }
+		,
+		{
+		"displayName":"Palettes",
+		"name":"Palettes",
+		"content":[
+		  {
+			"itemType":"action",
+			"type":"delayedPopup",
+			"name":"actionPalettes"
+		  }
+		]
+		}
       ]
     },
     {

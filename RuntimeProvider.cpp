@@ -301,6 +301,11 @@ double RuntimeProvider::getIndexedVariableValue(const char *n, int index)
     return -1;
 }
 
+const QString &RuntimeProvider::get_currentPalette() const
+{
+    return m_currentPalette;
+}
+
 void RuntimeProvider::execute()
 {
     try
@@ -327,6 +332,11 @@ void RuntimeProvider::setCurrentStatement(const QString &newCurrentStatement)
 void RuntimeProvider::setPen(int r, int g, int b, int a)
 {
     m_penSetter(r, g, b, a);
+}
+
+void RuntimeProvider::setPalette(QString p)
+{
+    m_currentPalette = p;
 }
 
 void RuntimeProvider::drawPlot(QSharedPointer<Plot> plot)
@@ -558,9 +568,9 @@ QSharedPointer<Statement> RuntimeProvider::createSet(const QString &codeline)
         what += s_body[0];
         s_body = s_body.mid(1);
     }
-    if(what != "color")
+    if(what != "color" && what != "palette")
     {
-        throw syntax_error_exception("Syntax error: only colors can be set for now");
+        throw syntax_error_exception("Syntax error: only colors/palettes can be set for now");
     }
     s_body = s_body.mid(1);
     // to what, can be: colorname, #RRGGBB or R,G,B (real numbers for this situation)
@@ -697,6 +707,15 @@ QSharedPointer<Statement> RuntimeProvider::createLoop(const QString &codeline, Q
         {
             throw syntax_error_exception("for statement with direct assignment does not contain the to keyword");
         }
+
+        // create an assignment
+        QSharedPointer<ArythmeticAssignment> temp;
+        temp.reset(new ArythmeticAssignment(codeline));
+        temp->arythmetic = ritl->startFun;
+        assignments.append(temp);
+        temp->varName = loop_variable;
+        assignments.append(temp);
+
 
         l_decl = l_decl.mid(STR_TO.length());
         consumeSpace(l_decl);

@@ -1,4 +1,5 @@
 #include "Highlighter.h"
+#include "PaletteListForm.h"
 #include "RuntimeProvider.h"
 
 #include <QSyntaxHighlighter>
@@ -100,7 +101,29 @@ Highlighter::Highlighter(QTextDocument *parent, RuntimeProvider *rp) : QSyntaxHi
         highlightingRules.append(rule);
     }
 
+    // the palettes
+    functionFormat.setFontItalic(true);
+    functionFormat.setFontWeight(2);
+    functionFormat.setForeground(Qt::darkCyan);
+    for (const auto &f : PaletteListForm::retrievePalettes())
+    {
+        QString pattern = "\\b" + f + "\\b";
+        rule.pattern = QRegularExpression(pattern);
+        rule.format = functionFormat;
+        highlightingRules.append(rule);
+    }
 
+    // what can be set with the set keyword
+    functionFormat.setFontItalic(true);
+    functionFormat.setFontWeight(2);
+    functionFormat.setForeground(Qt::darkMagenta);
+    for (const auto &st : SetTargets::all())
+    {
+        QString pattern = "\\b" + st + "\\b";
+        rule.pattern = QRegularExpression(pattern);
+        rule.format = functionFormat;
+        highlightingRules.append(rule);
+    }
 
 
     // comments, start with a #

@@ -71,6 +71,8 @@ public:
     void execute();
     void setCurrentStatement(const QString &newCurrentStatement);
     void setPen(int, int, int, int);
+    void setPalette(QString);
+
     void drawPlot(QSharedPointer<Plot> plot);
     void resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPointer<Assignment> assignment,
                              bool &continuous, double &plotStart, double &plotEnd, bool &counted, double &stepValue, int &count, bool useDefaultValues);
@@ -117,6 +119,8 @@ public:
 
     double getIndexedVariableValue(const char* n, int index);
 
+    const QString &get_currentPalette() const;
+
 private:
 
     QMap<QString, double> m_vars;
@@ -142,6 +146,7 @@ private:
 
     QStringList m_codelines;
     int m_codelinesSize = -1;
+    QString m_currentPalette;
 };
 
 #endif // RUNTIMEPROVIDER_H

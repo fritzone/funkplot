@@ -68,8 +68,6 @@ DrawingForm::DrawingForm(RuntimeProvider *rp, QWidget *parent) :
                 m_ar->redrawEverything();
             }
             );
-
-
 }
 
 DrawingForm::~DrawingForm()
@@ -82,12 +80,10 @@ void DrawingForm::drawCoordinateSystem()
     m_ar->drawCoordinateSystem();
 }
 
-
 void DrawingForm::setDrawingPen(int r, int g, int b, int a)
 {
     drawingPen = QPen(QColor(qRgba( r, g, b, a)));
 }
-
 
 QVector<QPointF> DrawingForm::drawPlot(QSharedPointer<Plot> plot)
 {

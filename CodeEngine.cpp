@@ -4,6 +4,7 @@
 #include "constants.h"
 #include "qmath.h"
 #include <QDebug>
+#include <QFile>
 
 void Assignment::dealWithIndexedAssignmentTOPoint(RuntimeProvider *rp, IndexedAccess* ia_m)
 {
@@ -197,65 +198,144 @@ bool Set::execute(RuntimeProvider *rp)
 
             rp->setPen(cui.r, cui.g, cui.b, 255);
         }
-        else // is this an RGB color?
-            if(value.startsWith("#"))
-            {
-                auto rgb = Colors::decodeHexRgb(value.toLocal8Bit().data());
+        else // a color from the current palette?
+        if(value.startsWith("palette"))
+        {
+            QString local_value = value.mid(7);
 
-                rp->setPen(std::get<0>(rgb), std::get<1>(rgb), std::get<2>(rgb), std::get<3>(rgb));
+            // skip space
+            while(!local_value.isEmpty() && local_value.at(0).isSpace()) local_value = local_value.mid(1);
+            // skip [
+
+            bool needs_pq = false;
+            if(!local_value.isEmpty() && local_value.at(0) == '[')
+            {
+                needs_pq = true;
+                local_value = local_value.mid(1);
             }
-            else // what remains is a list of RGB values
+
+            QString palIdx = "";
+            while(!local_value.isEmpty())
             {
-                QStringList values = value.split(",");
-                qreal a = 1.0;
-                switch(values.length())
+                if(local_value.at(0) != ']')
                 {
-                case 4: // R,G,B,A
-                {
-                    IndexedAccess* ia = nullptr; Assignment* as = nullptr;
-                    a = temporaryFunction(values[3].simplified(), this)->Calculate(rp, ia, as);
+                    palIdx += local_value.at(0);
                 }
-                    [[fallthrough]];
-
-                case 3: // R,G,B
+                else
                 {
-                    IndexedAccess* ia = nullptr; Assignment* as = nullptr;
-                    qreal r = temporaryFunction(values[0].simplified(), this)->Calculate(rp, ia, as);
-                    qreal g = temporaryFunction(values[1].simplified(), this)->Calculate(rp, ia, as);
-                    qreal b = temporaryFunction(values[2].simplified(), this)->Calculate(rp, ia, as);
+                    break;
+                }
+                local_value = local_value.mid(1);
+            }
 
-                    qreal finalR = r;
-                    qreal finalG = g;
-                    qreal finalB = b;
+            if(!local_value.isEmpty()&& local_value.at(0) == ']' && !needs_pq || local_value.isEmpty() && needs_pq )
+            {
+                throw syntax_error_exception("Wrong palette indexing: <b>%s</b>", s.c_str());
+            }
+
+            if(!local_value.isEmpty()) local_value = local_value.mid(1);
+
+
+            IndexedAccess* ia = nullptr; Assignment* as = nullptr;
+            int pidx = temporaryFunction(palIdx.simplified(), this)->Calculate(rp, ia, as),
+                cidx = 0;
+
+            QString p = rp->get_currentPalette();
+            QFile f(":/palettes/upals/" + p + ".map");
+            if(f.open(QIODevice::Text | QIODevice::ReadOnly))
+            {
+                QTextStream stream(&f);
+                while (!stream.atEnd())
+                {
+                    QString line = stream.readLine();
+                    if(cidx == pidx)
+                    {
+                        QStringList rgbs = line.split(" ", Qt::SkipEmptyParts);
+                        rp->setPen(rgbs[0].toInt(), rgbs[1].toInt(), rgbs[2].toInt(), 255);
+                        break;
+                    }
+                    cidx ++;
+                }
+            }
+            return true;
+
+        }
+        else // is this an RGB color?
+        if(value.startsWith("#"))
+        {
+            auto rgb = Colors::decodeHexRgb(value.toLocal8Bit().data());
+
+            rp->setPen(std::get<0>(rgb), std::get<1>(rgb), std::get<2>(rgb), std::get<3>(rgb));
+        }
+        else // what remains is a list of RGB values
+        {
+            QStringList values = value.split(",");
+            qreal a = 1.0;
+            switch(values.length())
+            {
+            case 4: // R,G,B,A
+            {
+                IndexedAccess* ia = nullptr; Assignment* as = nullptr;
+                a = temporaryFunction(values[3].simplified(), this)->Calculate(rp, ia, as);
+            }
+            [[fallthrough]];
+
+            case 3: // R,G,B
+            {
+                IndexedAccess* ia = nullptr; Assignment* as = nullptr;
+                qreal r = temporaryFunction(values[0].simplified(), this)->Calculate(rp, ia, as);
+                qreal g = temporaryFunction(values[1].simplified(), this)->Calculate(rp, ia, as);
+                qreal b = temporaryFunction(values[2].simplified(), this)->Calculate(rp, ia, as);
+
+                qreal finalR = r;
+                qreal finalG = g;
+                qreal finalB = b;
+                qreal finalA = a;
+
+                if(r <= 1.0)
+                {
+                    finalR = 255.0 * r;
+                }
+                if(g <= 1.0)
+                {
+                    finalG = 255.0 * g;
+                }
+                if(b <= 1.0)
+                {
+                    finalB = 255.0 * b;
+                }
+                if(a <= 1.0)
+                {
+                    finalA = 255.0 * a;
+                }
+
+                rp->setPen(static_cast<int>(finalR), static_cast<int>(finalG),
+                           static_cast<int>(finalB), static_cast<int>(finalA));
+                break;
+            }
+            case 2: // colorname,A
+            {
+                if(Colors::colormap.count( values[0].simplified().toStdString() ))
+                {
+                    auto cui = Colors::colormap.at(s);
+
+                    IndexedAccess* ia = nullptr; Assignment* as = nullptr;
+                    a = temporaryFunction(values[1].simplified(), this)->Calculate(rp, ia, as);
                     qreal finalA = a;
 
-                    if(r <= 1.0)
-                    {
-                        finalR = 255.0 * r;
-                    }
-                    if(g <= 1.0)
-                    {
-                        finalG = 255.0 * g;
-                    }
-                    if(b <= 1.0)
-                    {
-                        finalB = 255.0 * b;
-                    }
                     if(a <= 1.0)
                     {
                         finalA = 255.0 * a;
                     }
 
-                    rp->setPen(static_cast<int>(finalR), static_cast<int>(finalG),
-                               static_cast<int>(finalB), static_cast<int>(finalA));
-                    break;
-                }
-                case 2: // colorname,A
-                {
-                    if(Colors::colormap.count( values[0].simplified().toStdString() ))
-                    {
-                        auto cui = Colors::colormap.at(s);
 
+
+                    rp->setPen(cui.r, cui.g, cui.g, static_cast<int>(finalA));
+                }
+                else // is this an RGB color?
+                    if(value.startsWith("#"))
+                    {
+                        auto rgb = Colors::decodeHexRgb(value.toLocal8Bit().data());
                         IndexedAccess* ia = nullptr; Assignment* as = nullptr;
                         a = temporaryFunction(values[1].simplified(), this)->Calculate(rp, ia, as);
                         qreal finalA = a;
@@ -264,37 +344,25 @@ bool Set::execute(RuntimeProvider *rp)
                         {
                             finalA = 255.0 * a;
                         }
-
-
-
-                        rp->setPen(cui.r, cui.g, cui.g, static_cast<int>(finalA));
-                    }
-                    else // is this an RGB color?
-                        if(value.startsWith("#"))
+                        else
                         {
-                            auto rgb = Colors::decodeHexRgb(value.toLocal8Bit().data());
-                            IndexedAccess* ia = nullptr; Assignment* as = nullptr;
-                            a = temporaryFunction(values[1].simplified(), this)->Calculate(rp, ia, as);
-                            qreal finalA = a;
-
-                            if(a <= 1.0)
-                            {
-                                finalA = 255.0 * a;
-                            }
-                            else
-                            {
-                                finalA = std::get<3>(rgb);
-                            }
-
-                            rp->setPen(std::get<0>(rgb), std::get<1>(rgb), std::get<2>(rgb), static_cast<int>(finalA));
+                            finalA = std::get<3>(rgb);
                         }
-                }
-                default:
-                {
-                    throw syntax_error_exception("Invalid color to set:", value);
-                }
-                }
+
+                        rp->setPen(std::get<0>(rgb), std::get<1>(rgb), std::get<2>(rgb), static_cast<int>(finalA));
+                    }
             }
+            default:
+            {
+                throw syntax_error_exception("Invalid color to set:", value);
+            }
+            }
+        }
+    }
+    else
+    if(what == "palette")
+    {
+        rp->setPalette(value);
     }
 
     return true;

@@ -132,7 +132,8 @@ add_executable(ggui WIN32
     PlotRenderer.h PlotRenderer.cpp
     CodeEditorTabPage.h CodeEditorTabPage.cpp CodeEditorTabPage.ui
     ProjectedRenderer.h ProjectedRenderer.cpp
-
+	PaletteListForm.h PaletteListForm.cpp PaletteListForm.ui
+	Program.h Program.cpp
     ${GUI_UI_FILES}
     ${GUI_QRC_FILES}
 	${APP_ICON_RESOURCE_WINDOWS}

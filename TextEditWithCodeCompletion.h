@@ -54,7 +54,9 @@ public:
     void resetHighlighter();
 
     QString fetchTheWordBeforeTheCursor();
-
+    
+    QVector<QListWidgetItem*> generateColormapList();
+    
 private slots:
     void onTimer();
     void onListItemDoubleClicked(QModelIndex);

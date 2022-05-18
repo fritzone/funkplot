@@ -8,6 +8,7 @@
 
 #define KEYWORD(w) add_kw(w)
 #define TYPE(w) add_type(w)
+#define SETTARGET(w) add_settarget(w)
 
 namespace Keywords
 {
@@ -29,7 +30,7 @@ const QString KW_LET = KEYWORD("let");              // let something = points of
 const QString KW_OF  = KEYWORD("of");               // let something = points of f over (-2, 2) [continuous|step<cnt|0.01>]
 const QString KW_STEP = KEYWORD("step");            // plot f over (-2, 2) [continuous|step<cnt|0.01>]
 const QString KW_COUNTS = KEYWORD("counts");        // plot f over (-2, 2) [continuous|step<cnt|0.01>|counts<X[points|segments]> ]
-const QString KW_SET = KEYWORD("set");              // set color name, set color #RGB, set color #RRGGBB, set color #RRGGBBAA, set color R,G,B[,A], set color name,alpha
+const QString KW_SET = KEYWORD("set");              // set color name, set color #RGB, set color #RRGGBB, set color #RRGGBBAA, set color R,G,B[,A], set color name,alpha, set palette <palette>
 const QString KW_IN = KEYWORD("in");                // foreach p in something do ... done
 const QString KW_DO = KEYWORD("do");                // foreach p in something do ... done
 const QString KW_DONE = KEYWORD("done");            // foreach p in something do ... done
@@ -69,5 +70,24 @@ static QVector<QString> all()
     return all_supported_types;
 }
 
+}
+
+namespace SetTargets
+{
+static QVector<QString> all_supported_settargets;
+
+static QString add_settarget(QString nt)
+{
+    all_supported_settargets.append(nt);
+    return nt;
+}
+
+const QString TYPE_NUMBER = SETTARGET("color");
+const QString TYPE_LIST = SETTARGET("palette");
+
+static QVector<QString> all()
+{
+    return all_supported_settargets;
+}
 }
 #endif // KEYWORDS_H

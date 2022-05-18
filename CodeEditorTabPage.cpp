@@ -48,6 +48,11 @@ void CodeEditorTabPage::highlightLine(int l, QString a)
     textEdit->setFocus(Qt::OtherFocusReason);
 }
 
+void CodeEditorTabPage::appendText(QString s)
+{
+    textEdit->appendPlainText(s);
+}
+
 void CodeEditorTabPage::restoreTextEditState()
 {
     textEdit->setTextCursor(cursor);

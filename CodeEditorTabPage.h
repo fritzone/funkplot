@@ -20,6 +20,7 @@ public:
 
     TextEditWithCodeCompletion *get_textEdit() const;
     void highlightLine(int, QString);
+    void appendText(QString);
 
     void restoreTextEditState();
     void saveTextEditState();

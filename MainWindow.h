@@ -9,6 +9,7 @@
 #include <QLabel>
 
 #include "Function.h"
+#include "PaletteListForm.h"
 #include "RuntimeProvider.h"
 #include "CodeEngine.h"
 #include "TextEditWithCodeCompletion.h"
@@ -17,8 +18,7 @@
 
 class QGraphicsScene;
 class MyGraphicsView;
-
-
+class Program;
 class DrawingForm;
 
 class CodeEditorTabPage;
@@ -26,20 +26,6 @@ namespace Ui {
 class MainWindow;
 }
 
-class Program
-{
-
-public:
-    Program(QWidget *tabContainer, RuntimeProvider *rp);
-    void setCurrentStatement(const QString &newCurrentStatement);
-    void run();
-
-    void highlightLine(int,QString);
-
-    CodeEditorTabPage* m_tabPage = nullptr;
-    QString currentStatement;
-    RuntimeProvider *m_rp = nullptr;
-};
 
 class MainWindow : public QMainWindow
 {
@@ -51,6 +37,9 @@ public:
     void reportError(int, QString err);
     void setCurrentStatement(const QString &newCurrentStatement);
     void runCurrentCode();
+
+private slots:
+    void on_actionPalettes_triggered();
 
 private:
 
@@ -72,6 +61,9 @@ private:
     FrameForLineNumbers* frmLineNrs = nullptr;*/
     QSharedPointer<Program> m_currentProgram;
     QVector<QSharedPointer<Program>> m_programs;
+    PaletteListForm* plf;
+
+
 };
 
 #endif // MAINWINDOW_H
