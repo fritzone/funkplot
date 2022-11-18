@@ -1,0 +1,16 @@
+#scene settings
+set pixel size 2
+
+#variables
+var a b number b number
+var p point
+
+# the program
+for a = 0.01 to 1 step 0.02 do
+  for b = 0.01 to 1 step 0.02 do
+    let p = point at (a, b)
+    set color a , b, (a + b) / (a)
+    plot p
+  done
+done
+

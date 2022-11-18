@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<QtHelpProject version="1.0">
+    <namespace>unauthorized.frog.funkplot</namespace>
+    <virtualFolder>doc</virtualFolder>
+    <filterSection>
+        <toc>
+            <section title="Funkplot introduction" ref="html/intro.html">
+                <section title="About" ref="html/about.html"></section>
+                <section title="Attributions" ref="html/attributions.html"></section>
+            </section>
+            <section title="First steps" ref="html/first_steps.html">
+                <section title="The Funkplot gui" ref="html/gui.html"></section>
+                <section title="A basic program" ref="html/program.html"></section>
+            </section>
+            <section title="Funkplot syntax reference" ref="html/keywords.html">
+                <section title="for keyword" ref="html/kw_for.html"></section>
+                <section title="function keyword" ref="html/kw_function.html"></section>
+                <section title="if keyword" ref="html/kw_if.html"></section>
+                <section title="let keyword" ref="html/kw_let.html"></section>
+                <section title="plot keyword" ref="html/kw_plot.html"></section>
+                <section title="rotate keyword" ref="html/kw_rotate.html"></section>
+                <section title="script keyword" ref="html/kw_script.html"></section>
+                <section title="set keyword" ref="html/kw_set.html"></section>
+                <section title="var keyword" ref="html/kw_var.html"></section>
+            </section>
+            <section title="Miscellaneous" ref="html/misc.html">
+                <section title="Colours in funkplot" ref="html/colors.html"></section>
+                <section title="Palettes in funkplot" ref="html/palettes.html"></section>
+            </section>
+        </toc>
+        <keywords>
+            <keyword name="for" ref="html/kw_for.html"/>
+            <keyword name="function" ref="html/kw_function.html"/>
+            <keyword name="if" ref="html/kw_if.html"/>
+            <keyword name="let" ref="html/kw_let.html"/>
+            <keyword name="plot" ref="html/kw_plot.html"/>
+            <keyword name="rotate" ref="html/kw_rotate.html"/>
+            <keyword name="script" ref="html/kw_script.html"/>
+            <keyword name="set" ref="html/kw_set.html"/>
+            <keyword name="var" ref="html/kw_var.html"/>
+        </keywords>
+        <files>
+            <file>html/about.html</file>
+            <file>html/attributions.html</file>
+            <file>html/colors.html</file>
+            <file>html/error_messages.html</file>
+            <file>html/first_steps.html</file>
+            <file>html/gui.html</file>
+            <file>html/intro.html</file>
+            <file>html/keywords.html</file>
+            <file>html/kw_for.html</file>
+            <file>html/kw_function.html</file>
+            <file>html/kw_if.html</file>
+            <file>html/kw_let.html</file>
+            <file>html/kw_plot.html</file>
+            <file>html/kw_rotate.html</file>
+            <file>html/kw_script.html</file>
+            <file>html/kw_set.html</file>
+            <file>html/kw_var.html</file>
+            <file>html/misc.html</file>
+            <file>html/palettes.html</file>
+            <file>html/program.html</file>
+        </files>
+    </filterSection>
+</QtHelpProject>

@@ -1,0 +1,3 @@
+debian/icons/hicolor/48x48/funkplot-gui.png usr/share/icons/hicolor/48x48/apps/
+debian/icons/hicolor/256x256/funkplot-gui.png usr/share/icons/hicolor/256x256/apps/
+debian/funkplot-gui.desktop usr/share/applications/

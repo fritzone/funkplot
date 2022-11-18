@@ -1,0 +1,17 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/default.mk
+
+export DEB_LDFLAGS_SET=
+
+%:
+	dh $@ --parallel --buildsystem=cmake
+
+override_dh_auto_configure:
+	QT_SELECT=5 dh_auto_configure -- --no-warn-unused-cli -DUSE_QT6=OFF -DUSE_UNITTEST=OFF
+
+override_dh_missing:
+	dh_missing --fail-missing
+

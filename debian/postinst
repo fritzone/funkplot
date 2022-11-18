@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# install the MIME types, icon, etc ... for .fnk files
+
+xdg-mime install --novendor /usr/share/mime/application/funkplot.xml
+xdg-mime default /usr/share/applications/funkplot-gui.desktop application/x-funkplot-item
+xdg-icon-resource install --context mimetype --novendor --size 256 --mode user /usr/share/icons/hicolor/256x256/apps/funkplot-gui.png
+xdg-desktop-menu install --novendor /usr/share/applications/funkplot-gui.desktop
+
+# DEBHELPER

@@ -1,0 +1,10 @@
+1. make install DESTDIR=APPDIR
+
+--- get your hands on linuxdeployqt-continuous-x86_64.AppImage 
+---
+
+2. LD_LIBRARY_PATH=/home/fld/Qt/6.3.0/gcc_64/lib PATH=/home/fld/Qt/6.3.0/gcc_64/lib:$PATH ../build6/linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/bin/geodraw -unsupported-bundle-everything -unsupported-allow-new-glibc -qmake=/home/fld/Qt/6.3.0/gcc_64/bin/qmake -verbose=2 -extra-plugins=iconengines,platformthemes/libqgtk3.so,platforms -appimage
+
+2.5 copy the icon manually to the AppDir directory's root
+
+3. watch that it complains about platform not being found or so, if needed copy by hand, run again till it succeeds

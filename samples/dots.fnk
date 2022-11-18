@@ -1,0 +1,21 @@
+set palette australian_outback
+set pixel size 3
+
+var xs ys list of numbers
+var p point
+var x y i number
+
+let xs = list [1,2,3,4]
+let ys = list [4,3,2,1]
+
+let i = 0
+for x in xs do
+  for y in ys do
+    let p = point at (x,y)
+    set color palette[i*16]
+    let i = i+1
+    set pixel size i
+    plot p
+  done
+done
+

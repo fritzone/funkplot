@@ -147,6 +147,8 @@ void Group::AddAction(QToolButton::ToolButtonPopupMode type, QAction* action, QM
         if(menu)
             btn->setMenu(menu);
         innerLayout->addWidget(btn);
+
+        actions[action->objectName()] = btn;
     }
 }
 
@@ -155,4 +157,14 @@ void Group::AddWidget(QWidget* widget)
     widget->setParent(this);
     widget->setProperty("TTInternal", QVariant(true));
     innerLayout->addWidget(widget);
+}
+
+QToolButton *Group::operator[](const QString &name) const
+{
+    if(actions.contains(name))
+    {
+        return actions[name];
+    }
+
+    return nullptr;
 }

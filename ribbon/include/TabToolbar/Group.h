@@ -41,11 +41,14 @@ public:
     void        AddSeparator();
     SubGroup*   AddSubGroup(SubGroup::Align align);
     void        AddWidget(QWidget* widget);
+    QToolButton*operator[](const QString& name) const;
 
 private:
     QFrame*     CreateSeparator();
 
     QHBoxLayout* innerLayout;
+
+    QMap<QString, QToolButton*> actions;
 };
 
 }

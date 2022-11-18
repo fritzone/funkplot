@@ -1,0 +1,38 @@
+set palette firestrm
+set pixel size 5
+
+# variable declarations
+var a v i number
+var p point
+var ps list of points
+
+# the function to plot
+function f(x) = sin(x) + a
+
+# the actual code
+let a = 1
+let i = 0
+
+for v = 1 to 3 do
+  let a = 0.5 + a
+  set color black
+
+  let ps = points of f over(-v, v) counts 256
+  plot ps
+
+  python script begin
+
+  for i in range (0, len(ps)):
+    f = ps[i].x
+    ps[i].x = ps[i].y
+    ps[i].y = f
+
+  end
+  
+  for i = 0 to 255 do
+    let p = ps[i]
+    set color palette[i]
+    plot p
+  done
+
+done

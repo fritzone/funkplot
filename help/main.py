@@ -1,9 +1,9 @@
 import os
 import os.path
 
-files = os.popen('cat geodraw.qhp | grep "<file>" | cut -d \'>\' -f 2 | cut -d \'<\' -f 1').read().split('\n')
+files = os.popen('cat funkplot.qhp | grep "<file>" | cut -d \'>\' -f 2 | cut -d \'<\' -f 1').read().split('\n')
 
-print files
+print(files)
 
 html = "<!DOCTYPE html>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">" \
         "<head>" \
@@ -17,4 +17,4 @@ for fn in files:
         f.write(html + headline + "</p><p class = \"sdlc-bodytext\">TODO:</p></body></html>")
         f.close()
 
-os.system('qhelpgenerator geodraw.qhcp -o geodraw.qhc')
+os.system('qhelpgenerator funkplot.qhcp -o funkplot.qhc')

@@ -1,0 +1,28 @@
+# initial scene settings
+set palette australian_outback
+set pixel size 4
+
+# the function
+function f(x) = (sin(x) * (cos(x) + 2) + (cos(x) * (sin(x) / (4 + cos(x) * 3) )))
+
+# variable declaration
+var degs list of numbers
+var ps list of points
+var i d number
+var p point
+
+# variable initialization
+let degs = list[0, 30, 60, 90, 120, 150]
+let ps = points of f over (-1.9, 1.9) counts 256
+
+# the program,
+for i = 0 to 255 do
+  set color palette[i]
+  let p = ps[i]
+  for d = 0 to 5 do
+    rotate p with degs[d] degrees
+    plot p
+  done
+done
+
+

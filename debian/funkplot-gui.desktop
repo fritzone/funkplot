@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=fũnkplot
+GenericName=Plotter of mathematical functions
+Comment=A mathematical drawing and plotting application
+Exec=funkplot-gui %f
+Icon=funkplot-gui
+Categories=Education;Science;Math;
+X-DBUS-StartupType=Unique
+Terminal=false
+StartupWMClass=funkplot

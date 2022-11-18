@@ -1,0 +1,24 @@
+image: ubuntu:focal
+
+pipelines:
+  default:
+    - step:
+        script: # Modify the commands below to build your repository.
+          - export PATH="/usr/lib/ccache:$PATH"
+          - export DEBIAN_FRONTEND=noninteractive
+          - apt-get -y update
+          - apt-get install -y equivs devscripts python-is-python3 wget
+          - mk-build-deps --tool 'apt-get -y -o Debug::pkgProblemResolver=yes --no-install-recommends' --install --remove debian/control
+          - debuild --prepend-path /usr/lib/ccache -uc -us -b -i
+          - mkdir build && cd build && cmake .. && make && make install DESTDIR=AppDir
+          - wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
+          - chmod a+x linuxdeployqt-continuous-x86_64.AppImage
+          - cp ../debian/funkplot-gui.desktop ./AppDir/
+          - cp ../debian/funkplot-gui.png ./AppDir/
+          - ./linuxdeployqt-continuous-x86_64.AppImage ./AppDir/usr/bin/funkplot-gui -unsupported-bundle-everything -unsupported-allow-new-glibc -verbose=2 -extra-plugins=iconengines,platformthemes/libqgtk3.so,platforms -appimage --appimage-extract-and-run
+          - mkdir -p $BITBUCKET_CLONE_DIR/dist
+          - cp ./*.AppImage $BITBUCKET_CLONE_DIR/dist
+          - cd ..
+          - cp -R ../*.deb $BITBUCKET_CLONE_DIR/dist
+        artifacts:
+          - dist/**

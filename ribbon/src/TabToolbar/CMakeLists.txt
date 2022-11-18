@@ -1,5 +1,9 @@
 add_definitions(-DTT_BUILDING_DLL)
 
+if(NOT WIN32)
+  add_compile_options(-Wno-deprecated-declarations)
+endif()
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 

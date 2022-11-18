@@ -44,6 +44,7 @@ public:
        setAttribute(Qt::WA_TransparentForMouseEvents);
        parent->installEventFilter(this);
        lower();
+       setFocusPolicy(Qt::NoFocus);
    }
 
    bool paint = false;
@@ -137,6 +138,7 @@ CompactToolButton::CompactToolButton(QAction* action, QMenu* menu, QWidget* pare
     upButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
     upButton->setStyle(new TTToolButtonStyle());
     upButton->setMaximumHeight(iconSize + 5);
+    upButton->setFocusPolicy(Qt::NoFocus);
 
     QVBoxLayout* l = new QVBoxLayout(this);
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)

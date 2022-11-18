@@ -1,8 +1,8 @@
 ## The surface generator
 
-The surface generator feature of **geodraw** is used to generate 3D surfaces from 2D plots. The surface generators are always created from the counted `points` of a function plot:
+The surface generator feature of **fṻnkplot** is used to generate 3D surfaces from 2D plots. The surface generators are always created from the counted `points` of a function plot:
 
-```matlab
+```
 var p list
 function f(x) = sin(x)
 let p = points of f over (-3, 3) counts 50

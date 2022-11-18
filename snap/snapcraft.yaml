@@ -1,0 +1,241 @@
+name: funkplot
+icon: debian/icons/hicolor/256x256/funkplot-gui.png
+version: "1.0"
+summary: funkplot application
+description: |
+  A mathematical function plotter
+
+base: core20
+grade: stable
+confinement: strict
+compression: lzo
+
+architectures:
+  - build-on: amd64
+
+apps:
+  funkplot:
+    command: bin/desktop-launch funkplot-gui
+    common-id: sh.funkplot
+    desktop: usr/share/applications/funkplot-gui.desktop
+    environment:
+      GTK_USE_PORTAL: 1
+      IBUS_USE_PORTAL: 1
+      DISABLE_WAYLAND: 0
+    plugs:
+      - desktop
+      - desktop-legacy
+      - hardware-observe
+      - browser-support
+      - home
+      - network
+      - opengl
+      - unity7
+      - wayland
+      - gsettings
+      - x11
+      - gconf
+      - shared-memory
+
+plugs:
+  desktop:
+    mount-host-font-cache: false
+  # Support for common GTK themes
+  # https://forum.snapcraft.io/t/how-to-use-the-system-gtk-theme-via-the-gtk-common-themes-snap/6235
+  gsettings:
+  gtk-3-themes:
+    interface: content
+    target: $SNAP/data-dir/themes
+    default-provider: gtk-common-themes
+  icon-themes:
+    interface: content
+    target: $SNAP/data-dir/icons
+    default-provider: gtk-common-themes
+  sound-themes:
+    interface: content
+    target: $SNAP/data-dir/sounds
+    default-provider: gtk-common-themes
+  shared-memory:
+    private: true    
+
+layout:
+  /usr/share/X11:
+    bind: $SNAP/usr/share/X11
+  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/webkit2gtk-4.0:
+    bind: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/webkit2gtk-4.0
+  /usr/share/qt5:
+    bind: $SNAP/usr/share/qt5
+  /usr/share/funkplot/help/funkplot.qhc:
+    bind-file: $SNAP/usr/share/funkplot/help/funkplot.qhc
+  /usr/share/funkplot/help/funkplot.qch:
+    bind-file: $SNAP/usr/share/funkplot/help/funkplot.qch
+
+parts:
+
+  desktop-qt5:
+    build-packages:
+    - build-essential
+    - qtbase5-dev
+    - dpkg-dev
+    make-parameters:
+    - FLAVOR=qt5
+    plugin: make
+    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
+    source-subdir: qt
+    stage-packages:
+    - libxkbcommon0
+    - ttf-ubuntu-font-family
+    - dmz-cursor-theme
+    - light-themes
+    - adwaita-icon-theme
+    - gnome-themes-standard
+    - shared-mime-info
+    - libqt5gui5
+    - libgdk-pixbuf2.0-0
+    - libqt5svg5
+    - try:
+      - appmenu-qt5
+    - locales-all
+    - xdg-user-dirs
+    - fcitx-frontend-qt5
+
+  funkplot:
+    plugin: cmake
+    source: .
+    source-type: local
+    build-environment:
+      - CC: gcc-10
+      - CXX: g++-10
+      - LD_LIBRARY_PATH: $SNAPCRAFT_STAGE/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:$LD_LIBRARY_PATH
+    build-packages:
+      - clang
+      - g++-10
+      - ninja-build
+      - python3-dev
+      - python3
+      - python
+      - libglib2.0-dev
+      - libglibmm-2.4-dev
+      - libssl-dev
+      - libwayland-dev
+      - libxcb1-dev
+      - libxcb-keysyms1-dev
+      - libxcb-record0-dev
+      - libxcb-screensaver0-dev
+      - zlib1g-dev
+      - qtbase5-dev
+      - qttools5-dev
+      - qtmultimedia5-dev
+      - qtwebengine5-dev
+      - qtscript5-dev
+      - libqt5opengl5-dev
+      - libev-dev
+      - libudev-dev
+      - qtpositioning5-dev
+      - libqt5help5
+      - libv4l-dev
+      - libqt5webengine5
+      - libqt5webengine-data
+      - libqt5webkit5-dev
+      - libqt5x11extras5-dev
+      - qtbase5-private-dev
+      - libqt5sql5-sqlite
+      - sqlite
+
+    stage-packages:
+      - libaom0
+      - libavcodec58
+      - libavformat58
+      - libavutil56
+      - libbluray2
+      - libchromaprint1
+      - libcodec2-0.9
+      - libevent-2.1-7
+      - libgme0
+      - libgomp1
+      - libgsm1
+      - libminizip1
+      - libmp3lame0
+      - libmpg123-0
+      - libnspr4
+      - libnss3
+      - libnuma1
+      - libopenmpt0
+      - libopus0
+      - libpython3.8
+      - libqt5help5
+      - libqt5positioning5
+      - libqt5printsupport5
+      - libqt5quickwidgets5
+      - libqt5webchannel5
+      - libqt5webenginecore5
+      - libqt5webenginewidgets5
+      - libre2-5
+      - libshine3
+      - libsnappy1v5
+      - libsoxr0
+      - libspeex1
+      - libssh-gcrypt-4
+      - libswresample3
+      - libtheora0
+      - libtwolame0
+      - libva-drm2
+      - libva-x11-2
+      - libva2
+      - libvdpau1
+      - libvorbisfile3
+      - libvpx6
+      - libwavpack1
+      - libwebpmux3
+      - libx264-155
+      - libx265-179
+      - libxvidcore4
+      - libzvbi0
+      - ocl-icd-libopencl1
+      - libglib2.0-0
+      - libglibmm-2.4-1v5
+      - libwayland-client0
+      - libwebkit2gtk-4.0-37
+      - libxcb1
+      - libxcb-keysyms1
+      - libxcb-record0
+      - libxcb-screensaver0
+      - zlib1g
+      - glib-networking
+      - libjpeg-turbo8
+      - libxml2
+      - libmodbus5
+      - libev4
+      - libaec0
+      - libhdf4-0-alt
+      - libsz2
+      - libsdl2-2.0-0
+      - libqt5gui5
+      - libqt5qml5
+      - libqt5quick5
+      - libqt5widgets5
+      - libqt5network5
+      - libqt5multimedia5
+      - libqt5script5
+      - libqt5opengl5
+      - libqt5serialport5
+      - libpolyclipping-dev
+      - libhdf5-serial-dev
+      - libqt5x11extras5
+      - libxcb-xinerama0
+      - libqt5sql5
+      - libqt5xml5
+      - libqt5sql5-sqlite    
+      - libcrypt1  
+      - libgtk2.0-0
+      - sqlite
+
+    cmake-parameters:
+      - -GNinja
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DUSE_QT6=OFF
+      - -DHELP_TARGET_DIR=$SNAP_USER_DATA
+    after:
+      - desktop-qt5
+
