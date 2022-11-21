@@ -190,10 +190,10 @@ SET(CPACK_PACKAGE_FILE_NAME
 )
 message("Package name will be: ${CPACK_PACKAGE_FILE_NAME}")
 
-INSTALL(FILES "debian/funkplot-gui.desktop"                   DESTINATION "/usr/share/applications/")
-install(FILES "debian/icons/hicolor/48x48/funkplot-gui.png"   DESTINATION "/usr/share/icons/hicolor/48x48/apps/")
-install(FILES "debian/icons/hicolor/256x256/funkplot-gui.png" DESTINATION "/usr/share/icons/hicolor/256x256/apps/")
-install(FILES "debian/funkplot.xml"                           DESTINATION "/usr/share/mime/application")
+INSTALL(FILES "debian/funkplot-gui.desktop"                   DESTINATION "${CMAKE_INSTALL_DATADIR}/applications/")
+install(FILES "debian/icons/hicolor/48x48/funkplot-gui.png"   DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/48x48/apps/")
+install(FILES "debian/icons/hicolor/256x256/funkplot-gui.png" DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/256x256/apps/")
+install(FILES "debian/funkplot.xml"                           DESTINATION "${CMAKE_INSTALL_DATADIR}/mime/application")
 
 find_program(XDG-MIME_EXECUTABLE xdg-mime)
 find_program(XDG-DESKTOP-MENU_EXECUTABLE xdg-desktop-menu)
@@ -204,7 +204,7 @@ message("${XDG-DESKTOP-MENU_EXECUTABLE} install --novendor ${CMAKE_SOURCE_DIR}/d
 message("${XDG-MIME_EXECUTABLE} default ${CMAKE_SOURCE_DIR}/debian/funkplot-gui.desktop application/x-funkplot-item")
 message("${XDG-ICON_RESOURCE} install --context mimetype --novendor --size 256 --mode user /usr/share/icons/hicolor/256x256/apps/funkplot-gui.png")
 
-install(CODE "execute_process(COMMAND ${XDG-ICON_RESOURCE} install --context mimetype --novendor --size 256 --mode user /usr/share/icons/hicolor/256x256/apps/funkplot-gui.png)" )
+install(CODE "execute_process(COMMAND ${XDG-ICON_RESOURCE} install --context mimetype --novendor --size 256 --mode user ${CMAKE_INSTALL_DATADIR}/icons/hicolor/256x256/apps/funkplot-gui.png)" )
 install(CODE "execute_process(COMMAND ${XDG-MIME_EXECUTABLE} install --novendor ${CMAKE_SOURCE_DIR}/debian/funkplot.xml)" )
 install(CODE "execute_process(COMMAND ${XDG-DESKTOP-MENU_EXECUTABLE} install --novendor ${CMAKE_SOURCE_DIR}/debian/funkplot-gui.desktop)" )
 install(CODE "execute_process(COMMAND ${XDG-MIME_EXECUTABLE} default ${CMAKE_SOURCE_DIR}/debian/funkplot-gui.desktop application/x-funkplot-item)" )
