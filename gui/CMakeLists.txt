@@ -92,7 +92,7 @@ target_link_libraries(funkplot-gui
 target_include_directories(${PROJECT} PRIVATE ${CMAKE_SOURCE_DIR}/lib)
 target_include_directories(${PROJECT} PRIVATE ${CMAKE_SOURCE_DIR})
 
-set(FUNKPLOT_CLIENT_BIN_DIR "/usr/bin")
+set(FUNKPLOT_CLIENT_BIN_DIR ${CMAKE_INSTALL_BINDIR})
 
 INSTALL(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT} DESTINATION ${FUNKPLOT_CLIENT_BIN_DIR})
 
