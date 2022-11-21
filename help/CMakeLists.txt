@@ -20,5 +20,6 @@ add_custom_target(funkplot-help ALL
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/funkplot.qhc
 )
 
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/funkplot.qhc DESTINATION "/usr/share/funkplot/help")
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/funkplot.qch DESTINATION "/usr/share/funkplot/help")
+# Help is not needed since it is embedded in the resources
+# INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/funkplot.qhc DESTINATION "/usr/share/funkplot/help")
+# INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/funkplot.qch DESTINATION "/usr/share/funkplot/help")
