@@ -66,7 +66,7 @@ else()
     REQUIRED
   )
 
-  set(QT_COMPONENTS Core Gui Widgets OpenGL Help WebEngineWidgets WebKit)
+  set(QT_COMPONENTS Core Gui Widgets OpenGL Help WebEngineWidgets)
 
 endif()
 
