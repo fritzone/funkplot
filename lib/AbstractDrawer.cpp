@@ -2,6 +2,8 @@
 #include "RuntimeProvider.h"
 
 #include "util.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 #include <QMouseEvent>
 #include <QPen>

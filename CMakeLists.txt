@@ -2,8 +2,10 @@ cmake_minimum_required(VERSION 3.10)
 
 project(funkplot)
 
-cmake_policy(VERSION 3.16)
-cmake_policy(SET CMP0072 NEW)
+if(NOT ${CMAKE_VERSION} VERSION_LESS "3.16.0") 
+  cmake_policy(VERSION 3.16)
+  cmake_policy(SET CMP0072 NEW)
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -53,6 +55,11 @@ if(USE_QT6)
   list(APPEND QT_COMPONENTS OpenGLWidgets)
 
 else()
+
+  if(WIN32)
+    set(CMAKE_PREFIX_PATH "D:/Qt/5.15.2/msvc2019_64")
+  endif()  
+
 
   find_package(QT NAMES Qt5
     COMPONENTS

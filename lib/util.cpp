@@ -312,7 +312,7 @@ std::string extract_proper_expression(const char *&p, std::string &fnai_word, st
 
         // see if we can leave: no more parentheses and the current one is separator
         // but we did not request till the end and we have no fnai
-        if(seps.count(*p) > 0 and current_par_level <= 1)
+        if(seps.count(*p) > 0 && current_par_level <= 1)
         {
             if(current_par_level == 0)
             {

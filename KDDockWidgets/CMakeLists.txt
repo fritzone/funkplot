@@ -129,7 +129,7 @@ if (${PROJECT_NAME}_XLib)
   add_definitions(-DKDDockWidgets_XLIB)
 endif()
 
-if(WIN32)
+if(WIN32 AND USE_QT6)
   set(${PROJECT_NAME}_QT6 ON)
 endif()
 
