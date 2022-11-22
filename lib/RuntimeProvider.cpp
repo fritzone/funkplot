@@ -64,9 +64,9 @@ double RuntimeProvider::value(const std::string &obj, const std::string &attr)
     auto fcp = a->fullCoordProvider(this);
     if( std::get<0>(fcp) && std::get<1>(fcp) )
     {
-        IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-        if(attr == "x") return std::get<0>(fcp)->Calculate(this, ia, a);
-        if(attr == "y") return std::get<1>(fcp)->Calculate(this, ia, a);
+        IndexedAccess* ia = nullptr; Assignment* aa = nullptr;
+        if(attr == "x") return std::get<0>(fcp)->Calculate(this, ia, aa);
+        if(attr == "y") return std::get<1>(fcp)->Calculate(this, ia, aa);
     }
 
     return std::numeric_limits<double>::quiet_NaN();

@@ -65,22 +65,47 @@ void ImageDrawer::drawLine(const QLineF &l, const QPen &p)
     m_drawnLines.push_back({l, p});
 }
 
-double ImageDrawer::zoomFactor() const
-{
-    return m_zoom;
-}
-
 void ImageDrawer::save(const QString &s)
 {
     m_img->save(s);
 }
 
-void ImageDrawer::setZoom(double z)
-{
-    m_zoom = z;
-}
-
 QImage ImageDrawer::image() const
 {
     return *m_img;
+}
+
+void ImageDrawer::setRotationAngle(double newRotationAngle)
+{
+    AbstractDrawer::setRotationAngle(newRotationAngle);
+}
+
+void ImageDrawer::setZoomFactor(double newZoomFactor)
+{
+    AbstractDrawer::setZoomFactor(newZoomFactor);
+}
+
+void ImageDrawer::setShowGrid(bool v)
+{
+    AbstractDrawer::setShowGrid(v);
+}
+
+void ImageDrawer::setCoordEndY(double newCoordEndY)
+{
+    AbstractDrawer::setCoordEndY(newCoordEndY);
+}
+
+void ImageDrawer::setCoordStartY(double newCoordStartY)
+{
+    AbstractDrawer::setCoordStartY(newCoordStartY);
+}
+
+void ImageDrawer::setCoordEndX(double newCoordEndX)
+{
+    AbstractDrawer::setCoordEndX(newCoordEndX);
+}
+
+void ImageDrawer::setCoordStartX(double newCoordStartX)
+{
+    AbstractDrawer::setCoordStartX(newCoordStartX);
 }

@@ -5,8 +5,10 @@
 
 #include <QImage>
 
-class ImageDrawer : public AbstractDrawer
+class ImageDrawer :  public QObject, public AbstractDrawer
 {
+    Q_OBJECT
+
 public:
     ImageDrawer(int w = 640, int h = 480, QWidget* parent = nullptr);
 
@@ -14,18 +16,27 @@ public:
     QRect getClipRect() override;
     void redrawEverything() override;
     void drawLine(const QLineF&, const QPen&) override;
-    double zoomFactor() const override;
 
     void save(const QString&);
-    void setZoom(double z);
 
     QImage image() const;
+
+
+public slots:
+
+    void setRotationAngle(double newRotationAngle);
+    void setZoomFactor(double newZoomFactor);
+    void setShowGrid(bool v);
+    void setCoordEndY(double newCoordEndY);
+    void setCoordStartY(double newCoordStartY);
+    void setCoordEndX(double newCoordEndX);
+    void setCoordStartX(double newCoordStartX);
+
 
 private:
 
     int m_w = 640;
     int m_h = 480;
-    double m_zoom = 10.0;
 
     QSharedPointer<QImage> m_img;
 

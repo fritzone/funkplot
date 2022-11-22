@@ -121,7 +121,7 @@ void AbstractDrawer::drawCoordinateSystem()
         QPointF lineBottom = asItIs({x + r * sin(angdiff + 3 * M_PI / 2), + r * cos(angdiff + 3 * M_PI / 2)});
 
         drawLine( {lineTop, lineBottom}, QPen(Qt::black));
-
+        if(m_drawNumbers) drawText(lineBottom, QString::number(x, 'f', 0), QPen(Qt::black));
 //        QGraphicsTextItem *text = sc->addText(QString::number(x, 'f', 0));
 //        text->setPos(lineBottom.x() - text->boundingRect().width() / 2, lineBottom.y() + 6);
         x -= 1.0;
@@ -138,7 +138,7 @@ void AbstractDrawer::drawCoordinateSystem()
         QPointF lineBottom = asItIs({x + r * sin(angdiff + 3 * M_PI / 2), + r * cos(angdiff + 3 * M_PI / 2)});
 
         drawLine( {lineTop, lineBottom}, QPen(Qt::blue));
-
+        if(m_drawNumbers) drawText(lineBottom, QString::number(x, 'f', 0), QPen(Qt::black));
 //        QGraphicsTextItem *text = sc->addText(QString::number(x, 'f', 0));
 //        text->setPos(lineBottom.x() - text->boundingRect().width() / 2, lineBottom.y() + 6);
         x += 1.0;
@@ -155,7 +155,7 @@ void AbstractDrawer::drawCoordinateSystem()
         QPointF lineBottom = asItIs({r * sin(angdiff + 3 * M_PI / 2),y + r * cos(angdiff + 3 * M_PI / 2)});
 
         drawLine( {lineTop, lineBottom}, QPen(Qt::black));
-
+        if(m_drawNumbers) drawText(lineBottom, QString::number(y, 'f', 0), QPen(Qt::black));
 //        QGraphicsTextItem *text = sc->addText(QString::number(y, 'f', 0));
 //        text->setPos(lineTop.x() - text->boundingRect().width(), lineTop.y() - text->boundingRect().height() / 2);
         y -= 1.0;
@@ -172,6 +172,7 @@ void AbstractDrawer::drawCoordinateSystem()
         QPointF lineBottom = asItIs({r * sin(angdiff + 3 * M_PI / 2),y + r * cos(angdiff + 3 * M_PI / 2)});
 
         drawLine( {lineTop, lineBottom}, QPen(Qt::red));
+        if(m_drawNumbers) drawText(lineBottom, QString::number(y, 'f', 0), QPen(Qt::black));
 
 //        QGraphicsTextItem *text = sc->addText(QString::number(y, 'f', 0));
 //        text->setPos(lineTop.x() - text->boundingRect().width(), lineTop.y() - text->boundingRect().height() / 2);
@@ -234,6 +235,11 @@ double AbstractDrawer::coordEndY()
 double AbstractDrawer::zoomFactor() const
 {
     return m_zoomFactor;
+}
+
+void AbstractDrawer::drawText(const QPointF &at, const QString& s, const QPen& p)
+{
+    m_drawnText.push_back({s, p, at});
 }
 
 double AbstractDrawer::rotationAngle()
@@ -329,5 +335,25 @@ void AbstractDrawer::addLine(QLineF l, QPen p, int size)
 void AbstractDrawer::addPoint(QPointF l, QPen p, size_t s)
 {
     m_drawnPoints.push_back({l, p, s});
+}
+
+int AbstractDrawer::getWidth() const
+{
+    return m_width;
+}
+
+int AbstractDrawer::getHeight() const
+{
+    return m_height;
+}
+
+void AbstractDrawer::setWidth(int newWidth)
+{
+    m_width = newWidth;qInfo()<< newWidth;
+}
+
+void AbstractDrawer::setHeight(int newHeight)
+{
+    m_height = newHeight;
 }
 

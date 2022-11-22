@@ -50,12 +50,17 @@ signals:
 
     void contentChanged();
 
+private slots:
+    void on_comboBox_currentTextChanged(const QString &arg1);
+
 private:
 
     void createQtSceneGraphicsView();
     void createWidgetDrawing();
     void addLine(qreal x1, qreal y1, qreal x2, qreal y2);
     void addPoint(qreal x, qreal y);
+    void setFlexibleStyle();
+    void setFixedStyle();
 
 #if 0
 #if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)

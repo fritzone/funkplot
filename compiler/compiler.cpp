@@ -2,6 +2,8 @@
 #include <ImageDrawer.h>
 #include "RuntimeProvider.h"
 
+#include <QCommandLineParser>
+#include <QCoreApplication>
 #include <QFile>
 #include <QPen>
 
@@ -31,15 +33,36 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 
 int main(int argc, char* argv[])
 {
-    qInfo() << argv[0] << "called with" << argc << "arguments";
-    if(argc < 2)
+
+    QCoreApplication app(argc, argv);
+    QCoreApplication::setApplicationName("funkplot - command line compiler");
+    QCoreApplication::setApplicationVersion("1.0");
+    QCoreApplication::setOrganizationName("The Unauthorized Frog");
+
+    QCommandLineParser parser;
+    parser.setApplicationDescription("Funkplot Compiler");
+    parser.addHelpOption();
+    parser.addVersionOption();
+    parser.addPositionalArgument("source", QCoreApplication::translate("main", "Source file to interpret."));
+    parser.addPositionalArgument("destination", QCoreApplication::translate("main", "Destinationimage file."));
+
+    QCommandLineOption widthOption(QStringList() << "width", QCoreApplication::translate("main", "The width of the result file [default = 640]"),  QCoreApplication::translate("main", "width"));
+    parser.addOption(widthOption);
+    QCommandLineOption heightOption(QStringList() << "height", QCoreApplication::translate("main", "The height of the result file [default = 480]"),  QCoreApplication::translate("main", "height"));
+    parser.addOption(heightOption);
+
+    parser.process(app);
+
+    int width = parser.value(widthOption).toInt(); if(width <= 0) { width = 640; }
+    int height = parser.value(heightOption).toInt(); if(height <= 0) { height = 480; }
+
+    if(parser.positionalArguments().size() < 2)
     {
-        qWarning() << "Usage: " << argv[0] << "file.fnk result.png";
-        exit(1);
+        parser.showHelp(1);
     }
     qInstallMessageHandler(myMessageOutput);
 
-    QString file = argv[1];
+    QString file = parser.positionalArguments().at(0);
 
     QFile f(file);
     if (!f.open(QFile::ReadOnly | QFile::Text))
@@ -53,11 +76,9 @@ int main(int argc, char* argv[])
     bool first = true;
 
     QVector<QPointF> points;
-    ImageDrawer* imgDrawer = new ImageDrawer();
+    ImageDrawer* imgDrawer = new ImageDrawer(width, height);
     QPen p;
     int size = 1;
-
-
 
     auto executor = [&cx, &cy, &first, &points, imgDrawer, p, size](double x, double y, bool continuous)
     {
@@ -90,20 +111,43 @@ int main(int argc, char* argv[])
         [imgDrawer, &p, &size](double x, double y) { imgDrawer->addPoint({x, y}, p, size); },
         [](QString s) {},
         [&p, &size](int r, int g, int b, int a, int s) {
-            std::cerr << "COLOR" << r << g << b << a << "SIZE:" <<  s;
             p = QPen{QColor {r , g , b , a}}; size = s;
         },
         [&rp, &executor](QSharedPointer<Plot> p) {  rp->genericPlotIterator(p, executor); }
     };
 
 
+    QObject::connect(rp, SIGNAL(rotationAngleChange(double)), imgDrawer, SLOT(setRotationAngle(double)));
+    QObject::connect(rp, SIGNAL(zoomFactorChange(double)), imgDrawer, SLOT(setZoomFactor(double)));
+    QObject::connect(rp, SIGNAL(gridChange(bool)), imgDrawer, SLOT(setShowGrid(bool)));
+    QObject::connect(rp, SIGNAL(coordEndYChange(double)), imgDrawer, SLOT(setCoordEndY(double)));
+    QObject::connect(rp, SIGNAL(coordStartYChange(double)), imgDrawer, SLOT(setCoordStartY(double)));
+    QObject::connect(rp, SIGNAL(coordEndXChange(double)), imgDrawer, SLOT(setCoordEndX(double)));
+    QObject::connect(rp, SIGNAL(coordStartXChange(double)), imgDrawer, SLOT(setCoordStartX(double)));
+
     QStringList codelines = s.split("\n");
+
+    rp->parse(codelines);
+    // see if we have coordinate system modifiers in there
+    auto sts = rp->getStatements();
+    for(auto& st : sts)
+    {
+        auto stsm = dynamic_cast<Set*>(st.get());
+        if(stsm)
+        {
+            if(stsm->what ==  SetTargets::TARGET_COORDINATES)
+            {
+                stsm->execute(rp);
+            }
+        }
+    }
+
     rp->parse(codelines);
     rp->execute();
 
-    //m_df->populateDrawerData(imgDrawer);
+    imgDrawer->drawCoordinateSystem();
     imgDrawer->redrawEverything();
-    imgDrawer->save(argv[2]);
+    imgDrawer->save(parser.positionalArguments().at(1));
 
     delete rp;
 

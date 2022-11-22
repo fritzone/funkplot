@@ -22,6 +22,7 @@ DrawingForm::DrawingForm(RuntimeProvider *rp, QWidget *parent) :
     connect(this, &DrawingForm::contentChanged, this, [this]() {
                 m_ar->redrawEverything();
     });
+    setFlexibleStyle();
 
     //createQtSceneGraphicsView();
     createWidgetDrawing();
@@ -81,6 +82,26 @@ void DrawingForm::addPoint(qreal x, qreal y)
     {
         d->addPoint({x, y}, m_drawingPen, m_pixelSize);
     }
+}
+
+void DrawingForm::setFlexibleStyle()
+{
+    ui->topSpacer->changeSize(0, 0, QSizePolicy::Minimum, QSizePolicy::Ignored);
+    ui->rightSpacer->changeSize(0, 0, QSizePolicy::Ignored, QSizePolicy::Minimum);
+    ui->leftSpacer->changeSize(0, 0, QSizePolicy::Ignored, QSizePolicy::Minimum);
+    ui->bottomSpacer->changeSize(0, 0, QSizePolicy::Minimum, QSizePolicy::Ignored);
+
+    ui->gridLayout->invalidate();
+}
+
+void DrawingForm::setFixedStyle()
+{
+    ui->topSpacer->changeSize(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    ui->rightSpacer->changeSize(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+    ui->leftSpacer->changeSize(20, 40, QSizePolicy::Expanding, QSizePolicy::Minimum);
+    ui->bottomSpacer->changeSize(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+    ui->gridLayout->invalidate();
 }
 
 #if 0
@@ -304,3 +325,49 @@ void DrawingForm::on_coordStartXChange(double v)
         d->setCoordStartX(v);
     }
 }
+
+void DrawingForm::on_comboBox_currentTextChanged(const QString &arg1)
+{
+    QString line = arg1;
+    QRegularExpression re("(\\d+) x (\\d+)");
+    QRegularExpressionMatch match;
+
+    match = re.match(line);
+    QRegularExpressionMatchIterator i = re.globalMatch(line);
+    if(line != "Auto")
+    {
+        int w = match.captured(1).toInt();
+        int h = match.captured(2).toInt();
+
+        for(auto& d : m_drawers)
+        {
+            d->setWidth(w);
+            d->setHeight(h);
+
+            PlotRenderer* pr = dynamic_cast<PlotRenderer*>(d);
+            if(pr)
+            {
+                pr->setFixedStyle();
+                setFixedStyle();
+                pr->redrawEverything();
+            }
+        }
+    }
+    else
+    {
+        for(auto& d : m_drawers)
+        {
+            d->setWidth(-1);
+            d->setHeight(-1);
+
+            PlotRenderer* pr = dynamic_cast<PlotRenderer*>(d);
+            if(pr)
+            {
+                pr->setFlexibleStyle();
+                setFlexibleStyle();
+                pr->redrawEverything();
+            }
+        }
+    }
+}
+

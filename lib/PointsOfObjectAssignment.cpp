@@ -14,7 +14,7 @@ bool PointsOfObjectAssignment::execute(RuntimeProvider *rp)
     QString tempPlotCode = "plot " + ofWhat + ((start && end) ? " over ("
                                                               + QString::number(start->Calculate(rp, ia ,a), 'f', 6) + ", "
                                                               + QString::number(end->Calculate(rp, ia ,a), 'f', 6) + ") " : "") +  (counted ? " counts " + QString::number(static_cast<int>(step->Calculate(rp, ia, a))) : "");
-    qWarning() << "Here and done nothing:" << tempPlotCode;
+    qDebug() << "Here and done nothing:" << tempPlotCode;
 
     auto p = rp->getCodeEngine()->createPlot(lineNumber, tempPlotCode).dynamicCast<Plot>();
     QSharedPointer<Assignment> unused;
