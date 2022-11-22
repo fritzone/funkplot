@@ -202,7 +202,7 @@ find_program(XDG-ICON_RESOURCE xdg-icon-resource)
 message("${XDG-MIME_EXECUTABLE} install --novendor ${CMAKE_SOURCE_DIR}/debian/funkplot.xml")
 message("${XDG-DESKTOP-MENU_EXECUTABLE} install --novendor ${CMAKE_SOURCE_DIR}/debian/funkplot-gui.desktop")
 message("${XDG-MIME_EXECUTABLE} default ${CMAKE_SOURCE_DIR}/debian/funkplot-gui.desktop application/x-funkplot-item")
-message("${XDG-ICON_RESOURCE} install --context mimetype --novendor --size 256 --mode user /usr/share/icons/hicolor/256x256/apps/funkplot-gui.png")
+message("${XDG-ICON_RESOURCE} install --context mimetype --novendor --size 256 --mode user ${CMAKE_INSTALL_DATADIR}/icons/hicolor/256x256/apps/funkplot-gui.png")
 
 install(CODE "execute_process(COMMAND ${XDG-ICON_RESOURCE} install --context mimetype --novendor --size 256 --mode user ${CMAKE_INSTALL_DATADIR}/icons/hicolor/256x256/apps/funkplot-gui.png)" )
 install(CODE "execute_process(COMMAND ${XDG-MIME_EXECUTABLE} install --novendor ${CMAKE_SOURCE_DIR}/debian/funkplot.xml)" )
