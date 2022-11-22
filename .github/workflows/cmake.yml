@@ -35,6 +35,9 @@ jobs:
     - name: PrepareAppimage
       run: cp ${{github.workspace}}/debian/funkplot-gui.desktop ${{github.workspace}}/build/AppDir/ && cp ${{github.workspace}}/debian/funkplot-gui.png ${{github.workspace}}/build/AppDir/
 
+    - name: PrepareAppimage2
+      run: cp ${{github.workspace}}/debian/funkplot-gui.desktop ${{github.workspace}}/build/AppDir/usr && cp ${{github.workspace}}/debian/funkplot-gui.png ${{github.workspace}}/build/AppDir/usr
+
     - name: AppImagize
       run: cd ${{github.workspace}}/build && wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" && chmod a+x linuxdeployqt-continuous-x86_64.AppImage  && ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/AppDir/usr/local/bin/funkplot-gui -unsupported-bundle-everything -unsupported-allow-new-glibc -verbose=2 -extra-plugins=iconengines,platformthemes/libqgtk3.so,platforms -appimage --appimage-extract-and-run
 
