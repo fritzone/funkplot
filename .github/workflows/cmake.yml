@@ -44,4 +44,6 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: appimage
-        path: ${{github.workspace}}/build/fũnkplot-x86_64.AppImage
+        path: |
+           ${{github.workspace}}/build/**/*.AppImage
+           !${{github.workspace}}/build/linuxdeployqt-continuous-x86_64.AppImage
