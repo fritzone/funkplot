@@ -1,6 +1,6 @@
 ## About
 
-<img src="/home/fld/work/p/geodraw/help/mds/imgs/frog.png" alt="frog" style="zoom:50%;" />
+<img src="/home/fld/work/p/funkplot/help/mds/imgs/frog.png" alt="frog" style="zoom:50%;" />
 
 **fũnkplot** is © 2022 - 2023 [The Unauthorized Frog Project](https://www.facebook.com/TheUnauthorizedFrog/) 
 

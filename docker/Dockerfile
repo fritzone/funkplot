@@ -1,5 +1,5 @@
-# map /geodraw to /home/fld/work/p/geodraw
-# sudo docker run -d --name geodraw --privileged -v /home/ferencd/work/p/geodraw/:/geodraw/ geodraw:latest
+# map /funkplot to /home/fld/work/p/funkplot
+# sudo docker run -d --name funkplot --privileged -v /home/ferencd/work/p/funkplot/:/funkplot/ funkplot:latest
 
 FROM ubuntu:20.04
 

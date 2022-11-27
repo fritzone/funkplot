@@ -40,4 +40,4 @@ done
 
 Generates the following plot:
 
-<img src="/home/fld/work/p/geodraw/help/mds/imgs/rotate_1.png" alt="image-20221114103953276" style="zoom:50%;" />
+<img src="/home/fld/work/p/funkplot/help/mds/imgs/rotate_1.png" alt="image-20221114103953276" style="zoom:50%;" />

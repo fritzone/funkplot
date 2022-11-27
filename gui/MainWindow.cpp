@@ -384,12 +384,20 @@ void MainWindow::showEvent(QShowEvent *event)
 
 void MainWindow::on_actionHelp_triggered()
 {
+#ifdef SNAP_BUILD
+    QString helpFinalDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/help/funkplot.qhc";;
+    QProcess *subprocess = new QProcess(this);
+    subprocess->start("assistant", QStringList()  << "-collectionFile" << helpFinalDir);
+    subprocess->waitForStarted();
+    qInfo() << "Started help via qtassistant";
+#else
     m_helpWindow->show();
+#endif
 }
 
 void MainWindow::on_actionSyntax_triggered()
 {
-    m_helpWindow->show();
+    on_actionHelp_triggered();
 }
 
 void MainWindow::on_actionNew_triggered()

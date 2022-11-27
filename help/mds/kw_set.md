@@ -93,4 +93,4 @@ done
 
 Resulting in the following plot:
 
-<img src="/home/fld/work/p/geodraw/help/mds/imgs/set_1.png" alt="image-20221019145527702" style="zoom:33%;" />
+<img src="/home/fld/work/p/funkplot/help/mds/imgs/set_1.png" alt="image-20221019145527702" style="zoom:33%;" />

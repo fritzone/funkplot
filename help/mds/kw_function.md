@@ -76,4 +76,4 @@ done
 
 Resulting in the following plot:
 
-<img src="/home/fld/work/p/geodraw/help/mds/imgs/fun_1.png" alt="image-20221021092112328" style="zoom:33%;" />
+<img src="/home/fld/work/p/funkplot/help/mds/imgs/fun_1.png" alt="image-20221021092112328" style="zoom:33%;" />

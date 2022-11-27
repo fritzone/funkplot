@@ -73,5 +73,5 @@ plot ps
 
 This will generate the following image:
 
-<img src="/home/fld/work/p/geodraw/help/mds/imgs/for_1.png" alt="image-20221006115636896" style="zoom:50%;" />
+<img src="/home/fld/work/p/funkplot/help/mds/imgs/for_1.png" alt="image-20221006115636896" style="zoom:50%;" />
 

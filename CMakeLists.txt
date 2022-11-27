@@ -20,6 +20,10 @@ option(USE_QT6 "Use Qt6 for building" OFF)
 option(USE_UNITTEST "Build some unittesting too" OFF)
 option(ENABLE_PYTHON "Enabled running pythons scripts" ON)
 
+if(SNAP_BUILD)
+  add_definitions("-DSNAP_BUILD")
+endif()
+
 if(HELP_TARGET_DIR)
 	message("Target help dir: ${HELP_TARGET_DIR}")
 	add_definitions("-DHELP_TARGET_DIR=${HELP_TARGET_DIR}")
@@ -93,8 +97,6 @@ find_package(
     CONFIG
 )
 
-
-
 include_directories(
     ${catch2_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/KDDockWidgets
@@ -106,11 +108,11 @@ include_directories(
 set(QtLibList
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Widgets
-	Qt${QT_VERSION_MAJOR}::Gui
+    Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::OpenGL
-	Qt${QT_VERSION_MAJOR}::Help
-	Qt${QT_VERSION_MAJOR}::WebEngineWidgets
-	Qt${QT_VERSION_MAJOR}::WebEngineCore
+    Qt${QT_VERSION_MAJOR}::Help
+    Qt${QT_VERSION_MAJOR}::WebEngineWidgets
+    Qt${QT_VERSION_MAJOR}::WebEngineCore
 )
 
 if(${QT_VERSION_MAJOR} STREQUAL "6")
@@ -147,8 +149,6 @@ endif()
 
 if(NOT WIN32)
 
-# SET(CPACK_GENERATOR "DEB")
-
 # Project Info
 SET(PROJECT_NAME_SHORT   "fũnkplot")
 SET(PROJECT_NAME_LONG    "fũnkplot")
@@ -159,6 +159,7 @@ SET(PROJECT_VENDOR       "The Unauthorized Frog")
 SET(ORG_WEBSITE          "https://funkplot.sh/")
 
 INCLUDE(InstallRequiredSystemLibraries)
+include(GNUInstallDirs)
 
 SET(CPACK_SYSTEM_NAME                 "${CMAKE_SYSTEM_NAME}")
 SET(CPACK_PACKAGE_NAME                "funkplot")

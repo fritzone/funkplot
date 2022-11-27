@@ -15,6 +15,6 @@ plot f over (-5, 5)
 
 And this will generate the following plot:
 
-![image-20220425144408774](/home/fld/work/p/geodraw/help/mds/imgs/main.png)
+![image-20220425144408774](/home/fld/work/p/funkplot/help/mds/imgs/main.png)
 
 **fũnkplot** supports a range of built-in mathematical functions, most of the default operators and has syntax for changing the color, line and rotation of the current plot.

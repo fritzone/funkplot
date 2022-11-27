@@ -71,6 +71,8 @@ public:
 
 HelpWindow::HelpWindow(QWidget *parent) : QWidget(parent), ui(new Ui::HelpWindow), m_page(new MyPage)
 {
+
+#ifdef Q_OS_LINUX
 //    QDirIterator it(":", QDirIterator::Subdirectories);
 //    while (it.hasNext())
 //    {
@@ -122,6 +124,11 @@ HelpWindow::HelpWindow(QWidget *parent) : QWidget(parent), ui(new Ui::HelpWindow
             qCritical() << "Cannot copy" << location2 << "to" << finalHelp << ":" << f2.errorString();
         }
 
+        if(!f2.setPermissions(f2.permissions() | QFileDevice::WriteUser))
+        {
+            qWarning() << "Cannot set permission" << f2.errorString();
+        }
+
         finalHelp = tmpDir.path() + "/funkplot.qhc";
         if(QFile::exists(finalHelp))
         {
@@ -141,6 +148,7 @@ HelpWindow::HelpWindow(QWidget *parent) : QWidget(parent), ui(new Ui::HelpWindow
     }
 
     helpEngine->setProperty("_q_readonly", QVariant::fromValue<bool>(true));
+#endif
 
     if(!helpEngine->setupData())
     {
@@ -185,6 +193,7 @@ HelpWindow::HelpWindow(QWidget *parent) : QWidget(parent), ui(new Ui::HelpWindow
             }
     );
 
+
     auto verticalLayout = new QVBoxLayout(this);
 
     QSplitter *horizSplitter = new QSplitter(Qt::Horizontal);
@@ -192,6 +201,7 @@ HelpWindow::HelpWindow(QWidget *parent) : QWidget(parent), ui(new Ui::HelpWindow
     horizSplitter->insertWidget(1, view);
 
     verticalLayout->addWidget(horizSplitter);
+
 }
 
 HelpWindow::~HelpWindow()

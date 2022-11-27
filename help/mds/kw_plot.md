@@ -16,7 +16,7 @@ plot p
 
 Generating the following plot:
 
-<img src="/home/fld/work/p/geodraw/help/mds/imgs/plot_1.png" alt="image-20221114103033355" style="zoom:50%;" />
+<img src="/home/fld/work/p/funkplot/help/mds/imgs/plot_1.png" alt="image-20221114103033355" style="zoom:50%;" />
 
 ### Plotting a function
 
@@ -33,7 +33,7 @@ If there is no plot interval, the default interval of $(-1, 1)$ is used. If the
 
 The program above will generate the following image:
 
-<img src="/home/fld/work/p/geodraw/help/mds/imgs/plot_2.png" alt="image-20221114103139259" style="zoom:50%;" />
+<img src="/home/fld/work/p/funkplot/help/mds/imgs/plot_2.png" alt="image-20221114103139259" style="zoom:50%;" />
 
 ### Plotting the points of a function
 
@@ -55,4 +55,4 @@ done
 
 Generating the following plot:
 
-<img src="/home/fld/work/p/geodraw/help/mds/plot_3.png" alt="image-20221114103240152" style="zoom:50%;" />
+<img src="/home/fld/work/p/funkplot/help/mds/plot_3.png" alt="image-20221114103240152" style="zoom:50%;" />

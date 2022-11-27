@@ -228,12 +228,14 @@ parts:
       - libcrypt1  
       - libgtk2.0-0
       - sqlite
+      - qt5-assistant
 
     cmake-parameters:
       - -GNinja
       - -DCMAKE_BUILD_TYPE=Release
       - -DCMAKE_INSTALL_PREFIX=/usr
       - -DUSE_QT6=OFF
+      - -DSNAP_BUILD=ON
       - -DHELP_TARGET_DIR=$SNAP_USER_DATA
     after:
       - desktop-qt5

@@ -45,7 +45,7 @@ plot ps
 
 and running it will result in the following drawing:
 
-![image-20220519143757398](/home/fld/work/p/geodraw/help/mds/imgs/let_1.png)
+![image-20220519143757398](/home/fld/work/p/funkplot/help/mds/imgs/let_1.png)
 
 The algorithm operating on the default interval $[-1, 1]$ is a simple iterative one, that starts $x$ from the first point in the default drawing interval (`-1`) till the end of the default drawing interval (`1`) and will use a default step of `0.01` for advancing the function drawing, while calculating the value $f(x)$ as per the mathematical formula of the function.
 
@@ -66,7 +66,7 @@ plot ps
 
 and results in the following plot:
 
-![image-20220519144309975](/home/fld/work/p/geodraw/help/mds/imgs/let_2.png)
+![image-20220519144309975](/home/fld/work/p/funkplot/help/mds/imgs/let_2.png)
 
 ##### Specifying the number of points in a plot
 
@@ -81,7 +81,7 @@ plot ps
 
 and results in the following plot:
 
-<img src="/home/fld/work/p/geodraw/help/mds/imgs/let_3.png" alt="image-20221005133909496" style="zoom:50%;" />
+<img src="/home/fld/work/p/funkplot/help/mds/imgs/let_3.png" alt="image-20221005133909496" style="zoom:50%;" />
 
 This approach will calculate the step value considering the length of the interval to obtain the required number of points.
 
@@ -98,7 +98,7 @@ plot ps
 
 and results in the following plot:
 
-<img src="/home/fld/work/p/geodraw/help/mds/imgs/let_4.png" alt="image-20221005141804680" style="zoom:50%;" />
+<img src="/home/fld/work/p/funkplot/help/mds/imgs/let_4.png" alt="image-20221005141804680" style="zoom:50%;" />
 
 Since the step is calculated based on the number of points, it is not possible to specify both the steps and the number of points.
 

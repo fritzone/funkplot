@@ -40,4 +40,4 @@ done
 
 This will generate the following plot:
 
-<img src="/home/fld/work/p/geodraw/help/mds/imgs/if_1.png" alt="image-20221012104843960" style="zoom: 33%;" />
+<img src="/home/fld/work/p/funkplot/help/mds/imgs/if_1.png" alt="image-20221012104843960" style="zoom: 33%;" />
