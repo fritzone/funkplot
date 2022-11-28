@@ -15,7 +15,7 @@ modules:
   - name: funkplot
     buildsystem: cmake
     config-opts:
-      - "-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/app"
+      - "-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/app -DFLATPAK_BUILD=ON"
     sources:
       - type: git
         url: https://github.com/fritzone/funkplot.git
