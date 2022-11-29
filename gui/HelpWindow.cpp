@@ -26,6 +26,7 @@
 #include <QtHelp/QHelpContentWidget>
 #include <QtHelp/QHelpIndexWidget>
 #include <QDebug>
+#include <QMessageBox>
 
 class HelpBrowser : public QTextBrowser
 {
@@ -147,12 +148,24 @@ HelpWindow::HelpWindow(QWidget *parent) : QWidget(parent), ui(new Ui::HelpWindow
         qInfo() << helpFinalDir << "still does not exist, there will be no help";
     }
 
-    helpEngine->setProperty("_q_readonly", QVariant::fromValue<bool>(true));
 #endif
+
+#ifdef Q_OS_WIN32
+    helpEngine = new QHelpEngine(QApplication::applicationDirPath() + "/help/funkplot.qhc");
+#endif
+
+    if (!helpEngine)
+    {
+        return;
+    }
+
+    helpEngine->setProperty("_q_readonly", QVariant::fromValue<bool>(true));
+
 
     if(!helpEngine->setupData())
     {
         qCritical() << "Could not set up the help engine:" << helpEngine->error();
+        QMessageBox::critical(this, "Error", "Could not set up the help engine: " + helpEngine->error());
     }
 
     QTabWidget* tWidget = new QTabWidget;
