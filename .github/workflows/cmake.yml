@@ -11,11 +11,48 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  build-linux:
+  build-linux-2004:
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: setup
+      run: sudo apt-get update && sudo apt-get install -y wget equivs devscripts python-is-python3 debhelper qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev qtscript5-dev libqt5opengl5-dev libqt5x11extras5 libqt5x11extras5-dev qtxmlpatterns5-dev-tools libqt5webkit5-dev qtwebengine5-dev libqt5svg5-dev qttools5-dev libqt5help5 qtbase5-private-dev cmake git pkg-config build-essential qtwebengine5-dev libpython3-dev mesa-common-dev python3 
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Install
+      run: cd ${{github.workspace}}/build && make install DESTDIR=${{github.workspace}}/build/AppDir
+
+    - name: PrepareAppimage
+      run: cp ${{github.workspace}}/debian/funkplot-gui.desktop ${{github.workspace}}/build/AppDir/ && cp ${{github.workspace}}/debian/funkplot-gui.png ${{github.workspace}}/build/AppDir/
+
+    - name: PrepareAppimage2
+      run: cp ${{github.workspace}}/debian/funkplot-gui.desktop ${{github.workspace}}/build/AppDir/usr && cp ${{github.workspace}}/debian/funkplot-gui.png ${{github.workspace}}/build/AppDir/usr
+
+    - name: AppImagize
+      run: cd ${{github.workspace}}/build && wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" && chmod a+x linuxdeployqt-continuous-x86_64.AppImage  && ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/AppDir/usr/local/bin/funkplot-gui -unsupported-bundle-everything -unsupported-allow-new-glibc -verbose=2 -extra-plugins=iconengines,platformthemes/libqgtk3.so,platforms -appimage --appimage-extract-and-run
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: appimage
+        path: |
+           ${{github.workspace}}/build/**/*.AppImage
+           !${{github.workspace}}/build/linuxdeployqt-continuous-x86_64.AppImage
+
+  build-linux-2204:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v3

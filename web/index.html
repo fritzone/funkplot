@@ -150,12 +150,18 @@
                         </div>
                         <img alt="image" src="public/playground_assets/microsoft-400h.png" class="home-image03" />
                     </div>
-                    <a href="http://funkplot.sh/downloads/funkplot-1.0.exe" target="_blank" rel="noreferrer noopener" class="home-link04">
+                    <a href="http://funkplot.sh/funkplot-1.0-setup.exe" target="_blank" rel="noreferrer noopener" class="home-link04">
                         <span>Download</span>
                         <br />
                     </a>
                 </div>
                 <div class="home-downloads-linux">
+
+                  <div id="dl-fedora" class="modal">
+                      <p>Working on it ... Check back in a few days or contact us.</p><p>
+                  </div>
+
+
                     <div class="home-linux">
                         <div class="home-txt-linux">
                             <span class="home-name1 Card-Heading">Linux</span>
@@ -164,14 +170,14 @@
                     </div>
                     <div class="home-container4">
                         <img alt="image" src="public/playground_assets/ubuntu-200h.png" class="home-image05" />
-                        <a href="http://funkplot.sh/downloads/funkplot-1.0.exe" target="_blank" rel="noreferrer noopener" class="home-link05">
+                        <a href="http://funkplot.sh/funkplot_1.0_amd64.deb" target="_blank" rel="noreferrer noopener" class="home-link05">
                             <span>Ubuntu</span>
                             <br />
                         </a>
                     </div>
                     <div class="home-container5">
                         <img alt="image" src="public/playground_assets/fedora-200h.png" class="home-image06" />
-                        <a href="http://funkplot.sh/downloads/funkplot-1.0.exe" target="_blank" rel="noreferrer noopener" class="home-link06">
+                        <a href="#dl-fedora" rel="modal:open" class="home-link07">
                             <span>Fedora</span>
                             <br />
                         </a>
@@ -200,8 +206,9 @@
                     <div class="home-container7">
 
                         <div id="dl-flatpak" class="modal">
-                          <p>Install from flatpak:</p><p>
-                          <pre style="background: #222;color:#fff; width: 100%; padding:20px; font-size: 16px;">flatpak install funkplot</pre>
+<!--                          <p>Install from flatpak:</p><p>
+                          <pre style="background: #222;color:#fff; width: 100%; padding:20px; font-size: 16px;">flatpak install funkplot</pre> -->
+                              <p>Working on it ... Check back in a few days or contact us to speed up the process.</p><p>
                         </div>
 
                         <img alt="image" src="public/playground_assets/flatpak-200h.png" class="home-image09" />
@@ -213,10 +220,16 @@
                     <div class="home-container8">
 
                         <div id="dl-appimage" class="modal" style="width: 1020px;">
-                          <p>Install as appimage:</p><p>
-                          <pre style="background: #222;color:#fff; width: 100%; padding:5px; font-size: 14px;">wget http://funkplot.sh/funkplot-x86_64.AppImage</pre>
-                          <pre style="background: #222;color:#fff; width: 100%; padding:5px; font-size: 14px;">chmod +x funkplot-x86_64.AppImage</pre>
-                          <pre style="background: #222;color:#fff; width: 100%; padding:5px; font-size: 14px;">./funkplot-x86_64.AppImage</pre>
+                          <p><strong>Ubuntu 20.04 LTS</strong></p><p>
+                          <pre style="background: #222;color:#fff; width: 100%; padding:5px; font-size: 12px;">wget http://funkplot.sh/funkplot-x86_64.20.04.AppImage</pre>
+                          <pre style="background: #222;color:#fff; width: 100%; padding:5px; font-size: 12px;">chmod +x funkplot-x86_64.20.04.AppImage</pre>
+                          <pre style="background: #222;color:#fff; width: 100%; padding:5px; font-size: 12px;">./funkplot-x86_64.20.04.AppImage</pre>
+                          <hr>
+                          <p><strong>Ubuntu 22.04</strong></p><p>
+                          <pre style="background: #222;color:#fff; width: 100%; padding:5px; font-size: 12px;">wget http://funkplot.sh/funkplot-x86_64.22.04.AppImage</pre>
+                          <pre style="background: #222;color:#fff; width: 100%; padding:5px; font-size: 12px;">chmod +x funkplot-x86_64.22.04.AppImage</pre>
+                          <pre style="background: #222;color:#fff; width: 100%; padding:5px; font-size: 12px;">./funkplot-x86_64.22.04.AppImage</pre>
+
                         </div>
 
                         <img alt="image" src="public/playground_assets/appimage-200h.png" class="home-image10" />
@@ -233,20 +246,26 @@
                         </div>
                         <img alt="image" src="public/playground_assets/github-300h.png" class="home-image11" />
                     </div>
-                    <a href="http://funkplot.sh/downloads/funkplot-1.0.exe" target="_blank" rel="noreferrer noopener" class="home-link10">
+                    <a href="https://github.com/fritzone/funkplot" target="_blank" rel="noreferrer noopener" class="home-link10">
                         <span>Github</span>
                         <br />
                     </a>
                 </div>
                 <div class="home-downloads-macos">
+
+                    <div id="dl-mac" class="modal">
+                        <p>Right now we have no access to a computer running macOS.</p><p>Get in touch if you own one, have some programming experience, and are willing to spend some time and help us creating a mac package.
+                    </div>
+
                     <div class="home-windows3">
                         <div class="home-txt-windows3">
-                            <span class="home-name4 Card-Heading">macos</span>
+                            <span class="home-name4 Card-Heading">macOS</span>
                         </div>
                         <img alt="image" src="public/playground_assets/macos-300h.png" class="home-image12" />
                     </div>
-                    <a href="http://funkplot.sh/downloads/funkplot-1.0.exe" target="_blank" rel="noreferrer noopener" class="home-link11">
-                        <span>Sponsor us</span>
+
+                    <a href="#dl-mac" rel="modal:open" class="home-link09">
+                        <span>Help us</span>
                         <br />
                     </a>
                 </div>
