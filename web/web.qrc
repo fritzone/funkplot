@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>../site/live.html</file>
+        <file>../site/play.png</file>
+        <file>../site/favicon.ico</file>
+    </qresource>
+</RCC>

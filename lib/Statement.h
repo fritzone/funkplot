@@ -18,7 +18,10 @@ struct Statement
     virtual ~Statement() = default;
 
     // executes this statement
-    virtual bool execute(RuntimeProvider* mw) = 0;
+    virtual bool execute(RuntimeProvider* mw)
+    {
+        return true;
+    }
 
     // return the keyword this statement represents
     virtual QString keyword() const = 0;

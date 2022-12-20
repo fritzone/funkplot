@@ -143,7 +143,9 @@ static QString add_scripting_language(QString sl)
     return sl;
 }
 
+#ifdef ENABLE_PYTHON
 const QString PYTHON = SCRIPTING_LANGUAGE("python");
+#endif
 
 static const QVector<QString> all()
 {

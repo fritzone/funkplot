@@ -4,6 +4,7 @@
 #include "util.h"
 #include "RuntimeProvider.h"
 #include "colors.h"
+#include "Plot.h"
 
 #include <QFile>
 #include <QtMath>

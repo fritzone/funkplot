@@ -4,9 +4,6 @@ project(${PROJECT})
 add_executable(funkplot-compiler
 	${CMAKE_CURRENT_SOURCE_DIR}/compiler.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/ImageDrawer.h
-	${CMAKE_CURRENT_SOURCE_DIR}/ImageDrawer.cpp
-
 	${CMAKE_CURRENT_SOURCE_DIR}/compiler.qrc
 
 )

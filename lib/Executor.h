@@ -1,7 +1,7 @@
 #ifndef EXECUTOR_H
 #define EXECUTOR_H
 
-#include "CodeEngine.h"
+#include "Plot.h"
 #include "Function.h"
 
 #include <QDebug>

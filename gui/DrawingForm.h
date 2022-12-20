@@ -1,12 +1,11 @@
 #ifndef DRAWINGFORM_H
 #define DRAWINGFORM_H
 
-#include "RuntimeProvider.h"
 #include "ViewType.h"
+#include "RuntimeProvider.h"
 
 #include <QPen>
 #include <QWidget>
-
 
 class MyGraphicsView;
 class PlotRenderer;
@@ -14,6 +13,7 @@ class AbstractDrawer;
 class QGraphicsScene;
 class ProjectedRenderer;
 class ImageDrawer;
+class Plot;
 
 namespace Ui {
 class DrawingForm;

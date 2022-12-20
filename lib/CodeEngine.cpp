@@ -6,7 +6,26 @@
 #include "Else.h"
 #include "If.h"
 #include "PointArrayAssignment.h"
+#include "Keywords.h"
+#include "Function.h"
+#include "Done.h"
+#include "LoopTarget.h"
+#include "RangeIteratorLoopTarget.h"
+#include "FunctionIteratorLoopTarget.h"
+#include "Loop.h"
+#include "Plot.h"
+#include "Set.h"
+#include "PointsOfObjectAssignment.h"
+#include "ArithmeticAssignment.h"
+#include "PointDefinitionAssignment.h"
+#include "PointDefinitionAssignmentToOtherPoint.h"
+#include "FunctionDefinition.h"
+#include "Rotation.h"
+
+#ifdef ENABLE_PYTHON
 #include "PythonScript.h"
+#endif
+
 #include "RuntimeProvider.h"
 #include "VariableDeclaration.h"
 #include "constants.h"
@@ -129,11 +148,14 @@ QSharedPointer<Statement> CodeEngine::resolveCodeline(int& ln, QStringList &code
                 statements.append(createdStatement = createRotation(ln, codeline, codelines));
             }
             else
+
+#ifdef ENABLE_PYTHON
             if(codeline.startsWith(ScriptingLangugages::PYTHON)) // running python code
             {
                 statements.append(createdStatement = createPythonSriptlet(ln, codeline, codelines));
             }
             else
+#endif
             if(!codeline.isEmpty())
             {
                 m_rp->reportError(ln, ERRORCODE(35), "Invalid statement: " + codeline);
@@ -815,6 +837,7 @@ void CodeEngine::resolveCountsKeyword(QString codeline, QSharedPointer<Stepped> 
     }
 }
 
+#ifdef ENABLE_PYTHON
 QSharedPointer<Statement> CodeEngine::createPythonSriptlet(int ln, const QString &codeline, QStringList &codelines)
 {
     QSharedPointer<PythonScript> pythonScript;
@@ -852,6 +875,7 @@ QSharedPointer<Statement> CodeEngine::createPythonSriptlet(int ln, const QString
 
     return pythonScript;
 }
+#endif
 
 QSharedPointer<Assignment> CodeEngine::providePointsOfDefinition(int ln, const QString &codeline, QString assignment_body, const QString &varName, const QString &targetProperties)
 {

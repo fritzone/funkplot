@@ -11,6 +11,7 @@ set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/Assignment.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Assignment.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ArrayAssignment.h
+	${CMAKE_CURRENT_SOURCE_DIR}/ArrayAssignment.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ArithmeticAssignment.h
 	${CMAKE_CURRENT_SOURCE_DIR}/ArithmeticAssignment.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ArithmeticAssignmentToArrayElement.h
@@ -29,6 +30,7 @@ set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/FunctionDefinition.h
 	${CMAKE_CURRENT_SOURCE_DIR}/FunctionDefinition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/IndexedAccess.h
+	${CMAKE_CURRENT_SOURCE_DIR}/ImageDrawer.h
 	${CMAKE_CURRENT_SOURCE_DIR}/FunctionIteratorLoopTarget.h
 	${CMAKE_CURRENT_SOURCE_DIR}/FunctionIteratorLoopTarget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Keywords.h
@@ -36,6 +38,7 @@ set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/Loop.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/If.h
 	${CMAKE_CURRENT_SOURCE_DIR}/If.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/ImageDrawer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/LoopTarget.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Plot.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Plot.cpp

@@ -37,13 +37,6 @@ public:
 		return Function::temporaryFunction(QString::fromStdString(ss.str()), s);
 	}
 
-
-
-	/*
-	 * This constructor in fact does all the dirty job. The Upper layer takes care, that
-	 * expr is a semantically logic formula: f(par1,...parx)=formula. If the formula is wrong,
-	 * then life suxx for the programmer :(( but not me. The programmer, who created the function
-	 */
     Function(const char *expr, Statement *s);
     virtual ~Function();
 

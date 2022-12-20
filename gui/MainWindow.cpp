@@ -1,11 +1,13 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 #include "DrawingForm.h"
-#include "RuntimeProvider.h"
 #include "CodeEditorTabPage.h"
 #include "PaletteListForm.h"
 #include "Program.h"
 #include "AboutDialog.h"
+
+#include <RuntimeProvider.h>
+#include <Set.h>
 
 #include <TabToolbar/TabToolbar.h>
 #include <TabToolbar/Page.h>

@@ -13,11 +13,6 @@ struct Done : public Statement
 {
     explicit Done(int ln, const QString& s) : Statement(ln, s) {}
 
-    bool execute(RuntimeProvider* mw) override
-    {
-        return true;
-    }
-
     QString keyword() const override
     {
         return Keywords::KW_DONE;

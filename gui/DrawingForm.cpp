@@ -4,6 +4,7 @@
 #include "ui_DrawingForm.h"
 #include "PlotRenderer.h"
 #include "AbstractDrawer.h"
+#include "Plot.h"
 
 #if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
 #include <QtOpenGLWidgets/QOpenGLWidget>

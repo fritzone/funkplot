@@ -3,8 +3,11 @@
 #include "Function.h"
 #include "RuntimeProvider.h"
 #include "Executor.h"
-#include "constants.h"
 #include "ArrayAssignment.h"
+#include "Plot.h"
+
+#include "PointsOfObjectAssignment.h"
+#include "constants.h"
 
 #include <QVector>
 #include <QSharedPointer>

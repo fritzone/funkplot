@@ -1,6 +1,7 @@
 #include "PointsOfObjectAssignment.h"
 #include "Plot.h"
 #include "RuntimeProvider.h"
+#include "CodeEngine.h"
 
 #include <QPointF>
 #include <QDebug>

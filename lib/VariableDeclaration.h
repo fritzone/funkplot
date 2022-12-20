@@ -3,16 +3,11 @@
 
 #include "Keywords.h"
 #include "Statement.h"
-#include "RuntimeProvider.h"
 
 struct VariableDeclaration : public Statement
 {
-    explicit VariableDeclaration(int ln, const QString& s) : Statement(ln, s), lineNumber(ln) {}
+    explicit VariableDeclaration(int ln, const QString& s) : Statement(ln, s) {}
 
-    bool execute(RuntimeProvider* rp) override
-    {
-        return false;
-    }
     QString keyword() const override
     {
         return Keywords::KW_FOR;
@@ -20,7 +15,6 @@ struct VariableDeclaration : public Statement
 
     QString type;
     QString name;
-    int lineNumber;
 
 };
 

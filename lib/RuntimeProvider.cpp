@@ -1,7 +1,16 @@
+#include "RuntimeProvider.h"
 #include "ArrayAssignment.h"
 #include "PointArrayAssignment.h"
+#include "Plot.h"
+#include "CodeEngine.h"
+#include "FunctionDefinition.h"
+
+#ifdef ENABLE_PYTHON
 #include "PythonRunner.h"
-#include "RuntimeProvider.h"
+#endif
+
+#include "PointDefinitionAssignmentToOtherPoint.h"
+#include "PointsOfObjectAssignment.h"
 #include "constants.h"
 #include "util.h"
 
@@ -546,7 +555,10 @@ void RuntimeProvider::execute()
 void RuntimeProvider::stopExecution()
 {
     m_running = false;
+#ifdef ENABLE_PYTHON
     python_quit(nullptr);
+#endif
+
 }
 
 void RuntimeProvider::setCurrentStatement(const QString &newCurrentStatement)

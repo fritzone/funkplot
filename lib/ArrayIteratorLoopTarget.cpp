@@ -2,6 +2,7 @@
 #include "ArrayIteratorLoopTarget.h"
 #include "Loop.h"
 #include "PointArrayAssignment.h"
+#include "PointsOfObjectAssignment.h"
 #include "RuntimeProvider.h"
 
 ArrayIteratorLoopTarget::ArrayIteratorLoopTarget(QSharedPointer<Loop> l)

@@ -16,6 +16,9 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+option(BUILD_GUI "Build the GUI of the application" ON)
+option(BUILD_COMPILER "Build the compiler of the application" OFF)
+option(BUILD_WEB "Build the WEB part of the application" OFF)
 option(USE_QT6 "Use Qt6 for building" OFF)
 option(USE_UNITTEST "Build some unittesting too" OFF)
 option(ENABLE_PYTHON "Enabled running pythons scripts" ON)
@@ -27,6 +30,10 @@ endif()
 if(HELP_TARGET_DIR)
 	message("Target help dir: ${HELP_TARGET_DIR}")
 	add_definitions("-DHELP_TARGET_DIR=${HELP_TARGET_DIR}")
+endif()
+
+if(BUILD_GUI AND BUILD_WEB)
+	message( FATAL_ERROR "Cannot build both WEB and GUI in the same run, turn off one of those")
 endif()
 
 if(USE_QT6)
@@ -51,8 +58,20 @@ if(USE_QT6)
     REQUIRED
   )
 
-  set(QT_COMPONENTS Core Gui Widgets Help OpenGL WebEngineWidgets
-	  3DCore 3DRender 3DInput 3DLogic 3DExtras 3DAnimation)
+  set(QT_COMPONENTS 
+    Core
+    Gui
+    Widgets
+    Help 
+    OpenGL 
+    WebEngineWidgets
+	  3DCore 
+    3DRender 
+    3DInput 
+    3DLogic 
+    3DExtras 
+    3DAnimation
+  )
 
   set(KDDockWidgets_QT6 ON CACHE BOOL "Build KDDockWidgets against Qt 6" FORCE)
 
@@ -65,19 +84,27 @@ else()
   endif()  
 
 
-  find_package(QT NAMES Qt5
-    COMPONENTS
+  set(QT_COMPONENTS 
+    Core
+    Gui
+  )  
+
+  if(BUILD_GUI)
+
+    list(APPEND QT_COMPONENTS 
         Widgets
         OpenGL
-        Gui
-        Core
-		Help
-		WebEngineWidgets
-		WebEngineCore
+        Help
+        WebEngineWidgets
+        WebEngineCore
+    )
+  endif()
+
+  find_package(QT NAMES Qt5
+    COMPONENTS
+    ${QT_COMPONENTS}
     REQUIRED
   )
-
-  set(QT_COMPONENTS Core Gui Widgets OpenGL Help WebEngineWidgets)
 
 endif()
 
@@ -126,22 +153,45 @@ if(${QT_VERSION_MAJOR} STREQUAL "6")
     )
 endif()
 
-
-add_subdirectory(KDDockWidgets)
-add_subdirectory(ribbon)
-
-if(NOT WIN32)
-  add_subdirectory(help)
-  add_subdirectory(compiler)
+if(BUILD_GUI)
+  add_subdirectory(KDDockWidgets)
+  add_subdirectory(ribbon)
 endif()
 
-add_subdirectory(gui)
+if(NOT WIN32)
+
+  if(BUILD_GUI)
+    add_subdirectory(help)
+  endif()
+
+  if(BUILD_COMPILER)
+    add_subdirectory(compiler)
+  endif()
+
+endif()
+
+if(BUILD_GUI)
+  add_subdirectory(gui)
+endif()
+
+if(BUILD_WEB)
+	set(ENABLE_PYTHON FALSE)
+endif()
+
 add_subdirectory(lib)
+
 if(USE_UNITTEST)
   add_subdirectory(test)
 endif()
 
+if(BUILD_WEB)
+  include_directories(${CMAKE_SOURCE_DIR})
+  add_subdirectory(HttpServer)
+  add_subdirectory(web)
+endif()
 
+
+if(BUILD_GUI)
 
 ####################################################################################################
 # Debian packaging stuff                                                                           #
@@ -226,3 +276,5 @@ endif()
 ####################################################################################################
 ## Debian packaging stuff ends here
 ####################################################################################################
+
+endif()

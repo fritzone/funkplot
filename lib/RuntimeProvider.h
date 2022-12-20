@@ -3,8 +3,8 @@
 
 #include <QObject>
 
-#include "Set.h"
 #include "Executor.h"
+#include "PointDefinitionAssignment.h"
 
 #include <QMap>
 #include <QString>
@@ -13,7 +13,9 @@
 
 #include <string>
 
-class MainWindow;
+class CodeEngine;
+class Set;
+class FunctionDefinition;
 
 /**
  * @brief The RuntimeProvider class is responsible for keeping track of the existing objects/variables

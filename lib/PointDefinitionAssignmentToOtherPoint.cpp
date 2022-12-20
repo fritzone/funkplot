@@ -3,6 +3,7 @@
 #include "IndexedAccess.h"
 #include "RuntimeProvider.h"
 #include "PointArrayAssignment.h"
+#include "PointsOfObjectAssignment.h"
 
 std::tuple<QSharedPointer<Function>, QSharedPointer<Function> > PointDefinitionAssignmentToOtherPoint::fullCoordProvider(RuntimeProvider *rp)
 {

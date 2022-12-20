@@ -1,5 +1,6 @@
 #include "Loop.h"
 #include "RuntimeProvider.h"
+#include "LoopTarget.h"
 
 bool Loop::execute(RuntimeProvider *rp)
 {
