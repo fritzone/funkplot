@@ -16,7 +16,20 @@ CodeEditorTabPage::CodeEditorTabPage(QWidget *parent, RuntimeProvider* rp) :
 
     connect(m_textEdit, SIGNAL(pTextChanged()), this, SLOT(onTextChanged()));
 
-    auto DUMMY3 = R"()";
+    auto DUMMY3 = R"(
+var l list of points
+var i number
+let l = list[]
+set pixel size 6
+
+for i = 0 to 5 step 0.1 do
+  append to l points (i, i)
+
+  rotate l with 30 degrees
+  set color i * 10, i * 10, i * 10
+  plot l
+done
+)";
 
     m_textEdit->insertText(DUMMY3);
     m_textEdit->setInitialText(DUMMY3);

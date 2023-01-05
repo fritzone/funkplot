@@ -124,3 +124,54 @@ bool PythonScript::execute(RuntimeProvider *rp)
 
     return true;
 }
+
+QVector<QSharedPointer<Statement> > PythonScript::create(int ln, const QString &codeline, QStringList &codelines, StatementCallback cb, StatementReaderCallback srcb)
+{
+    QSharedPointer<PythonScript> pythonScript;
+    pythonScript.reset(new PythonScript(ln, codeline));
+
+    QString python_body = codeline.mid(ScriptingLangugages::PYTHON.length());
+    consumeSpace(python_body);
+
+    QString scriptKeyword = getDelimitedId(python_body);
+    if(scriptKeyword != Keywords::KW_SCRIPT && scriptKeyword != Keywords::KW_DO)
+    {
+        throw syntax_error_exception(ERRORCODE(67), "Missing <b>script</b> or <b>do</b> keyword from python scriptlet in <b>%s</b>", codeline.toStdString().c_str());
+    }
+
+    if(scriptKeyword == Keywords::KW_SCRIPT )
+    {
+        QString typeKeyword = getDelimitedId(python_body);
+        if(typeKeyword == Keywords::KW_BEGIN)
+        {
+            bool done = false;
+
+            while(!codelines.isEmpty() && !done)
+            {
+                QString cl0 = codelines.at(0);
+
+                if(cl0.simplified() == "end")
+                {
+                    done = true;
+                }
+                else
+                {
+                    pythonScript->pythonCodeLines.append(cl0);
+                }
+
+                codelines.pop_front();
+            }
+        }
+        else
+        {
+            throw syntax_error_exception(ERRORCODE(66), "Missing <b>begin</b> keyword from python scriptlet in <b>%s</b>", codeline.toStdString().c_str());
+        }
+    }
+    else
+    {
+        pythonScript->pythonCodeLines.append(python_body);
+
+    }
+
+    return handleStatementCallback( vectorize(pythonScript), cb);
+}

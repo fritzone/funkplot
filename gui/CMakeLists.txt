@@ -70,11 +70,6 @@ else()
 endif()
 
 if(ENABLE_PYTHON)
-
-	if(USE_UNITTEST)
-		target_compile_definitions(tests PRIVATE "ENABLE_PYTHON")
-	endif()
-
 	target_compile_definitions(${PROJECT} PRIVATE "ENABLE_PYTHON")
 endif()
 

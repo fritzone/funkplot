@@ -181,6 +181,9 @@ void AbstractDrawer::drawCoordinateSystem()
         y += 1.0;
     }
     }
+
+    qInfo() << "DrawnLinesSize:" << m_drawnLines.size();
+
 }
 
 int AbstractDrawer::sceneX(double x)
@@ -261,15 +264,17 @@ int AbstractDrawer::getSceneScrollY() const
 
 void AbstractDrawer::reset()
 {
+
     m_drawnLines.clear();
     m_drawnPoints.clear();
+    m_drawnText.clear();
 
     m_rotationAngle = 0.0;
     m_zoomFactor = 50.0;
-    m_coordEndY = 10.0;
-    m_coordStartY = -10.0;
-    m_coordEndX = 15.0;
-    m_coordStartX = -15.0;
+    m_coordEndY = 100.0;
+    m_coordStartY = -100.0;
+    m_coordEndX = 150.0;
+    m_coordStartX = -150.0;
     m_drawGrid = true;
 
 }

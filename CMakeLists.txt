@@ -178,6 +178,8 @@ if(BUILD_WEB)
 	set(ENABLE_PYTHON FALSE)
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -save-temps")
+
 add_subdirectory(lib)
 
 if(USE_UNITTEST)

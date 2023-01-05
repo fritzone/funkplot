@@ -1,7 +1,7 @@
 #include "PointsOfObjectAssignment.h"
 #include "Plot.h"
 #include "RuntimeProvider.h"
-#include "CodeEngine.h"
+#include "StatementHandler.h"
 
 #include <QPointF>
 #include <QDebug>
@@ -17,10 +17,16 @@ bool PointsOfObjectAssignment::execute(RuntimeProvider *rp)
                                                               + QString::number(end->Calculate(rp, ia ,a), 'f', 6) + ") " : "") +  (counted ? " counts " + QString::number(static_cast<int>(step->Calculate(rp, ia, a))) : "");
     qDebug() << "Here and done nothing:" << tempPlotCode;
 
-    auto p = rp->getCodeEngine()->createPlot(lineNumber, tempPlotCode).dynamicCast<Plot>();
+    auto ph = HandlerStore::instance().getHandler("plot");
+
+    QStringList e {};
+    Statement::StatementCallback exec = [](QSharedPointer<Statement>)->bool{return true;};
+    StatementReaderCallback srexec = [](int&, QStringList&, QVector<QSharedPointer<Statement>>&, QSharedPointer<Statement>) { return nullptr;};
+    auto p = ph->execute(lineNumber, tempPlotCode, e, exec, srexec);
+
     QSharedPointer<Assignment> unused;
     auto fun = rp->getNameFunctionOrAssignment(ofWhat, unused);
-    this->resolvePrecalculatedPointsForIndexedAccessWithFunction(p, fun, rp);
+    this->resolvePrecalculatedPointsForIndexedAccessWithFunction(p.at(0).dynamicCast<Plot>(), fun, rp);
     return true;
 }
 

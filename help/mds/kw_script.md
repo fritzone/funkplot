@@ -1,6 +1,6 @@
 ## The **script** keyword
 
-It is possible to embed python scripts in **fũnkplot** code. The following syntax is used to achieve this:
+It is possible to embed python scripts in **fũnkplot** code. The following syntax is used to insert a block of python scriptlets:
 
 ```
 python script begin
@@ -8,6 +8,12 @@ python script begin
 # proper python code
 #
 end
+```
+
+And the following is to run one line python commands:
+
+```
+python do <a valid python statement>
 ```
 
 The python script will have access to the variables defined in the **fũnkplot** code in the following manner:
@@ -25,6 +31,8 @@ class Point(object):
 - All the variables that are in the **fũnkplot** program are added as an extra codeline before the script is copied over.
 
 ### Example
+
+#### Python block
 
 ```
 var i number
@@ -95,6 +103,18 @@ ps[ 5 ]=( 1.0 , 0.841471 )
 8.0
 11.0
 
+```
+
+#### One line python
+
+```
+python do print("Hello Python") 
+```
+
+With the following output when executed:
+
+```
+Hello Python
 ```
 
 

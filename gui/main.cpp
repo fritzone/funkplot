@@ -2,6 +2,7 @@
 #include "HelpWindow.h"
 #include "MainWindow.h"
 #include "RuntimeProvider.h"
+#include "StatementHandler.h"
 
 #include <KDDockWidgets/src/MainWindow.h>
 #include <DockWidget.h>
@@ -90,6 +91,8 @@ int main(int argc, char *argv[])
         [&df, &mainWidget](int r, int g, int b, int a, int s) { df->setDrawingPen(r, g, b, a, s); },
         [&df, &mainWidget](QSharedPointer<Plot> p) { df->drawPlot(p); }
         );
+
+    registerClasses();
 
     df = new DrawingForm(rp);
     QObject::connect(rp, SIGNAL(rotationAngleChange(double)), df, SLOT(on_rotationAngleChange(double)));

@@ -4,12 +4,15 @@
 #include "Keywords.h"
 #include "Statement.h"
 #include "Stepped.h"
+#include "StatementHandler.h"
 
 /**
  * @brief The Plot struct represents a "plot" statement.
  */
 struct Plot : public Stepped, public Statement, public QEnableSharedFromThis<Plot>
 {
+
+    Plot() = default;
 
     /**
      * @brief Plot Creates a new plot, with the given statement
@@ -21,10 +24,20 @@ struct Plot : public Stepped, public Statement, public QEnableSharedFromThis<Plo
      */
     QString keyword() const override;
 
+    static QString kw()
+    {
+        return Keywords::KW_PLOT;
+    }
+
+
+    static QVector<QSharedPointer<Statement>> create(int ln, const QString &codeline, QStringList& codelines, Statement::StatementCallback cb, StatementReaderCallback srcb);
+
     bool execute(RuntimeProvider* rp) override;
 
     QString plotTarget; // which is the target of this plot (a function, a point, a list of points)
 
 };
+
+REGISTER_STATEMENTHANDLER(Plot)
 
 #endif // PLOT_H

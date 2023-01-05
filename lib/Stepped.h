@@ -4,6 +4,7 @@
 #include <QSharedPointer>
 
 class Function;
+class Statement;
 
 /**
  * @brief The Stepped struct is representing something tha can be stepped, such
@@ -16,6 +17,8 @@ struct Stepped
     Stepped() noexcept;
     virtual ~Stepped() = default;
 
+    void init();
+
     bool continuous = false;
     bool counted = false;
 
@@ -24,6 +27,10 @@ struct Stepped
     QSharedPointer<Function> end;
 
     QString stepValue; // the step value as string
+
+    static void resolveOverKeyword(QString codeline, QSharedPointer<Stepped> stepped, Statement *s);
+
+    static void resolveCountsKeyword(QString codeline, QSharedPointer<Stepped> stepped, Statement *s);
 
 };
 

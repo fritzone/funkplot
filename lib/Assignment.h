@@ -3,6 +3,7 @@
 
 #include "Statement.h"
 #include "Stepped.h"
+#include "StatementHandler.h"
 
 #include <QSharedPointer>
 #include <QVector>
@@ -17,6 +18,7 @@ struct IndexedAccess;
 struct Assignment : public Stepped, public Statement, public QEnableSharedFromThis<Assignment>
 {
 
+    Assignment() = default;
     explicit Assignment(int ln, const QString& s);
 
     /**
@@ -82,7 +84,7 @@ struct Assignment : public Stepped, public Statement, public QEnableSharedFromTh
      * @brief toString returns the value of the variable as a string
      * @return
      */
-    virtual QString toString() = 0;
+    virtual QString toString() { return ""; }
 
     /**
      * @brief forceSetPrecalculatedPoints Forcefulyl overwrites the precalculated points
@@ -97,6 +99,19 @@ struct Assignment : public Stepped, public Statement, public QEnableSharedFromTh
     QString targetProperties;            // the name of the properties of the assigned objects, such as: points. If targetProperties is "arythmetic" then a new function is created and evaluated at run time
     bool precalculatedSetForce = false;
     std::tuple<bool, double, double, bool, double, int> lastPrecalculatedIntervalData {false, std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), false,std::numeric_limits<double>::quiet_NaN(), 0};
+
+    static QString kw();
+
+
+    static QVector<QSharedPointer<Statement>> create(int ln, const QString &codeline, QStringList& codelines, Statement::StatementCallback cb, StatementReaderCallback srcb);
+
+    static QSharedPointer<Assignment> providePointsOfDefinition(int ln, const QString &codeline, QString assignment_body, const QString &varName, const QString &targetProperties);
+
+
+public:
+    void setPrecalculatedSetForce(bool newPrecalculatedSetForce);
 };
+
+REGISTER_STATEMENTHANDLER(Assignment)
 
 #endif // ASSIGNMENT_H

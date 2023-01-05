@@ -66,10 +66,10 @@ protected:
     double m_scale = 1.0;
     double m_rotationAngle = 0.0;
     double m_zoomFactor = 50.0;
-    double m_coordEndY = 10.0;
-    double m_coordStartY = -10.0;
-    double m_coordEndX = 15.0;
-    double m_coordStartX = -15.0;
+    double m_coordEndY = 100.0;
+    double m_coordStartY = -100.0;
+    double m_coordEndX = 150.0;
+    double m_coordStartX = -150.0;
     bool m_drawGrid = true;
     bool m_drawNumbers = true;
     int m_width = -1;

@@ -24,8 +24,11 @@ set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/CodeEngine.h
 	${CMAKE_CURRENT_SOURCE_DIR}/constants.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Done.h
+	${CMAKE_CURRENT_SOURCE_DIR}/Done.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/DrawnLine.h
 	${CMAKE_CURRENT_SOURCE_DIR}/DrawnPoint.h
+	${CMAKE_CURRENT_SOURCE_DIR}/Else.h
+	${CMAKE_CURRENT_SOURCE_DIR}/Else.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Executor.h
 	${CMAKE_CURRENT_SOURCE_DIR}/FunctionDefinition.h
 	${CMAKE_CURRENT_SOURCE_DIR}/FunctionDefinition.cpp
@@ -44,6 +47,8 @@ set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/Plot.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Statement.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Statement.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/StatementHandler.h
+	${CMAKE_CURRENT_SOURCE_DIR}/StatementHandler.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Stepped.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Stepped.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Set.h
@@ -65,6 +70,7 @@ set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/util.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/util.h
 	${CMAKE_CURRENT_SOURCE_DIR}/VariableDeclaration.h
+	${CMAKE_CURRENT_SOURCE_DIR}/VariableDeclaration.cpp
 )
 
 # If we want python script support

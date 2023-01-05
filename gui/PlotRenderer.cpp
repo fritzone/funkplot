@@ -78,6 +78,8 @@ void PlotRenderer::paintEvent(QPaintEvent* event)
     QBrush brush;
     painter.setBrush(brush);
 
+    qInfo() << "DrawnLinesSize:" << m_drawnLines.size();
+
     for(const auto& dl : m_drawnLines)
     {
         QPen p(dl.pen);

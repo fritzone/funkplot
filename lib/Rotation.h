@@ -3,6 +3,7 @@
 
 #include "Keywords.h"
 #include "Statement.h"
+#include "StatementHandler.h"
 #include <QPointF>
 
 class Function;
@@ -12,6 +13,7 @@ class Function;
  */
 struct Rotation : public Statement
 {
+    Rotation() = default;
     explicit Rotation(int ln, QString a) : Statement(ln, a) {}
 
     bool execute(RuntimeProvider* rp) override;
@@ -19,6 +21,13 @@ struct Rotation : public Statement
     {
         return Keywords::KW_ROTATE;
     }
+
+    static QString kw()
+    {
+        return Keywords::KW_ROTATE;
+    }
+
+    static QVector<QSharedPointer<Statement>> create(int ln, const QString &codeline, QStringList& codelines, Statement::StatementCallback cb, StatementReaderCallback srcb);
 
     QSharedPointer<Function> degree;
     QString what;
@@ -32,5 +41,6 @@ struct Rotation : public Statement
 
 };
 
+REGISTER_STATEMENTHANDLER(Rotation)
 
 #endif // ROTATION_H

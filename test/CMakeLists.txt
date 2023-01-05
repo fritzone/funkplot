@@ -18,6 +18,10 @@ set(${PROJECT}_srcs
 )
 add_executable(${PROJECT} ${${PROJECT}_srcs})
 
+if(ENABLE_PYTHON)
+	target_compile_definitions(${PROJECT} PRIVATE "ENABLE_PYTHON")
+endif()
+
 target_link_libraries(${PROJECT}
     PRIVATE
       Catch2::Catch2WithMain

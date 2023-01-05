@@ -69,3 +69,5 @@ The following error messages and associated codes are used in **fũnkplot**:
 | **62** | Cannot identify the object assigning from                    |
 | **64** | Cannot identify the assignment source                        |
 | **65** | Cannot use a point type variable in that context             |
+| **66** | Missing <b>begin</b> keyword from `python` scriptlet         |
+| **67** | Missing the <b>script</b> or <b>do</b> keyword from `python` scriptlet |

@@ -3,7 +3,6 @@
 
 #include "IndexedAccess.h"
 #include "Statement.h"
-#include "Stepped.h"
 #include "Assignment.h"
 
 class RuntimeProvider;
@@ -16,21 +15,12 @@ public:
     bool parse();
     QSharedPointer<Statement> resolveCodeline(int& ln, QStringList& codelines, QVector<QSharedPointer<Statement>>& statements, QSharedPointer<Statement> parentScope);
 
-    QVector<QSharedPointer<Statement> > createVariableDeclaration(int ln, const QString& codeline);
-    void resolveOverKeyword(QString codeline, QSharedPointer<Stepped> stepped, Statement* s);
-    void resolveCountsKeyword(QString codeline, QSharedPointer<Stepped> stepped, Statement* s);
-
 #ifdef ENABLE_PYTHON
     QSharedPointer<Statement> createPythonSriptlet(int ln, const QString &codeline, QStringList &codelines);
 #endif
 
-    QSharedPointer<Statement> createAssignment(int ln, const QString &codeline);
-    QSharedPointer<Statement> createFunction(int ln, const QString &codeline);
     QSharedPointer<Statement> createListInsert(int ln, const QString &codeline);
     QSharedPointer<Statement> createListAppend(int ln, const QString &codeline);
-    QSharedPointer<Statement> createPlot(int ln, const QString& codeline);
-    QSharedPointer<Statement> createSet(int ln, const QString &codeline);
-    QSharedPointer<Statement> createLoop(int ln, const QString &codeline, QStringList &codelines);
     QSharedPointer<Statement> createIf(int ln, const QString &codeline, QStringList &codelines);
     QSharedPointer<Statement> createRotation(int ln, const QString &codeline, QStringList &codelines);
 
