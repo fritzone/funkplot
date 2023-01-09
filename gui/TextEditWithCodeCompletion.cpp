@@ -211,11 +211,6 @@ void TextEditWithCodeCompletion::keyPressEvent(QKeyEvent *e)
             updateLineNumbers();
             return;
         }
-
-        if(t == Qt::Key_Enter ||t == Qt::Key_Return) // Ctrl + Enter is supposed to run the query if we have a connection
-        {
-            // TODO: Run the plotter
-        }
     }
 
     if(e->key() == Qt::Key_Escape)

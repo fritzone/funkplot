@@ -13,6 +13,9 @@ struct PointDefinitionAssignment : public Assignment
     bool execute(RuntimeProvider* rp) override;
     std::tuple<QSharedPointer<Function>, QSharedPointer<Function>> fullCoordProvider(RuntimeProvider* rp) override;
     QString toString() override;
+    void rotate(std::tuple<double, double> rp, double angle);
+
+public:
 
     QSharedPointer<Function> x;       // x position
     QSharedPointer<Function> y;       // y position

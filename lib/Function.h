@@ -3,9 +3,11 @@
 
 #include "IndexedAccess.h"
 #include "util.h"
+#include <iomanip>
 #include <sstream>
 
 #include <QSharedPointer>
+#include <QString>
 #include <QString>
 #include <map>
 #include <set>
@@ -26,15 +28,13 @@ class Function
 {
 public:
 
-	static QSharedPointer<Function> temporaryFunction(const QString& definition, Statement* s);
+    static QSharedPointer<Function> temporaryFunction(const QString& definition, Statement* s);
+    static QSharedPointer<Function> temporaryFunction(const char* definition, Statement* s);
 
 
 	template<class T> static QSharedPointer<Function> temporaryFunction(T definition, Statement* s)
 	{
-		std::stringstream ss;
-		ss << definition;
-
-		return Function::temporaryFunction(QString::fromStdString(ss.str()), s);
+        return Function::temporaryFunction(QString::number(definition, 'f', 6), s);
 	}
 
     Function(const char *expr, Statement *s);
@@ -49,6 +49,8 @@ public:
 	 * This returns the value of the function for the given variables
 	 */
     double Calculate(RuntimeProvider *rp, IndexedAccess *&ia, Assignment *&a);
+
+    double Calculate();
 
     const std::string &get_name() const;
 
@@ -90,6 +92,9 @@ private:
 	//looks for a level 0 comparison operator
     int l0cmp(const char *expr, std::string&);
 
+    //looks for a level 0 logic operator: And, Or, Not
+    int l0logic(const char *expr, std::string&zlop, const std::string &r);
+
 
 	/*
 	 * This calculates the value of the expression, for defined values, and also numbers
@@ -110,6 +115,8 @@ private:
 
 	//this takes the value from the hashtable for s
     double value(const std::string &s, RuntimeProvider *rp);
+
+    bool breakUpAsLogicOps(const char *expr, tree *node, const char* o, RuntimeProvider *rp);
 
 };
 

@@ -16,6 +16,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+option(coverage-build "gcov/lcov test coverage analysis (make coverage_test)" OFF)
 option(BUILD_GUI "Build the GUI of the application" ON)
 option(BUILD_COMPILER "Build the compiler of the application" OFF)
 option(BUILD_WEB "Build the WEB part of the application" OFF)
@@ -179,6 +180,7 @@ if(BUILD_WEB)
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -save-temps")
+
 
 add_subdirectory(lib)
 

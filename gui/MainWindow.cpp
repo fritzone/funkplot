@@ -35,6 +35,7 @@
 #include <QDateTime>
 #include <QTextDocumentFragment>
 #include <QPainter>
+#include <QShortcut>
 
 #include <DockWidget.h>
 
@@ -152,6 +153,10 @@ MainWindow::MainWindow(RuntimeProvider *rp, DrawingForm* df, QWidget *parent) :
 
     m_currentProgram->m_tabPage->getTextEdit()->setFocus();
 
+    // generate a shortcut to run the curent code
+    auto shortcut = new QShortcut(QKeySequence("Ctrl+R"), this);
+    connect(shortcut, SIGNAL(activated()), this, SLOT(runCurrentCode()));
+    connect(shortcut, SIGNAL(activatedAmbiguously()), this, SLOT(runCurrentCode()));
 }
 
 MainWindow::~MainWindow()

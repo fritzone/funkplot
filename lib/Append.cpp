@@ -13,7 +13,7 @@ bool Append::execute(RuntimeProvider* rp)
         {
             for(int idx_v = 0; idx_v < numberValues.size(); idx_v ++)
             {
-                arrayAssignment->m_elements.append(Function::temporaryFunction(numberValues[idx_v].toStdString(), this));
+                arrayAssignment->m_elements.append(Function::temporaryFunction(numberValues[idx_v], this));
             }
         }
     }

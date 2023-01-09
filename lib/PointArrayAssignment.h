@@ -6,32 +6,26 @@
 
 #include <tuple>
 
+/**
+ * @brief The PointArrayAssignment class is an assignment in which we assign to a
+ * point list variable a list of points, like: let l = list[(1,2), (3,4)]
+ */
 struct PointArrayAssignment : public Assignment
 {
     explicit PointArrayAssignment(int ln, const QString& s) : Assignment(ln, s) {}
-
-    QVector<std::tuple<QSharedPointer<Function>,QSharedPointer<Function>>> m_elements;
 
     bool execute(RuntimeProvider *rp) override;
 
     QString toString() override;
 
-    void resolvePrecalculatedPointsForIndexedAccessWithList(QSharedPointer<Plot>, RuntimeProvider *rp) override
-    {
-        QVector<QPointF> allPoints;
+    void resolvePrecalculatedPointsForIndexedAccessWithList(QSharedPointer<Plot>, RuntimeProvider *rp) override;
 
-        for(const auto& p : qAsConst(m_elements))
-        {
-            IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-            double x = std::get<0>(p)->Calculate(rp, ia, a);
-            double y = std::get<1>(p)->Calculate(rp, ia, a);
+    void rotate(std::tuple<double, double> rp, double angle);
 
-            allPoints.append(QPointF{x, y});
-        }
+public:
 
-        precalculatedPoints = allPoints;
+    QVector<std::tuple<QSharedPointer<Function>,QSharedPointer<Function>>> m_elements;
 
-    }
 
 };
 

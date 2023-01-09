@@ -213,7 +213,7 @@ QString getDelimitedId(QString& s, QSet<char> delim)
     return getDelimitedId(s, delim, d);
 }
 
-QPointF rotatePoint(float cx, float cy, float angle, QPointF p)
+QPointF rotatePoint(double cx, double cy, double angle, QPointF p)
 {
     float s = sin(angle);
     float c = cos(angle);
@@ -468,4 +468,14 @@ std::string fromPythonDict(const std::string &ps, const std::string &key)
         }
     }
     return "";
+}
+
+QPointF rotatePoint(std::tuple<double, double> rp, double angle, QPointF p)
+{
+    return rotatePoint(std::get<0>(rp), std::get<1>(rp), angle, p);
+}
+
+bool islogicop(const std::string &p)
+{
+    return std::set<std::string>{"and", "or", "not"}.count(p) > 0;
 }

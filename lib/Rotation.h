@@ -22,12 +22,24 @@ struct Rotation : public Statement
         return Keywords::KW_ROTATE;
     }
 
+    // returns the actual point of the rotation
+    std::tuple<double, double> getRotationPoint();
+
+    // returns the angle for the rotation to be used
+    double getAngle() const;
+
+public:
+
     static QString kw()
     {
         return Keywords::KW_ROTATE;
     }
 
     static QVector<QSharedPointer<Statement>> create(int ln, const QString &codeline, QStringList& codelines, Statement::StatementCallback cb, StatementReaderCallback srcb);
+
+
+
+public:
 
     QSharedPointer<Function> degree;
     QString what;

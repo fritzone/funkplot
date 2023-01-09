@@ -20,6 +20,10 @@ struct PointsOfObjectAssignment : public Assignment
     QSharedPointer<Function> startValueProvider() override;
     QSharedPointer<Function> endValueProvider() override;
 
+    void rotate(std::tuple<double, double> rp, double angle);
+
+public:
+
     QString ofWhat;                     // can be a function for now (or a circle, etc... later)
     QSharedPointer<Function> ofWhatFun; // what, the function
 

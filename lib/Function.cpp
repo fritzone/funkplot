@@ -1,7 +1,6 @@
 #include "Function.h"
 #include "util.h"
 #include "RuntimeProvider.h"
-#include "CodeEngine.h"
 #include <QDebug>
 #include <math.h>
 #include <string.h>
@@ -11,14 +10,6 @@
 
 Function::Function(const char *expr, Statement* s) : funBody(expr)
 {
-    //    qDebug() << "Creating fun:" << expr;
-
-    //    QString as(expr);
-    //    if(as.indexOf('e') >= 0)
-    //    {
-    //        qDebug() << "Weird";
-    //    }
-
     const char* eqp_chr = strchr(expr, '=');
     if(!eqp_chr)
     {
@@ -108,6 +99,13 @@ double Function::Calculate(RuntimeProvider *rp, IndexedAccess*& ia, Assignment*&
     return res;
 }
 
+double Function::Calculate()
+{
+    IndexedAccess* ia = nullptr;
+    Assignment* a = nullptr;
+    return Calculate(RuntimeProvider::get(), ia, a);
+}
+
 const std::string &Function::get_name() const
 {
     return m_name;
@@ -135,8 +133,10 @@ const QString &Function::get_funBody() const
 std::string Function::preverify_formula(char* expr)
 {
     std::string s;
-    for (int i = 0; i < strlen(expr); i++) {
-        if (expr[i] == ',' || expr[i] == '$' || isalnum(expr[i]) || isoperator(expr[i]) || isparenthesis(expr[i])) {
+    auto l = strlen(expr);
+    for (int i = 0; i < l; i++) {
+        if (expr[i] == ',' || expr[i] == '$' || isalnum(expr[i]) || isoperator(expr[i]) || isparenthesis(expr[i]))
+        {
             if (expr[i] != '-')
             {
                 s += expr[i];
@@ -153,12 +153,42 @@ std::string Function::preverify_formula(char* expr)
                 }
             }
         }
+        if(std::isspace(expr[i]))
+        {
+            // peek forward, see if we have a keyword there
+            int j = i;
+            while(isspace(expr[j])) j++;
+            int firstNonSpace = j;
+            std::string peekWord;
+            while(isalnum(expr[j]))
+            {
+                peekWord += expr[j]; j++;
+            }
+            if(islogicop(peekWord))
+            {
+                s += " " + peekWord + " ";
+                i = j - 1;
+            }
+
+        }
     }
     return s;
 }
 
 void Function::doit(const char* expr, tree* node, RuntimeProvider* rp)
 {
+
+    // or check comes before "and" check, because and has higher priority
+    if(breakUpAsLogicOps(expr, node, "or", rp))
+    {
+        return;
+    }
+
+    if(breakUpAsLogicOps(expr, node, "and", rp))
+    {
+        return;
+    }
+
     std::string zlcmpOp;
     int zlcmp = l0cmp(expr, zlcmpOp);
     if(zlcmp != -1)
@@ -408,6 +438,46 @@ int Function::l0cmp(const char *expr, std::string& zlop)
     return -1;
 }
 
+int Function::l0logic(const char *expr, std::string & zlop, const std::string& r)
+{
+    std::set<std::string> logic_operators = {r};
+    unsigned int i = 0, level = 0;
+
+    while (i < strlen(expr))
+    {
+        if (expr[i] == '(' || expr[i] == '[')
+            level++;
+        if (expr[i] == ')' || expr[i] == ']')
+            level--;
+
+        for(const std::string& op : logic_operators)
+        {
+
+            if(expr[i] == op[0])
+            {
+                bool found = true;
+                for(int j=1; j<op.length(); j++)
+                {
+                    if(op[j] != expr[i + j])
+                    {
+                        found = false;
+                        break;
+                    }
+                }
+
+                if(found)
+                {
+                    zlop = r;
+                    return i;
+                }
+            }
+        }
+
+        i++;
+    }
+    return -1;
+}
+
 
 int Function::l0ops(const char* expr, char op1, char op2, char op3)
 {
@@ -578,8 +648,6 @@ int Function::defd(const std::string& s, RuntimeProvider* rp, Assignment*& assig
 
 double Function::value(const std::string& s, RuntimeProvider* rp)
 {
-    // qDebug() << "Getting value of:" << s.c_str();
-
     if (isnumber(s.c_str()))
     {
         return fromString(s);
@@ -587,7 +655,6 @@ double Function::value(const std::string& s, RuntimeProvider* rp)
 
     if (vars.count(s))
     {
-        //qDebug() << "is:" << vars[s];
         return vars[s];
     }
 
@@ -600,9 +667,42 @@ double Function::value(const std::string& s, RuntimeProvider* rp)
     return std::numeric_limits<double>::quiet_NaN();
 }
 
+bool Function::breakUpAsLogicOps(const char*expr, tree*node, const char *o, RuntimeProvider *rp)
+{
+    std::string szlLogic;
+    int zlAnd = l0logic(expr, szlLogic, o);
+    if(zlAnd != -1)
+    {
+        char* beforOp = before(zlAnd, expr);
+        const char *afterOp = expr + zlAnd + szlLogic.length();
+
+        while(isspace(*afterOp)) afterOp++;
+        while(isspace(*(beforOp + strlen(beforOp) - 1))) *(beforOp + strlen(beforOp) - 1) = 0;
+
+        node->info = szlLogic;
+        node->left = new tree;
+        node->left->parent = node;
+
+        doit(beforOp, node->left, rp);
+
+        node->right = new tree;
+        node->right->parent = node;
+        doit(afterOp, node->right, rp);
+
+        return true;
+    }
+    return false;
+}
+
 
 QSharedPointer<Function> Function::temporaryFunction(const QString &definition, Statement* s)
 {
     QString funString = QString::fromStdString(random_string(16)) +  "($) = " + definition;
+    funString = funString.simplified();
     return QSharedPointer<Function>(new Function(funString.toLocal8Bit().data(), s));
+}
+
+QSharedPointer<Function> Function::temporaryFunction(const char *definition, Statement *s)
+{
+    return temporaryFunction(QString(definition), s);
 }

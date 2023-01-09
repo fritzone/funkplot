@@ -1,5 +1,6 @@
 #include "PointDefinitionAssignment.h"
 #include "Function.h"
+#include "RuntimeProvider.h"
 
 class RuntimeProvider;
 
@@ -40,5 +41,24 @@ QString PointDefinitionAssignment::toString()
     else
     {
         return "Point(0.0, 0.0)";
+    }
+}
+
+void PointDefinitionAssignment::rotate(std::tuple<double, double> rp, double angle)
+{
+    rotated = false;
+
+    auto fcp = fullCoordProvider(RuntimeProvider::get());
+    if( std::get<0>(fcp) && std::get<1>(fcp) )
+    {
+        IndexedAccess* ia = nullptr; Assignment* as = nullptr;
+        double x = std::get<0>(fcp)->Calculate(RuntimeProvider::get(), ia, as);
+        double y = std::get<1>(fcp)->Calculate(RuntimeProvider::get(), ia, as);
+
+        auto p = rotatePoint(rp, angle, {x, y});
+
+        rotated_x = p.x();
+        rotated_y = p.y();
+        rotated = true;
     }
 }

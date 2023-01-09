@@ -45,7 +45,6 @@ public:
     void reportError(int, int c, QString err);
     void printString(QString s);
     void setCurrentStatement(const QString &newCurrentStatement);
-    void runCurrentCode();
     void stopRunningCurrentCode();
     void setView(ViewType v);
     void set_HelpWindow(KDDockWidgets::DockWidget *newHelpWindow);
@@ -53,6 +52,7 @@ public:
 
 private slots:
     void on_actionAbout_triggered();
+    void runCurrentCode();
 
 private slots:
     void on_actionExport_triggered();

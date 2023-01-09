@@ -65,3 +65,22 @@ QSharedPointer<Function> PointsOfObjectAssignment::endValueProvider()
 {
     return end;
 }
+
+void PointsOfObjectAssignment::rotate(std::tuple<double, double> rp, double angle)
+{
+    // firstly let's populate the points
+    execute(RuntimeProvider::get());
+
+    // then rotate all the precalculated points
+    if(!precalculatedPoints.empty())
+    {
+        QVector<QPointF> rotated;
+        for(const auto& pcp : qAsConst(precalculatedPoints))
+        {
+            rotated.append( rotatePoint(rp, angle, pcp) );
+        }
+        precalculatedPoints.swap(rotated);
+        setPrecalculatedSetForce(true);
+    }
+
+}

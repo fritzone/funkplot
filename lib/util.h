@@ -94,6 +94,10 @@ static const std::vector<fun_desc_solve> supported_functions
      {"inc", "Increment by one", [](double v, double v2) -> double { return v + 1; } , false, true},
      {"dec", "Decrement by one", [](double v, double v2) -> double { return v - 1; } , false, true},
 
+     // logic stuff
+     {"and", "Logical and", [](double v, double v2) -> double { return static_cast<double>(static_cast<bool>(v) && static_cast<bool>(v2)); } , false, true},
+     {"or", "Logical or", [](double v, double v2) -> double { return static_cast<double>(static_cast<bool>(v) || static_cast<bool>(v2)); } , false, true},
+     {"not", "Logical and", [](double v, double v2) -> double { return static_cast<double>(! static_cast<bool>(v)); } , false, true},
 };
 
 enum class random_string_class
@@ -126,10 +130,7 @@ void doPrint(std::ostream& out, Arg&& arg, Args&&... args)
 namespace details
 {
 template <typename... Args>
-std::unique_ptr<char[]> formatImplS(
-    size_t bufSizeGuess,
-    char const* formatCStr,
-    Args&&... args)
+std::unique_ptr<char[]> formatImplS(size_t bufSizeGuess, char const* formatCStr, Args&&... args)
 {
     std::unique_ptr<char[]> buf(new char[bufSizeGuess]);
 
@@ -137,15 +138,18 @@ std::unique_ptr<char[]> formatImplS(
 
     size_t expandedStrLen = snprintf(buf.get(), bufSizeGuess, formatCStr, args...);
 
-    if (expandedStrLen >= 0 && expandedStrLen < bufSizeGuess)
+    if(expandedStrLen < bufSizeGuess)
     {
         return buf;
-    } else if (expandedStrLen >= 0
-               && expandedStrLen < std::numeric_limits<size_t>::max())
+    }
+    else
+    if(expandedStrLen < std::numeric_limits<size_t>::max())
     {
         // buffer was too small, redo with the correct size
         return formatImplS(expandedStrLen+1, formatCStr, std::forward<Args>(args)...);
-    } else {
+    }
+    else
+    {
         throw std::runtime_error("snprintf failed with return value: "+std::to_string(expandedStrLen));
     }
 }
@@ -254,13 +258,13 @@ int isnumber(const char *s);
 std::string c2str(char c);
 
 //this checks if an expression is a function or not (ex: sin(x) is s function)
-// kesobb atirni, hogy checkeljuk a sajat fuggvenyeinket is :))
 char* isfunc(const char *s, RuntimeProvider *rp);
 
 //this function is an ENUMERATOR
 //it tells us, if the name of a hash_struct equals some other string
 int keyz(void * hashstructadr, void *param);
 
+bool islogicop(const std::string& p);
 
 // trim from start
 std::string &sltrim(std::string &s);
@@ -280,7 +284,8 @@ QString getDelimitedId(QString&, QSet<char>, char &delim);
 QString getDelimitedId(QString&, QSet<char> = {' '});
 std::string extract_proper_expression(const char *&p, std::string& fnai_word, std::set<char> seps, std::set<std::string> first_not_accepted_identifier = {}, bool till_end = false);
 QString extract_proper_expression(QString &p, QString& sepWord, QSet<QChar> seps = {' '}, QSet<QString> fnai = {}, bool till_end = false);
-QPointF rotatePoint(float cx, float cy, float angle, QPointF p);
+QPointF rotatePoint(double cx, double cy, double angle, QPointF p);
+QPointF rotatePoint(std::tuple<double, double>, double angle, QPointF p);
 
 template<class T, class D>
 std::string toString(const std::vector<T>& x, const D& delimiter)

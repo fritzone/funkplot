@@ -15,22 +15,31 @@
 #include "PythonScript.h"
 #endif
 
+#include <thread>
+#include <mutex>
+
+std::once_flag flag;
+
 void registerClasses()
 {
-    nsAppend::HhAppend::create();
-    nsFunctionDefinition::HhFunctionDefinition::create();
-    nsVariableDeclaration::HhVariableDeclaration::create();
-    nsAssignment::HhAssignment::create();
-    nsPlot::HhPlot::create();
-    nsSet::HhSet::create();
-    nsLoop::HhLoop::create();
-    nsIf::HhIf::create();
-    nsRotation::HhRotation::create();
-    nsDone::HhDone::create();
-    nsElse::HhElse::create();
-#ifdef ENABLE_PYTHON
-    nsPythonScript::HhPythonScript::create();
-#endif
+    std::call_once(flag, []() {
+
+        nsAppend::HhAppend::create();
+        nsFunctionDefinition::HhFunctionDefinition::create();
+        nsVariableDeclaration::HhVariableDeclaration::create();
+        nsAssignment::HhAssignment::create();
+        nsPlot::HhPlot::create();
+        nsSet::HhSet::create();
+        nsLoop::HhLoop::create();
+        nsIf::HhIf::create();
+        nsRotation::HhRotation::create();
+        nsDone::HhDone::create();
+        nsElse::HhElse::create();
+    #ifdef ENABLE_PYTHON
+        nsPythonScript::HhPythonScript::create();
+    #endif
+
+    });
 }
 
 std::shared_ptr<AH> HandlerStore::getHandler(const QString &s)

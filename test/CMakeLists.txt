@@ -44,3 +44,15 @@ include(CTest)
 include(Catch)
 
 catch_discover_tests(${PROJECT})
+
+if(coverage-build)
+   set(CMAKE_BUILD_TYPE Debug)
+   message("building tests for coverage ...")
+   include(${CMAKE_SOURCE_DIR}/cmake/CodeCoverage.cmake)
+   target_compile_options(${PROJECT} PRIVATE -g -O0 -fprofile-arcs -ftest-coverage -rdynamic --coverage)
+   target_link_libraries(${PROJECT} PRIVATE gcov)
+   SETUP_TARGET_FOR_COVERAGE(coverage_test ${PROJECT} coverage)
+endif()
+
+enable_testing()
+add_test(NAME tests COMMAND tests)
