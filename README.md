@@ -1,3 +1,5 @@
+[![funkplot](https://snapcraft.io/funkplot/badge.svg)](https://snapcraft.io/funkplot)
+
 # funkplot
 
 **funkplot** is a niche piece of mathematical modeling and plotting software, which is based on an interpreted descriptive language.
