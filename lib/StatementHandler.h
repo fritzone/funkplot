@@ -6,6 +6,7 @@
 #include <QStringList>
 #include <QDebug>
 #include <functional>
+#include <memory>
 
 // The generic signature of a method that a statement handler must implement under the name "create". That method should be public and static.
 using HandlerCallback = std::function<QVector<QSharedPointer<Statement>>(int, const QString&, QStringList&, Statement::StatementCallback, Statement::StatementReaderCallback)>;
