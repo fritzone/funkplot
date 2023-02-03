@@ -11,7 +11,16 @@ bool ArithmeticAssignment::execute(RuntimeProvider *rp)
         try
         {
             IndexedAccess* ia_m = nullptr; Assignment* a = nullptr;
-            double v = arithmetic->Calculate(rp, ia_m, a);
+            auto ov = arithmetic->Calculate(rp, ia_m, a);
+            double v = 0.0;
+            if(ov.has_value() )
+            {
+                v = ov.value();
+            }
+            else
+            {
+                throw syntax_error_exception(ERRORCODE(71), "Some error came up in this context: <b>%s</b>",  statement.toStdString().c_str());
+            }
 
             // if this is an indexed something ...
             if(ia_m)
@@ -31,9 +40,9 @@ bool ArithmeticAssignment::execute(RuntimeProvider *rp)
                     auto fcp = a->fullCoordProvider(rp);
                     if( std::get<0>(fcp) && std::get<1>(fcp) )
                     {
-                        IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-                        double x = std::get<0>(fcp)->Calculate(rp, ia, a);
-                        double y = std::get<1>(fcp)->Calculate(rp, ia, a);
+                        IndexedAccess* ia = nullptr;
+                        double x = std::get<0>(fcp)->Calculate(rp, ia, a).value();
+                        double y = std::get<1>(fcp)->Calculate(rp, ia, a).value();
 
                         rp->addOrUpdatePointDefinitionAssignment(lineNumber, this, x, y, varName);
                     }

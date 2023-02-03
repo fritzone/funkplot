@@ -11,6 +11,7 @@
 
 struct Plot;
 struct IndexedAccess;
+class Function;
 
 /**
  * @brief The Assignment struct is a base class for all asignments that take place in the code

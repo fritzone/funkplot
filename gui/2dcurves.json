@@ -1,0 +1,694 @@
+{
+	"classes": [
+		{
+			"name": "2d",
+			"description": "2D Curves"
+		}
+
+	],
+	"categories":
+	[
+		{"name": "algebraic", "class": "2d","description": "Algebraic"},
+		{"name": "roulette", "class": "2d","description": "Roulettes"},
+		{"name": "conicsection", "class": "2d","description": "Conic Sections"},
+		{"name": "conchoids", "class": "2d","description": "Conchoids"},
+		{"name": "polarcurves", "class": "2d","description": "Polar Curves"},
+		{"name": "general", "class": "2d","description": "Other Curves"},
+		{"name": "folium", "class": "2d","description": "Foliums"},
+		{"name": "spiral", "class": "2d","description": "Spirals"}
+	],
+    "dictionary":
+    [
+        { 
+            "words": [ 
+                {"word": "loci"}, 
+                {"word": "locus"} 
+            ], 
+            "description": "The Locus (plural loci) is Latin for 'place'. In mathematics is the set of all points that share a property. This usually results in a curve or surface."
+        },
+        { 
+            "words": [ 
+                {"word": "cusp"}, 
+                {"word": "cuspidal point"} 
+            ], 
+
+            "description": "A singular point of a curve, the two branches of which have a common semi-tangent there."
+        },
+        {
+            "words": [ {"word": "pedal" } ],
+            "description": "The pedal curve of a curve l with respect to a point O is the set of bases to the perpendiculars dropped from the point O to the tangents to the curve l."
+        },
+        {
+            "words": [ {"word": "roulette" } ],
+            "description": "A roulette is a curve traced by a fixed point on a closed convex curve as that curve rolls without slipping on a second curve."
+        },
+        {
+            "words": [{"word": "crunode"}],
+            "description": "The crunode is point where a curve intersects itself so that two branches of the curve have distinct tangent lines."
+        },
+        {
+            "words": [{"word": "acnode"}],
+            "description": "The acnode is a point that satisfies the equation of the curve but has no neighboring points that also lie on the curve."
+		},
+		{
+			"words": [{"word": "strophoid"}],
+			"description": "A strophoid is a type of curve that can be described as a roulette (a curve traced by a fixed point on a rolling circle) with a fixed radius that is equal to the distance between a fixed point and the center of the circle."
+		}
+
+
+    ],
+    "curves":
+    [
+        {
+            "name": "Astroid",
+			"category": "algebraic",
+			"class": "2d",
+            "description": "In mathematics, an astroid is a particular type of roulette curve: a hypocycloid with four cusps. Specifically, it is the locus of a point on a circle as it rolls inside a fixed circle with four times the radius.",
+            "parameter": [{ "name": "a", "role": "size", "description": "The size of the astroid", "default": "2"}],
+            "interval": { "start": "-pi", "end": "pi"},
+            "equation": {
+                "type": "parametric",
+                "formula": 
+                    {
+                        "x": "a*cos^3(t)",
+                         "y": "a*sin^3(t)"
+                    }
+            },
+			"key": "astroid"
+        },
+        {
+            "name": "Bicorn",
+			"category": "algebraic",
+			"class": "2d",
+            "description": "The bicorn, also known as a cocked hat curve due to its resemblance to a bicorne, is a rational quartic curve, also a plane algebraic curve of degree four and genus zero.",
+            "parameter": [{ "name": "a", "role": "size", "description": "The size of the bicorn", "default": "1"}],
+            "interval": { "start": "-pi", "end": "pi"},
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "a*sin(t)",
+                    "y":"a*cos^2(t)*(2+cos(t))/(3+sin^2(t))"
+                }
+            },
+			"key": "bicorn"
+        },
+        {
+            "name": "Cardioid",
+			"category": "roulette",
+			"class": "2d",
+            "description": "A cardioid is a heart-shaped plane figure that is defined as the locus of a point lying on the circumference of a circle that is rolling externally without any slip on the boundary of another circle of the same radius.",
+            "parameter": { "name": "a", "role": "size", "description": "The size of the cardioid", "default": "1"},
+            "interval": { "start": "-pi", "end": "pi"},
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "a*(2*cos(t)-cos(2*t))",
+                    "y": "a*(2*sin(t)-sin(2*t))"
+                }
+            },
+			"key": "cardioid"
+        },
+        {
+            "name": "Cartesian Oval",
+			"category": "algebraic",
+            "description": "The Cartesian oval is a plane curve consisting of points that have the same linear combination of distances from two fixed points (foci).",
+            "long-description": "Given two circles (C) and (C') with centres F and F' and radii R and R' greater than or equal to FF', we get the Cartesian oval  by drawing variable parallel lines (D) and (D') passing by F and F', the first one cutting (C') at N and the second one cutting (C) at N', on the side of (FF'). The intersection M between (FN') and (F'N) describes the Cartesian oval.",
+            "parameter": [
+                {"name": "c", "role": "centre", "description": "The distance of the centre point of the circles constructing the oval"}, 
+                {"name": "r1", "role": "radius1", "description": "The radius of the first circle"} ,
+                {"name": "r2", "role": "radius2", "description": "The radius of the second circle"} 
+            ],
+            "interval": { "start": "-pi", "end": "pi"},
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "(c^2*sin(t)*sin(2*t)+c*(r2-r1)*cos(2*t)+2*r1*r2*cos(t))/(r1+r2)",
+                    "y": "(2*sin(t)*(-1*c^2*cos(t)+c*(r2-r1)*cos(t)+r1*r2))/(r1+r2)"
+                }
+            },
+			"key": "cartesian_oval"
+        },
+        {
+            "name": "Cassinian Ovals",
+			"category": "algebraic",
+			"class": "2d",
+            "description": "The Cassinian ovals are the loci of the points on the plane for which the geometric mean of the distances to two points, the foci, is constant.",
+            "parameter": [
+                {"name": "a", "role": "focus", "description": "The focus points (-a,0) and (a,0)"}, 
+                {"name": "b", "role": "constant", "description": "The constant geometric mean of the distances of the points"}
+            ],
+            "interval": { "start": "0", "end": "2pi"},
+            "equation": {
+                "type": "parametric",
+                "formula": { 
+                    "x": "cos(t) * sqrt(2 *a^2* cos(2*t) + 2 *sqrt((b^4-a^4) + a^4*cos^2(2* t)) / 2)",
+                    "y": "sin(t) * sqrt(2 *a^2* cos(2*t) + 2 *sqrt((b^4-a^4) + a^4*cos^2(2* t)) / 2)"
+                }
+            },
+			"key": "cassinian_ovals"
+        },
+        {
+            "name": "Catenary",
+			"category": "general",
+			"class": "2d",
+            "description": "The catenary is the curve that an idealized hanging chain or cable assumes under its own weight when supported only at its ends in a uniform gravitational field.",
+            "parameter": [
+                {"name": "a", "role": "scaling", "description": "The scaling of the curve"},
+                {"name": "e", "role":"euler", "description": "Eulers' constant", "value": "2.71"}
+            ],
+            "equation": { "type": "parametric",
+                "formula": { 
+                    "x": "t", 
+					"y": "(a * (e ^ {t/a} + e ^ {-t/a})) / 2"
+                } 
+            },
+            "interval": { "start": "-3", "end": "3"},
+			"key": "catenary"
+        },
+        {
+            "name": "Cayley's Sextic",
+			"category": "algebraic",
+			"class": "2d",
+            "description": "Cayley's sextic is the pedal of the cardioid with respect to its cuspidal point",
+            "equation": {"type": "parametric", "formula" : {"x": "cos^3(t) * cos(3*t)", "y": "cos^3(t) * sin(3*t)" } },
+			"key": "cayley_sextic",
+            "interval": { "start": "-pi", "end": "pi"}
+        },
+        {
+            "name": "Circle",
+			"category": "conicsection",
+            "description": "A circle is a shape consisting of all points in a plane that are at a given distance (r) from a given point, the centre (a,b). ",
+            "equation": {
+                "type": "parametric", 
+                "formula": {
+                    "x": "a + r * cos(t)", 
+                    "y": "b + r * sin(t)"
+                } 
+            },
+            "parameter": [
+                {"name": "a", "role": "centre", "description": "The x coordinate of the centre of the circle"}, 
+                {"name": "b", "role": "centre", "description": "The y coordinate of the centre of the circle"}, 
+                {"name": "r", "role": "radius", "description": "The radius of the circle"} 
+            ],
+            "interval": { "start": "-pi", "end": "pi"},
+			"key": "circle"
+        },
+        {
+            "name": "Cissoid of Diocles",
+			"category": "algebraic",
+			"class": "2d",
+            "description": "The Cissoid of Diocles is the roulette of the vertex of a parabola rolling on an equal parabola.",
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "(2 * a * t^2)/(1+t^2)",
+                    "y": "(2* a* t^3)/(1+t^2)"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "distance", "description": "How far the cissoid is from the origin"}
+            ],
+            "interval": { "start": "-2", "end": "2"},
+			"key": "cissoid"
+        },
+        {
+            "name": "Cochleoid",
+			"category": "polarcurves",
+			"class": "2d",
+            "description": "The Cochleoid is a snail-form curve.",
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "(a* sin(t) * cos(t))/t",
+                    "y": "(a*sin^2(t))/t"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "size", "description": "The size of the curve"}
+            ],
+            "interval": { "start": "0", "end": "10"},            
+			"key": "cochleoid"
+        },
+        {
+            "name": "Conchoid of de Sluze",
+			"category": "conchoids",
+			"class": "2d",
+            "description": "The Conchoids of de Sluze are rational, circular, cubic plane curves which have a singular point at the origin which is a crunode for a<-1, a cusp for a=-1, and an acnode for a>-1.",
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "(sec(t)+a * cos(t) ) * cos (t)",
+                    "y": "(sec(t)+a * cos(t) ) * sin(t)"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "shaper", "description": "The shaper of the curve"}
+            ],
+            "interval": { "start": "0", "end": "pi"},            
+			"key": "conchoid"
+        },
+        {
+            "name": "Cycloid",
+			"class": "2d",
+			"category": "roulette",
+            "description": "The cycloid is the locus of a point on the rim of a circle of radius a rolling along a straight line.",
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "a * (t - sin(t))",
+                    "y": "a * (1 - cos(t))"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "size", "description": "The size of the curve"}
+            ],
+            "interval": { "start": "-2pi", "end": "2pi"},            
+			"key": "cycloid"
+        },
+        {
+            "name": "Devil's Curve",
+			"class": "2d",
+			"category": "algebraic",
+			"description": "The curve is called the 'Devil’s curve' because the central leminiscate shape of the curve resembles the top used in the game of diabolo or la curbe du diable",
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "cos(t) * sqrt((a^2*sin^2(t)-b^2*cos^2(t))/(sin^2(t)-cos^2(t)))",
+                    "y": "sin(t) * sqrt((a^2*sin^2(t)-b^2*cos^2(t))/(sin^2(t)-cos^2(t)))"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "size", "description": "The size of the curve"},
+                {"name": "b", "role": "size", "description": "The size of the curve"}
+            ],
+            "interval": { "start": "-2pi", "end": "2pi"},            
+			"key": "devils_curve"
+        },
+        {
+			"name": "Durer's Conchoid",
+			"class": "2d",
+			"description": "This curve, also called 'ein muschellini' arose from Durer's work on perspective.",
+			"category": "general",
+			"equation": {
+				"type": "parametric",
+				"formula": {
+					"x": "(b * cos(t)) / (cos(t) - sin(t)) + a * cos(t)",
+					"y": "a * sin(t)"
+				}
+			},
+			"parameter": [
+				{"name": "a", "role": "modifier", "description": "The shape of the curve"},
+				{"name": "b", "role": "modifier", "description": "The shape of the curve"}
+			],
+			"interval": { "start": "-2pi", "end": "2pi"},
+			"key": "durers_conchoid"
+		},
+        {
+            "name": "Figure Eight Curve",
+			"class": "2d",
+			"description": "The figure eight curve is a closed plane curve that crosses itself once and consists of one lobe on each side of the intersection.",
+			"category": "general",
+			"equation": {
+				"type": "parametric",
+				"formula": {
+					"x": "a * sin(t)",
+					"y": "a * sin(t) * cos(t)"
+				}
+			},
+			"parameter": [
+				{"name": "a", "role": "size", "description": "The size of the curve"}
+			],
+			"interval": { "start": "-2pi", "end": "2pi"},
+			"key": "figure_eight"
+        },
+        {
+            "name": "Ellipse",
+			"class": "2d",
+			"description": "An ellipse is a curve that is the locus of all points in the plane the sum of whose distances from two fixed points separated by a distance of <b>c</b> is a given positive constant <b>a</b>",
+			"category": "conicsection",
+			"equation": {
+				"type": "parametric",
+				"formula": {
+					"x": "a * sin(t)",
+					"y": "b * sin(t)"
+				}
+			},
+			"parameter": [
+				{"name": "a", "role": "radius", "description": "The first radius of the curve"},
+				{"name": "b", "role": "radius", "description": "The second radius of the curve"}
+			],
+			"interval": { "start": "-2pi", "end": "2pi"},
+			"key": "ellipse"
+		},
+        {
+            "name": "Epicycloid",
+			"category": "roulette",
+			"description": "The epicicloid is the path traced out by a point P on the edge of a circle of radius b rolling on the outside of a circle of radius a.",
+			"class": "2d",
+			"equation": {
+				"type": "parametric",
+				"formula": {
+					"x": "(a+b)*cos(t)-b*cos((a/b+1)*t)",
+					"y": "(a+b)*sin(t)-b*sin((a/b+1)*t)"
+				}
+			},
+			"parameter": [
+				{"name": "a", "role": "radius", "description": "The radius of the first circle"},
+				{"name": "b", "role": "radius", "description": "The radius of the second circle"}
+			],
+			"interval": { "start": "-2pi", "end": "2pi"},
+			"key": "epicycloid"
+        },
+        {
+            "name": "Epitrochoid",
+			"category": "roulette",
+			"description": "The epitrochoid is the roulette traced by a point P attached to a circle of radius b rolling around the outside of a fixed circle of radius a.",
+			"class": "2d",
+			"equation": {
+				"type": "parametric",
+				"formula": {
+					"x": "(a+b)*cos(t)-h*cos((a/b+1)*t)",
+					"y": "(a+b)*sin(t)-h*sin((a/b+1)*t)"
+				}
+			},
+			"parameter": [
+				{"name": "a", "role": "radius", "description": "The radius of the first circle"},
+				{"name": "b", "role": "radius", "description": "The radius of the second circle"},
+				{"name": "h", "role": "distance", "description": "The distance of the point from the center of the circle"}
+			],
+			"interval": { "start": "-2pi", "end": "2pi"},
+			"key": "epitrochoid"
+        },
+        {
+			"name": "Logarithmic Spiral",
+			"class": "2d",
+			"category": "spiral",
+			"description": "The logarithmic (or equiangular) spiral is a spiral related to Fibonacci numbers, the golden ratio, and the golden rectangle, and is sometimes called the golden spiral.",
+			"equation": {
+				"type": "polar",
+				"formula": {
+					"r": "a*e^{t * cot(b)}"
+				}
+			},
+			"parameter": [
+				{"name": "a", "role": "constant", "description": "Arbitrary constant"},
+				{"name": "b", "role": "constant", "description": "Arbitrary constant"}
+			],
+			"interval": { "start": "-2pi", "end": "2pi"},
+			"key": "logarithmic_spiral"
+        },
+        {
+			"name": "Archimedean Spiral",
+			"class": "2d",
+			"category": "spiral",
+			"description": "The spiral depending on the value of m gives different results, like lituus (-2), hyperbolic spiral (-1), Archimedes's spiral (1) or Fermat's spiral (2)",
+			"equation": {
+				"type": "polar",
+				"formula": {
+					"r": "a* t^{1 / m}"
+				}
+			},
+			"parameter": [
+				{"name": "a", "role": "size", "description": "The size of the spiral"},
+				{"name": "m", "role": "modifier", "description": "The tightness of the spiral"}
+			],
+			"interval": { "start": "-2pi", "end": "2pi"},
+			"key": "archimidean_spiral"
+		},
+        {
+            "name": "Folium",
+			"description": "The word folium means leaf-shaped. There are three special forms of the folium, the simple folium (b=4a), the double folium (b=0) and the trifolium (b=a)",
+			"class": "2d",
+			"category": "folium",
+			"equation": {
+				"type": "polar",
+				"formula": {
+					"r": "-b * cos(t) + 4*a * cos(t) * sin^2(t)"
+				}
+			},
+			"parameter": [
+				{"name": "a", "role": "modifier", "description": "The shaper of the folium"},
+				{"name": "b", "role": "modifier", "description": "The shaper of the folium"}
+			],
+			"interval": { "start": "-2pi", "end": "2pi"},
+			"key": "folium"
+        },
+        {
+            "name": "Folium of Descartes",
+			"class": "2d",
+			"category": "folium",
+			"description": "The Folium of Descartes is a plane curve proposed by Descartes in 1638 to challenge Fermat's extremum-finding techniques",
+			"equation": {
+				"type": "parametric",
+				"formula": {
+					"x": "(3 * a * t)/(1+t^3)",
+					"y": "(3 * a * t^2)/(1+t^3)"
+				}
+			},
+			"parameter": [
+				{"name": "a", "role": "modifier", "description": "The shaper of the folium"}
+			],
+			"interval": { "start": "-2pi", "end": "2pi"},
+			"key": "descartes_folium"
+        },
+        {
+            "name": "Freeth's Nephroid",
+			"description": "Freeth's nephroid is a  strophoid of a circle with the pole O at the center of the circle and the fixed point P on the circumference of the circle",
+			"class": "2d",
+			"category": "polarcurves",
+			"equation": {
+				"type": "polar",
+				"formula": {
+					"r": "a * (1 + 2*sin(t/2))"
+				}
+			},
+			"parameter": [
+				{"name": "a", "role": "size", "description": "The size of the curve"}
+			],
+			"interval": { "start": "-2pi", "end": "2pi"},
+			"key": "freeths_nephroid"
+        },
+        {
+            "name": "Frequency Curve",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Hyperbola",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Hyperbolic Spiral",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Hypocycloid",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Hypotrochoid",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Involute of a Circle",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Kampyle of Eudoxus",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Kappa Curve",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Lame Curves",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Lemniscate of Bernoulli",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Limacon of Pascal",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Lissajous Curves",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Lituus",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Neile's Semi-cubical Parabola",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Nephroid",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Newton's Diverging Parabolas",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Parabola",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Pearls of Sluze",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Pear-shaped Quartic",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Plateau Curves",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Pursuit Curve",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Quadratrix of Hippias",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Rhodonea Curves",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Right Strophoid",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Serpentine",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Sinusoidal Spirals",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Spiric Sections",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Straight Line",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Talbot's Curve",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Tractrix",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Tricuspoid",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Trident of Newton",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Trifolium",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Trisectrix of Maclaurin",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Tschirnhaus's Cubic",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Watt's Curve",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        },
+        {
+            "name": "Witch of Agnesi",
+			"class": "2d",
+            "equation": "",
+			"key": ""
+        }
+    ]
+}

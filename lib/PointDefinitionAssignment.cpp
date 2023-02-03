@@ -30,9 +30,8 @@ QString PointDefinitionAssignment::toString()
     auto y_provider = std::get<1>(fcp);
     if( x_provider && y_provider )
     {
-        IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-        double x = x_provider->Calculate(runtimeProvider, ia, a);
-        double y = y_provider->Calculate(runtimeProvider, ia, a);
+        double x = x_provider->Calculate();
+        double y = y_provider->Calculate();
 
         QString r = "Point(" + QString::number(x, 'f', 6) + ", " + QString::number(y, 'f', 6) + ")";
         return r;
@@ -51,9 +50,8 @@ void PointDefinitionAssignment::rotate(std::tuple<double, double> rp, double ang
     auto fcp = fullCoordProvider(RuntimeProvider::get());
     if( std::get<0>(fcp) && std::get<1>(fcp) )
     {
-        IndexedAccess* ia = nullptr; Assignment* as = nullptr;
-        double x = std::get<0>(fcp)->Calculate(RuntimeProvider::get(), ia, as);
-        double y = std::get<1>(fcp)->Calculate(RuntimeProvider::get(), ia, as);
+        double x = std::get<0>(fcp)->Calculate();
+        double y = std::get<1>(fcp)->Calculate();
 
         auto p = rotatePoint(rp, angle, {x, y});
 

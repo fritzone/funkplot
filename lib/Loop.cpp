@@ -6,6 +6,7 @@
 #include "ArrayIteratorLoopTarget.h"
 #include "ArithmeticAssignment.h"
 #include "FunctionIteratorLoopTarget.h"
+#include "Function.h"
 
 bool Loop::execute(RuntimeProvider *rp)
 {

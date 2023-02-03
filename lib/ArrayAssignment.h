@@ -2,7 +2,6 @@
 #define ARRAYASSIGNMENT_H
 
 #include "Assignment.h"
-#include "Function.h"
 
 struct ArrayAssignment : public Assignment
 {

@@ -236,6 +236,15 @@
     <string>Stop Running</string>
    </property>
   </action>
+  <action name="actionFunctions">
+   <property name="icon">
+    <iconset resource="main.qrc">
+     <normaloff>:/icons/icons/function.png</normaloff>:/icons/icons/function.png</iconset>
+   </property>
+   <property name="text">
+    <string>Functions</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="main.qrc"/>

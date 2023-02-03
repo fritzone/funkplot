@@ -72,6 +72,7 @@ protected:
     double m_coordStartX = -150.0;
     bool m_drawGrid = true;
     bool m_drawNumbers = true;
+    bool m_freeDraw = false;
     int m_width = -1;
     int m_height = -1;
 };

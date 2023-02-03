@@ -30,6 +30,7 @@ set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/Else.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Else.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Executor.h
+	${CMAKE_CURRENT_SOURCE_DIR}/Executor.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/FunctionDefinition.h
 	${CMAKE_CURRENT_SOURCE_DIR}/FunctionDefinition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/IndexedAccess.h
@@ -45,6 +46,8 @@ set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/LoopTarget.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Plot.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Plot.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Polar.h
+	${CMAKE_CURRENT_SOURCE_DIR}/Polar.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Statement.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Statement.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/StatementHandler.h
@@ -53,6 +56,8 @@ set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/Stepped.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Set.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Set.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Parametric.h
+	${CMAKE_CURRENT_SOURCE_DIR}/Parametric.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PointArrayAssignment.h
 	${CMAKE_CURRENT_SOURCE_DIR}/PointArrayAssignment.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PointsOfObjectAssignment.h

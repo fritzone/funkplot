@@ -3,13 +3,6 @@
 #include "RuntimeProvider.h"
 #include "util.h"
 
-class RuntimeProvider;
-
-bool FunctionDefinition::execute(RuntimeProvider *mw)
-{
-    return true;
-}
-
 QVector<QSharedPointer<Statement>> FunctionDefinition::create(int ln, const QString &codeline, QStringList &codelines, StatementCallback cb, StatementReaderCallback)
 {
     QVector<QSharedPointer<Statement>> result;

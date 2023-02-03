@@ -5,6 +5,8 @@
 
 #include "Executor.h"
 #include "PointDefinitionAssignment.h"
+#include "Plot.h"
+#include "util.h"
 
 #include <QMap>
 #include <QString>
@@ -13,6 +15,7 @@
 
 #include <string>
 
+class Parametric;
 class CodeEngine;
 class Set;
 class FunctionDefinition;
@@ -30,12 +33,13 @@ public:
     using CB_ErrorReporter = std::function<void(int, int, QString)>;
     using CB_StringPrinter = std::function<void(QString)>;
     using CB_PointDrawer = std::function<void(double,double)>;
+    using CB_LineDrawer = std::function<void(double,double,double,double)>;
     using CB_StatementTracker = std::function<void(QString)>;
     using CB_PenSetter = std::function<void(int r, int g, int b, int a, int s)>;
     using CB_PlotDrawer = std::function<void(QSharedPointer<Plot>)>;
 
-    explicit RuntimeProvider(CB_ErrorReporter, CB_StringPrinter, CB_PointDrawer, CB_StatementTracker, CB_PenSetter, CB_PlotDrawer);
-    explicit RuntimeProvider(std::tuple<CB_ErrorReporter, CB_StringPrinter, CB_PointDrawer, CB_StatementTracker, CB_PenSetter, CB_PlotDrawer>);
+    explicit RuntimeProvider(CB_ErrorReporter, CB_StringPrinter, CB_PointDrawer, CB_LineDrawer, CB_StatementTracker, CB_PenSetter, CB_PlotDrawer);
+    explicit RuntimeProvider(std::tuple<CB_ErrorReporter, CB_StringPrinter, CB_PointDrawer, CB_LineDrawer, CB_StatementTracker, CB_PenSetter, CB_PlotDrawer>);
     virtual ~RuntimeProvider() = default;
 
     static RuntimeProvider* get();
@@ -45,10 +49,44 @@ public:
     {
         debugVariables();
 
+
         QSharedPointer<Assignment> assignment(nullptr);
-        // first test: see if this is a function we need to plot
+        // first test: see if this is a function or an assignment we need to plot
         QSharedPointer<Function> funToUse = getNameFunctionOrAssignment(plot->plotTarget, assignment);
-        if(!funToUse && !assignment)
+
+        // first test, parametric function
+        auto pf = getParametricFunction(plot->plotTarget);
+        // if it is jus a simple function
+        if(pf)
+        {
+            Executor<E> ex(executor);
+            ex.executeParametricFunction(
+                plot,
+                assignment,
+                pf,
+                [this](QSharedPointer<Plot> plot,
+                       QSharedPointer<Assignment> assignment,
+                       bool& continuous,
+                       double& plotStart,
+                       double& plotEnd,
+                       bool& counted,
+                       double& stepValue,
+                       int& count,
+                       bool useDefaultValues) {
+                    resolvePlotInterval(plot, assignment, continuous, plotStart, plotEnd, counted, stepValue, count, useDefaultValues);
+                },
+                (assignment && assignment->startValueProvider()) ? false : true,
+                m_errorReporter,
+                m_codelinesSize - m_codelines.size(),
+                this,
+                plot->plotTarget
+                );
+
+            return;
+        }
+
+        // then something else
+        if(!funToUse && !assignment && !pf)
         {
             if(!resolveAsPoint(plot))
             {
@@ -59,6 +97,8 @@ public:
             }
             return;
         }
+
+        // whether this came from an assignment of a point or a set of points
         if(assignment)
         {
             if(resolveAsPoint(plot))
@@ -70,18 +110,38 @@ public:
                 return;
             }
         }
+
+        // if it is jus a simple function
         if(funToUse)
         {
             Executor<E> ex(executor);
-            ex.execute(plot, assignment, funToUse, [this](QSharedPointer<Plot> plot, QSharedPointer<Assignment> assignment,
-                bool& continuous, double& plotStart, double& plotEnd, bool& counted, double& stepValue, int& count, bool useDefaultValues) {
-                resolvePlotInterval(plot, assignment, continuous, plotStart, plotEnd, counted, stepValue, count, useDefaultValues);
-            }, (assignment && assignment->startValueProvider()) ? false : true, m_errorReporter, m_codelinesSize - m_codelines.size(), this);
+            ex.execute(
+                plot,
+                assignment,
+                funToUse,
+                [this](QSharedPointer<Plot> plot,
+                       QSharedPointer<Assignment> assignment,
+                       bool& continuous,
+                       double& plotStart,
+                       double& plotEnd,
+                       bool& counted,
+                       double& stepValue,
+                       int& count,
+                       bool useDefaultValues) {
+                            resolvePlotInterval(plot, assignment, continuous, plotStart, plotEnd, counted, stepValue, count, useDefaultValues);
+                       },
+                (assignment && assignment->startValueProvider()) ? false : true,
+                m_errorReporter,
+                m_codelinesSize - m_codelines.size(),
+                this,
+                plot->plotTarget
+            );
+
+            return;
         }
-        else
-        {
-            qCritical() << "Nothing works";
-        }
+
+        qCritical() << "Run out of plottable objects";
+        reportError(plot->lineNumber, ERRORCODE(15), "Invalid data to plot: " + plot->plotTarget);
     }
 
     void reportError(int errLine, int errorCode, const QString& err);
@@ -99,6 +159,7 @@ public:
     void drawPlot(QSharedPointer<Plot> plot);
     void resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPointer<Assignment> assignment, bool &continuous, double &plotStart, double &plotEnd, bool &counted, double &stepValue, int &count, bool useDefaultValues);
     void addFunction(QSharedPointer<FunctionDefinition> fd);
+    void addParametricFunction(QSharedPointer<Parametric> pfd);
     void addVariable(const QString&name, const QString& type);
     void specifyVariableDomain(const QString&name, const QString& type);
     void setValue(const QString&s, double v);
@@ -115,6 +176,7 @@ public:
     QMap<QString, double>& variables();
     QVector<QSharedPointer<Assignment> > &getAssignments();
     QSharedPointer<Assignment> getAssignment(const QString& n);
+    QSharedPointer<Parametric> getParametricFunction(const QString& n);
     QSharedPointer<Function> getFunction(const QString& n);
     std::vector<std::string> getBuiltinFunctions() const;
     std::vector<std::string> getFunctionNames() const;
@@ -134,9 +196,9 @@ public:
     // will return the assignment as the given T type, if any
     template<class T> T* getAssignmentAs(const QString& n)
     {
-        for(int fds_c = assignments.size() - 1; fds_c >= 0; fds_c--)
+        for(int fds_c = m_assignments.size() - 1; fds_c >= 0; fds_c--)
         {
-            QSharedPointer<Assignment> fds = assignments[fds_c];
+            QSharedPointer<Assignment> fds = m_assignments[fds_c];
             if(fds.get()->varName == n || fds.get()->varName == n + ":")
             {
                 T* t = dynamic_cast<T*>(fds.get());
@@ -189,6 +251,8 @@ public:
     bool getShowCoordinates() const;
     void setShowCoordinates(bool newShowCoordinates);
 
+    void setupConnections(QObject* o);
+
 signals:
 
     void rotationAngleChange(double);
@@ -205,15 +269,17 @@ private:
     QMap<QString, QPointF> m_points;
     QMap<QString, QStringList> m_arrays;
 
-    QVector<QSharedPointer<Plot>> plots;
-    QVector<QSharedPointer<FunctionDefinition>> functions;
-    QVector<QSharedPointer<Assignment>> assignments;
+    QVector<QSharedPointer<Plot>> m_plots;
+    QVector<QSharedPointer<FunctionDefinition>> m_functions;
+    QVector<QSharedPointer<Assignment>> m_assignments;
     QVector<QSharedPointer<Set>> m_setts;
+    QVector<QSharedPointer<Parametric>> m_parametricFunctions;
 
-    QVector<QSharedPointer<Statement>> statements;
+    QVector<QSharedPointer<Statement>> m_statements;
 
     CB_ErrorReporter m_errorReporter;
     CB_PointDrawer m_pointDrawer;
+    CB_LineDrawer m_lineDrawer;
     CB_StatementTracker m_statementTracker;
     CB_PenSetter m_penSetter;
     CB_PlotDrawer m_plotDrawer;
@@ -238,7 +304,7 @@ private:
     // the current pixel size
     int m_ps = 1;
 
-    QSharedPointer<CodeEngine> ce;
+    QSharedPointer<CodeEngine> m_codeEngine;
 
     static RuntimeProvider* m_instance;
 

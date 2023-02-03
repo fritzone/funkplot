@@ -17,16 +17,16 @@ CodeEditorTabPage::CodeEditorTabPage(QWidget *parent, RuntimeProvider* rp) :
     connect(m_textEdit, SIGNAL(pTextChanged()), this, SLOT(onTextChanged()));
 
     auto DUMMY3 = R"(
-var a b number
+var p point
+var ps list of points
 
-let a = 4
-let b = 5
+function f(x) = sin(x)
 
-if a == 4 and b == 5 do
-  python do print (a, b)
-else
-   python do print (b)
-done
+let ps = points of f over (-3.14, 3.14) counts 256
+
+set pixel size 20
+plot ps[12]
+
 
 )";
 

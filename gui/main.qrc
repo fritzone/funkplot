@@ -454,4 +454,7 @@
         <file>../upals/firestrm.map</file>
         <file>../upals/chroma.map</file>
     </qresource>
+    <qresource prefix="/curves">
+        <file>2dcurves.json</file>
+    </qresource>
 </RCC>

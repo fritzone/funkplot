@@ -34,9 +34,8 @@ void PointArrayAssignment::resolvePrecalculatedPointsForIndexedAccessWithList(QS
 
     for(const auto& p : qAsConst(m_elements))
     {
-        IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-        double x = std::get<0>(p)->Calculate(rp, ia, a);
-        double y = std::get<1>(p)->Calculate(rp, ia, a);
+        double x = std::get<0>(p)->Calculate();
+        double y = std::get<1>(p)->Calculate();
 
         allPoints.append(QPointF{x, y});
     }
@@ -53,9 +52,8 @@ void PointArrayAssignment::rotate(std::tuple<double, double> rp, double angle)
     {
         auto p = m_elements[idx_v];
 
-        IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-        double x = std::get<0>(p)->Calculate(RuntimeProvider::get(), ia, a);
-        double y = std::get<1>(p)->Calculate(RuntimeProvider::get(), ia, a);
+        double x = std::get<0>(p)->Calculate();
+        double y = std::get<1>(p)->Calculate();
 
         auto pRotated = rotatePoint(rp, angle, {x, y});
 

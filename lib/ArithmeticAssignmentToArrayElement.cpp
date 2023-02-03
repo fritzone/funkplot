@@ -15,8 +15,8 @@ bool ArithmeticAssignmentToArrayElement::execute(RuntimeProvider *rp)
         try
         {
             IndexedAccess* ia_m = nullptr; Assignment* a = nullptr;
-            double v = arithmetic->Calculate(rp, ia_m, a);
-            double idx_v = index->Calculate(rp, ia_m, a);
+            double v = arithmetic->Calculate(rp, ia_m, a).value();
+            double idx_v = index->Calculate(rp, ia_m, a).value();
 
             if(idx_v < 0)
             {

@@ -2,6 +2,7 @@
 #include "Plot.h"
 #include "RuntimeProvider.h"
 #include "StatementHandler.h"
+#include "Function.h"
 
 #include <QPointF>
 #include <QDebug>
@@ -11,10 +12,9 @@ class RuntimeProvider;
 bool PointsOfObjectAssignment::execute(RuntimeProvider *rp)
 {
     // create a temporary plot
-    IndexedAccess* ia = nullptr; Assignment* a = nullptr;
     QString tempPlotCode = "plot " + ofWhat + ((start && end) ? " over ("
-                                                              + QString::number(start->Calculate(rp, ia ,a), 'f', 6) + ", "
-                                                              + QString::number(end->Calculate(rp, ia ,a), 'f', 6) + ") " : "") +  (counted ? " counts " + QString::number(static_cast<int>(step->Calculate(rp, ia, a))) : "");
+                                                              + QString::number(start->Calculate(), 'f', 6) + ", "
+                                                              + QString::number(end->Calculate(), 'f', 6) + ") " : "") +  (counted ? " counts " + QString::number(static_cast<int>(step->Calculate())) : "");
     qDebug() << "Here and done nothing:" << tempPlotCode;
 
     auto ph = HandlerStore::instance().getHandler("plot");
@@ -26,6 +26,7 @@ bool PointsOfObjectAssignment::execute(RuntimeProvider *rp)
 
     QSharedPointer<Assignment> unused;
     auto fun = rp->getNameFunctionOrAssignment(ofWhat, unused);
+
     this->resolvePrecalculatedPointsForIndexedAccessWithFunction(p.at(0).dynamicCast<Plot>(), fun, rp);
     return true;
 }

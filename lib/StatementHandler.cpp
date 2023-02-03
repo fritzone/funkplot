@@ -10,6 +10,8 @@
 #include "Rotation.h"
 #include "Done.h"
 #include "Else.h"
+#include "Parametric.h"
+#include "Polar.h"
 
 #ifdef ENABLE_PYTHON
 #include "PythonScript.h"
@@ -38,7 +40,8 @@ void registerClasses()
     #ifdef ENABLE_PYTHON
         nsPythonScript::HhPythonScript::create();
     #endif
-
+        nsParametric::HhParametric::create();
+        nsPolar::HhPolar::create();
     });
 }
 

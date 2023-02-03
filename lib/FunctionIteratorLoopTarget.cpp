@@ -2,6 +2,7 @@
 #include "Loop.h"
 #include "RuntimeProvider.h"
 #include "constants.h"
+#include "Function.h"
 
 #include <QPointF>
 
@@ -44,8 +45,7 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
                 while(xx <= x)
                 {
                     tempFun->SetVariable("$", xx);
-                    IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-                    double yy = tempFun->Calculate(rp, ia, a);
+                    double yy = tempFun->Calculate();
                     p = QPointF(xx, yy);
                     theLoop->updateLoopVariable( p );
 
@@ -109,18 +109,15 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
     {
         if(assignment->startValueProvider())
         {
-            IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-            plotStart = assignment->startValueProvider()->Calculate(rp, ia, a);
+            plotStart = assignment->startValueProvider()->Calculate();
         }
         if( assignment->endValueProvider())
         {
-            IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-            plotEnd = assignment->endValueProvider()->Calculate(rp, ia, a);
+            plotEnd = assignment->endValueProvider()->Calculate();
         }
 
         continuous = assignment->continuous;
-        IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-        step = assignment->step->Calculate(rp, ia, a);
+        step = assignment->step->Calculate();
         count = step;
         if(assignment->counted)
         {
@@ -149,8 +146,7 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
         {
 
             funToUse->SetVariable(pars[0].c_str(), x);
-            IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-            double y = funToUse->Calculate(rp, ia, a);
+            double y = funToUse->Calculate();
 
             points_of_loop_exec(x, y, continuous);
             pointsDrawn ++;
@@ -162,8 +158,7 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
         {
             // the last points always goes to plotEnd
             funToUse->SetVariable(pars[0].c_str(), plotEnd);
-            IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-            double y = funToUse->Calculate(rp, ia, a);
+            double y = funToUse->Calculate();
 
             points_of_loop_exec(plotEnd, y, continuous);
         }

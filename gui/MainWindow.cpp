@@ -1,10 +1,13 @@
 #include "MainWindow.h"
+#include "BuiltinDictionary.h"
 #include "ui_MainWindow.h"
 #include "DrawingForm.h"
 #include "CodeEditorTabPage.h"
 #include "PaletteListForm.h"
 #include "Program.h"
 #include "AboutDialog.h"
+#include "Builtin.h"
+#include "BuiltinFunctionDetailer.h"
 
 #include <RuntimeProvider.h>
 #include <Set.h>
@@ -36,7 +39,7 @@
 #include <QTextDocumentFragment>
 #include <QPainter>
 #include <QShortcut>
-
+#include <QJsonDocument>
 #include <DockWidget.h>
 
 #include <QtConcurrent/QtConcurrent>
@@ -157,6 +160,9 @@ MainWindow::MainWindow(RuntimeProvider *rp, DrawingForm* df, QWidget *parent) :
     auto shortcut = new QShortcut(QKeySequence("Ctrl+R"), this);
     connect(shortcut, SIGNAL(activated()), this, SLOT(runCurrentCode()));
     connect(shortcut, SIGNAL(activatedAmbiguously()), this, SLOT(runCurrentCode()));
+
+    // functions database
+    buildFunctionDatabase();
 }
 
 MainWindow::~MainWindow()
@@ -350,6 +356,25 @@ void MainWindow::onStringReceived(QString s)
     ui->txtOutput->setPlainText(ts);
 }
 
+void MainWindow::onFunctionsMenuEntryTriggered()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+
+    QString key = action->data().toString();
+    qInfo() << "Sender:" << key;
+
+    if(m_builtins.contains(key))
+    {
+
+        BuiltinFunctionDetailer* dlg = new BuiltinFunctionDetailer(m_builtins[key], this);
+
+        if(dlg->exec() == QDialog::Accepted)
+        {
+
+        }
+    }
+}
+
 void MainWindow::MainWindow::closeEvent(QCloseEvent *event)
 {
     QMessageBox::StandardButton reply;
@@ -386,6 +411,76 @@ void MainWindow::showEvent(QShowEvent *event)
     {
         m_currentProgram->m_tabPage->getTextEdit()->setFocus();
     }
+}
+
+void MainWindow::buildFunctionDatabase()
+{
+    // create the 2d curves
+    QString val;
+    QFile file;
+    file.setFileName(":/curves/2dcurves.json");
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        qWarning() << "Cannot open curve database";
+        return;
+    }
+    val = file.readAll();
+    file.close();
+    QJsonParseError err;
+    QJsonDocument jd = QJsonDocument::fromJson(val.toLatin1(), &err);
+
+    if(jd.isNull())
+    {
+        qWarning() << "Cannot get curve database:" << err.errorString();
+
+        return;
+    }
+
+    // The dictionary
+    for(const auto& de : jd.object()["dictionary"].toArray())
+    {
+        for(const auto&w : de.toObject()["words"].toArray())
+        {
+            BuiltinDictionary::addEntry(w.toObject()["word"].toString(),de.toObject()["description"].toString() );
+        }
+    }
+
+    // Then gather the classes
+    for(const auto& c : jd.object()["classes"].toArray())
+    {
+        QMenu* subMenu = new QMenu(c.toObject()["description"].toString(), this);
+        m_functionsMenu->addMenu(subMenu);
+        m_classMenus[c.toObject()["name"].toString()] = subMenu;
+    }
+
+    // Then the categories
+    for(const auto& c : jd.object()["categories"].toArray())
+    {
+        QMenu* subMenu = new QMenu(c.toObject()["description"].toString(), this);
+        m_classMenus[c.toObject()["class"].toString()]->addMenu(subMenu);
+        m_categoryMenus[c.toObject()["class"].toString() + "-" + c.toObject()["name"].toString()] = subMenu;
+    }
+
+    for(const auto& c : jd.object()["curves"].toArray())
+    {
+        QAction* a = new QAction(c.toObject()["name"].toString(), this);
+        a->setData(c.toObject()["key"].toVariant());
+        connect(a, &QAction::triggered, this, &MainWindow::onFunctionsMenuEntryTriggered);
+        QIcon icon(":/icons/icons/function.png");
+        a->setIcon(icon);
+
+        QMenu* mnu = nullptr;
+        QString key = c.toObject()["class"].toString() + "-" + c.toObject()["category"].toString();
+        if(m_categoryMenus.contains(key))
+        {
+            m_categoryMenus[key]->addAction(a);
+        }
+
+        m_builtins[c.toObject()["key"].toString()] = QSharedPointer<Builtin>(new Builtin(c.toObject()));
+        qDebug() << "Loaded:" << c.toObject()["key"].toString();
+    }
+
+
 }
 
 
@@ -629,5 +724,12 @@ void MainWindow::on_actionAbout_triggered()
     AboutDialog* abt = new AboutDialog(this);
     abt->setWindowFlags(Qt::SplashScreen);
     abt->exec();
+}
+
+void MainWindow::on_actionFunctions_triggered()
+{
+    auto p = m_ttb["Functions"];
+    QPoint pp = p->pos();
+    m_functionsMenu->exec( mapToGlobal( QPoint{pp.x(), pp.y() + p->height()} ) );
 }
 

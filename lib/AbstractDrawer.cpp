@@ -21,6 +21,8 @@ void AbstractDrawer::drawCoordinateSystem()
         return;
     }
 
+    m_freeDraw = true;
+
     double r = 0.1;
     // now draw the grid, horizontal lines
     if(m_drawGrid)
@@ -183,6 +185,7 @@ void AbstractDrawer::drawCoordinateSystem()
     }
 
     qInfo() << "DrawnLinesSize:" << m_drawnLines.size();
+    m_freeDraw = false;
 
 }
 
@@ -336,12 +339,19 @@ void AbstractDrawer::setCoordStartX(double newCoordStartX)
 
 void AbstractDrawer::addLine(QLineF l, QPen p, int size)
 {
-    m_drawnLines.push_back({l, p, size});
+    if( (l.p1().x() >= m_coordStartX && l.p1().y() >= m_coordStartY && l.p1().x() <= m_coordEndX && l.p1().y() <= m_coordEndY &&
+         l.p2().x() >= m_coordStartX && l.p2().y() >= m_coordStartY && l.p2().x() <= m_coordEndX && l.p2().y() <= m_coordEndY) || m_freeDraw)
+    {
+        m_drawnLines.push_back({l, p, size});
+    }
 }
 
 void AbstractDrawer::addPoint(QPointF l, QPen p, size_t s)
 {
-    m_drawnPoints.push_back({l, p, s});
+    if( (l.x() >= m_coordStartX && l.y() >= m_coordStartY && l.x() <= m_coordEndX && l.y() <= m_coordEndY) || m_freeDraw )
+    {
+        m_drawnPoints.push_back({l, p, s});
+    }
 }
 
 int AbstractDrawer::getWidth() const

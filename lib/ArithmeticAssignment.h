@@ -3,6 +3,8 @@
 
 #include "Assignment.h"
 
+class Function;
+
 /**
  * @brief The ArithmeticAssignment struct represents an assignment to a numeric value
  */

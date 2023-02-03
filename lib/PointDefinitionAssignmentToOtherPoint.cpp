@@ -1,6 +1,7 @@
 #include "PointDefinitionAssignmentToOtherPoint.h"
 #include "Function.h"
 #include "IndexedAccess.h"
+#include "Parametric.h"
 #include "RuntimeProvider.h"
 #include "PointArrayAssignment.h"
 #include "PointsOfObjectAssignment.h"
@@ -13,6 +14,8 @@ std::tuple<QSharedPointer<Function>, QSharedPointer<Function> > PointDefinitionA
 bool PointDefinitionAssignmentToOtherPoint::execute(RuntimeProvider *rp)
 {
     QString otherPointsName = otherPoint;
+
+    // indexed
     if(otherPointsName.indexOf("[") != -1)
     {
         if(otherPointsName.indexOf("]") != -1)
@@ -53,7 +56,7 @@ bool PointDefinitionAssignmentToOtherPoint::execute(RuntimeProvider *rp)
                 {
                     IndexedAccess* ia_m = nullptr; Assignment* a1 = nullptr;
                     auto tempFun = Function::temporaryFunction(otherPoint, this);
-                    tempFun->Calculate(rp, ia_m, a1);
+                    auto v1 = tempFun->Calculate(rp, ia_m, a1);
                     // if this is an indexed something ...
                     if(ia_m)
                     {
@@ -62,6 +65,27 @@ bool PointDefinitionAssignmentToOtherPoint::execute(RuntimeProvider *rp)
                         delete ia_m;
                         return true;
                     }
+
+                    // last resort: this is a point to which we have assigned a function expression
+                    // for example: let p = 3 * f(1) + f(9)
+                    // where f is a parametric function.
+                    // calculate that expression and feed it back to the point
+                    auto v2 = tempFun->Calculate(rp, ia_m, a1, 2);
+
+                    if(v1.has_value() && v2.has_value())
+                    {
+                        QPointF p{ v1.value(), v2.value() };
+
+                        x = Function::temporaryFunction(QString::number(p.x(), 'f', 6), this);
+                        y = Function::temporaryFunction(QString::number(p.y(), 'f', 6), this);
+                        rotated = false;
+                        rotated_x = p.x();
+                        rotated_y = p.y();
+
+                        return true;
+                    }
+
+
                 }
 
                 return false;
@@ -83,4 +107,29 @@ bool PointDefinitionAssignmentToOtherPoint::execute(RuntimeProvider *rp)
     }
     copyFrom(same);
     return true;
+}
+
+void PointDefinitionAssignmentToOtherPoint::resolveAssignmentFromIndexed(Assignment *pas, RuntimeProvider *rp)
+{
+    QString indexStr = otherPoint.mid(otherPoint.indexOf("[") + 1, otherPoint.indexOf("]") - otherPoint.indexOf("[") - 1);
+    auto tempFun = Function::temporaryFunction(indexStr, this);
+    double idx = tempFun->Calculate();
+    int pps = pas->precalculatedPoints.size();
+    if(idx < pps)
+    {
+        QPointF p = pas->precalculatedPoints[idx];
+        x = Function::temporaryFunction(QString::number(p.x(), 'f', 6), this);
+        y = Function::temporaryFunction(QString::number(p.y(), 'f', 6), this);
+        rotated = false;
+        rotated_x = p.x();
+        rotated_y = p.y();
+    }
+    else
+    {
+
+        std::stringstream ss;
+        ss <<"Index out of bounds for <b>" << pas->varName.toStdString().c_str() << "</b> in this context: <b>" <<  statement.toStdString().c_str() <<
+            "</b>. Requested <b>" << idx << "</b>, available: <b>" << pps - 1 << "</b> (Arrays start from index 0, not 1)";
+        throw syntax_error_exception(ERRORCODE(55), ss.str().c_str());
+    }
 }

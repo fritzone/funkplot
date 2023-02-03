@@ -34,7 +34,10 @@ struct Plot : public Stepped, public Statement, public QEnableSharedFromThis<Plo
 
     bool execute(RuntimeProvider* rp) override;
 
+public:
+
     QString plotTarget; // which is the target of this plot (a function, a point, a list of points)
+    bool polarPlot = false;
 
 };
 

@@ -1,6 +1,7 @@
 #include "Plot.h"
 #include "FunctionDefinition.h"
 #include "RuntimeProvider.h"
+#include "Function.h"
 
 Plot::Plot(int ln, const QString &s) : Statement(ln, s)
 {}
@@ -22,12 +23,19 @@ QVector<QSharedPointer<Statement> > Plot::create(int ln, const QString &codeline
 
     // function name
     QString fnai;
-    QString funToPlot = extract_proper_expression(plot_body, fnai, {' '}, {Keywords::KW_COUNTS, Keywords::KW_OVER, Keywords::KW_CONTINUOUS, Keywords::KW_FOR}, true);
+    QString funToPlot = extract_proper_expression(plot_body,
+                                                  fnai,
+                                                  {' ', '['},
+                                                  {Keywords::KW_COUNTS, Keywords::KW_OVER, Keywords::KW_CONTINUOUS, Keywords::KW_FOR},
+                                                  false);
+
+    // let's see if we have a parametric function for this
+    auto pf = RuntimeProvider::get()->getParametricFunction(funToPlot);
 
     // let's see if we have a function for this already
     QSharedPointer<Function> ff = RuntimeProvider::get()->getFunction(funToPlot);
 
-    if(!ff)
+    if(!ff && !pf)
     {
         // or maybe an assignment
         auto a = RuntimeProvider::get()->getAssignment(funToPlot);
@@ -46,7 +54,6 @@ QVector<QSharedPointer<Statement> > Plot::create(int ln, const QString &codeline
 
             // let's see if we are plotting a single point of a series of plots: plot ps[2]
 
-            IndexedAccess* ia_m = nullptr; Assignment* a = nullptr;
             auto tempFun = Function::temporaryFunction(funToPlot, plotData.get());
             if(fnai == Keywords::KW_FOR)
             {
@@ -60,59 +67,52 @@ QVector<QSharedPointer<Statement> > Plot::create(int ln, const QString &codeline
                 plot_body = tmpCodeline;
             }
 
-            tempFun->Calculate(RuntimeProvider::get(), ia_m, a);
-            // if this is an indexed something ... let's hope down there someone will take care of it :)
-            if(!ia_m)
+            tempFun->Calculate();
+
+
+            QSharedPointer<FunctionDefinition> fd;
+            fd.reset(new FunctionDefinition(ln, codeline) );
+            QString plgfn = "plot_fn_" +QString::number(RuntimeProvider::get()->getFunctions().size()) + "(x) =";
+
+            // make the funToPlot look acceptable by adding (x) to each builtin function if any
+            QString funToPlotFinal = funToPlot.simplified();
+            // firstly remove the space before each parenthesis if found
+            funToPlotFinal.replace(" (", "(");
+            // then each func(x) will be replaced with func to not to have (x)(x)
+            for(const auto& f : supported_functions)
             {
-
-                QSharedPointer<FunctionDefinition> fd;
-                fd.reset(new FunctionDefinition(ln, codeline) );
-                QString plgfn = "plot_fn_" +QString::number(RuntimeProvider::get()->getFunctions().size()) + "(x) =";
-
-                // make the funToPlot look acceptable by adding (x) to each builtin function if any
-                QString funToPlotFinal = funToPlot.simplified();
-                // firstly remove the space before each parenthesis if found
-                funToPlotFinal.replace(" (", "(");
-                // then each func(x) will be replaced with func to not to have (x)(x)
-                for(const auto& f : supported_functions)
+                if(f.standalone_plottable)
                 {
-                    if(f.standalone_plottable)
-                    {
-                        funToPlotFinal.replace(QString::fromStdString(f.name) + "(x)", QString::fromStdString(f.name));
-                    }
+                    funToPlotFinal.replace(QString::fromStdString(f.name) + "(x)", QString::fromStdString(f.name));
                 }
-
-                for(const auto& f : supported_functions)
-                {
-                    if(f.standalone_plottable)
-                    {
-                        funToPlotFinal.replace(QString::fromStdString(f.name) + "(", QString::fromStdString(f.name) + "#");
-                    }
-                }
-
-                // and the other way around to make it legal
-                for(const auto& f : supported_functions)
-                {
-                    if(f.standalone_plottable)
-                    {
-                        funToPlotFinal.replace(QString::fromStdString(f.name), QString::fromStdString(f.name) + "(x)");
-                    }
-                }
-                funToPlotFinal.replace("(x)#", "(");
-
-
-                qDebug() << funToPlotFinal;
-
-                Function* f = new Function(QString(plgfn + funToPlotFinal).toStdString().c_str(), plotData.get());
-
-                fd->f = QSharedPointer<Function>(f);
-                funToPlot = QString::fromStdString(fd->f->get_name());
-                RuntimeProvider::get()->addFunction(fd);
             }
-            else
+
+            for(const auto& f : supported_functions)
             {
-                delete ia_m;
+                if(f.standalone_plottable)
+                {
+                    funToPlotFinal.replace(QString::fromStdString(f.name) + "(", QString::fromStdString(f.name) + "#");
+                }
             }
+
+            // and the other way around to make it legal
+            for(const auto& f : supported_functions)
+            {
+                if(f.standalone_plottable)
+                {
+                    funToPlotFinal.replace(QString::fromStdString(f.name), QString::fromStdString(f.name) + "(x)");
+                }
+            }
+            funToPlotFinal.replace("(x)#", "(");
+
+            qDebug() << funToPlotFinal;
+
+            Function* f = new Function(QString(plgfn + funToPlotFinal).toStdString().c_str(), plotData.get());
+
+            fd->f = QSharedPointer<Function>(f);
+            funToPlot = QString::fromStdString(fd->f->get_name());
+            RuntimeProvider::get()->addFunction(fd);
+
         }
         else
         {
@@ -127,7 +127,7 @@ QVector<QSharedPointer<Statement> > Plot::create(int ln, const QString &codeline
     consumeSpace(plot_body);
 
     // do we have a continuous keyword and nothing else?
-    if(codeline.startsWith(Keywords::KW_CONTINUOUS))
+    if(codeline.startsWith(Keywords::KW_CONTINUOUS) || fnai == Keywords::KW_CONTINUOUS)
     {
         plotData->continuous = true;
         plot_body = plot_body.mid(Keywords::KW_CONTINUOUS.length());
@@ -135,14 +135,19 @@ QVector<QSharedPointer<Statement> > Plot::create(int ln, const QString &codeline
     };
 
     // over keyword
-    if(plot_body.startsWith(Keywords::KW_OVER))
+    if(plot_body.startsWith(Keywords::KW_OVER) || fnai == Keywords::KW_OVER)
     {
         resolveOverKeyword(plot_body, plotData, plotData.get());
     }
     else
-    if(plot_body.startsWith(Keywords::KW_COUNTS))
+    if(plot_body.startsWith(Keywords::KW_COUNTS) || fnai == Keywords::KW_COUNTS)
     {
         resolveCountsKeyword(plot_body, plotData, plotData.get());
+    }
+
+    if(!plot_body.isEmpty() && plot_body.indexOf("]") != -1)
+    {
+        plotData->plotTarget = funToPlot + "[" + plot_body;
     }
 
     result.append(plotData);

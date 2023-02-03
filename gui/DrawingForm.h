@@ -30,6 +30,7 @@ public:
     void setView(ViewType);
     QVector<QPointF> drawPlot(QSharedPointer<Plot> plot);
     void drawPoint(double x, double y);
+    void drawLine(double x1, double y1, double x2, double y2);
     void setDrawingPen(int r, int g, int b, int a, int s);
     void setPixelSize(size_t s);
     void reset();

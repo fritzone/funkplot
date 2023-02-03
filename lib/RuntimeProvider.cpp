@@ -1,5 +1,6 @@
 #include "RuntimeProvider.h"
 #include "ArrayAssignment.h"
+#include "Parametric.h"
 #include "PointArrayAssignment.h"
 #include "Plot.h"
 #include "CodeEngine.h"
@@ -20,15 +21,15 @@ const QString STR_DEFAULT_FOR_STEP = QString::number(DEFAULT_FOR_STEP);
 const QString DTR_DEFAULT_RANGE_STEP = QString::number(DEFAULT_RANGE_STEP, 'f', 2 );
 RuntimeProvider* RuntimeProvider::m_instance = nullptr;
 
-RuntimeProvider::RuntimeProvider(CB_ErrorReporter erp, CB_StringPrinter sp, CB_PointDrawer pd, CB_StatementTracker str, CB_PenSetter ps, CB_PlotDrawer pld) :
-    m_numericVariables(), m_errorReporter(erp), m_pointDrawer(pd), m_statementTracker(str), m_penSetter(ps), m_plotDrawer(pld), m_stringPrinter(sp)
+RuntimeProvider::RuntimeProvider(CB_ErrorReporter erp, CB_StringPrinter sp, CB_PointDrawer pd, CB_LineDrawer ld, CB_StatementTracker str, CB_PenSetter ps, CB_PlotDrawer pld) :
+    m_numericVariables(), m_errorReporter(erp), m_pointDrawer(pd), m_lineDrawer(ld), m_statementTracker(str), m_penSetter(ps), m_plotDrawer(pld), m_stringPrinter(sp)
 {
     m_instance = this;
     populateBuiltinFunctions();
 }
 
-RuntimeProvider::RuntimeProvider(std::tuple<CB_ErrorReporter, CB_StringPrinter, CB_PointDrawer, CB_StatementTracker, CB_PenSetter, CB_PlotDrawer> p) :
-    RuntimeProvider(std::get<0>(p),std::get<1>(p),std::get<2>(p),std::get<3>(p),std::get<4>(p), std::get<5>(p))
+RuntimeProvider::RuntimeProvider(std::tuple<CB_ErrorReporter, CB_StringPrinter, CB_PointDrawer, CB_LineDrawer, CB_StatementTracker, CB_PenSetter, CB_PlotDrawer> p) :
+    RuntimeProvider(std::get<0>(p), std::get<1>(p), std::get<2>(p), std::get<3>(p), std::get<4>(p), std::get<5>(p), std::get<6>(p))
 {
     m_instance = this;
     populateBuiltinFunctions();
@@ -69,13 +70,15 @@ double RuntimeProvider::value(const std::string &s)
 double RuntimeProvider::value(const std::string &obj, const std::string &attr)
 {
     auto a = getAssignment(QString::fromStdString(obj));
-
+    if(!a)
+    {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
     auto fcp = a->fullCoordProvider(this);
     if( std::get<0>(fcp) && std::get<1>(fcp) )
     {
-        IndexedAccess* ia = nullptr; Assignment* aa = nullptr;
-        if(attr == "x") return std::get<0>(fcp)->Calculate(this, ia, aa);
-        if(attr == "y") return std::get<1>(fcp)->Calculate(this, ia, aa);
+        if(attr == "x") return std::get<0>(fcp)->Calculate();
+        if(attr == "y") return std::get<1>(fcp)->Calculate();
     }
 
     return std::numeric_limits<double>::quiet_NaN();
@@ -112,11 +115,11 @@ QSharedPointer<Function> RuntimeProvider::getNameFunctionOrAssignment(const QStr
     }
 
     // first, the user defined functions
-    auto it = std::find_if(functions.begin(), functions.end(), [&name](QSharedPointer<FunctionDefinition> f) -> bool {
+    auto it = std::find_if(m_functions.begin(), m_functions.end(), [&name](QSharedPointer<FunctionDefinition> f) -> bool {
         return f->f->get_name() == name.toStdString();
     });
 
-    if(it != functions.end())
+    if(it != m_functions.end())
     {
         result = ((*it)->f);
     }
@@ -125,7 +128,7 @@ QSharedPointer<Function> RuntimeProvider::getNameFunctionOrAssignment(const QStr
     if(!result)
     {
         // second: or an assignment bound to a function
-        for(const auto& adef : qAsConst(assignments))
+        for(const auto& adef : qAsConst(m_assignments))
         {
             if(adef->varName == name)
             {
@@ -133,6 +136,13 @@ QSharedPointer<Function> RuntimeProvider::getNameFunctionOrAssignment(const QStr
                 {
                     result = getNameFunctionOrAssignment(adef->providedFunction(), assignment);
                     if(result)
+                    {
+                        assignment = adef;
+                        break;
+                    }
+
+                    auto pf = getParametricFunction(adef->providedFunction());
+                    if(pf)
                     {
                         assignment = adef;
                         break;
@@ -171,7 +181,7 @@ void RuntimeProvider::printString(const QString &s)
 
 bool RuntimeProvider::resolveAsPoint(QSharedPointer<Plot> plot)
 {
-    for(const auto& adef : qAsConst(assignments))
+    for(const auto& adef : qAsConst(m_assignments))
     {
         if(plot->plotTarget == adef->varName || plot->plotTarget + ":" == adef->varName)
         {
@@ -180,9 +190,19 @@ bool RuntimeProvider::resolveAsPoint(QSharedPointer<Plot> plot)
             auto y_provider = std::get<1>(fcp);
             if( x_provider && y_provider )
             {
-                IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-                double x = std::get<0>(fcp)->Calculate(this, ia, a);
-                double y = std::get<1>(fcp)->Calculate(this, ia, a);
+                double x = std::get<0>(fcp)->Calculate();
+                double y = std::get<1>(fcp)->Calculate();
+
+                if(plot->polarPlot)
+                {
+                    // need to convert the polar coordinate (x, y) to ccartesizan ones, that can be plotted
+
+                    double carX = y * cos( x );
+                    double carY = y * sin( x );
+
+                    x = carX;
+                    y = carY;
+                }
 
                 m_pointDrawer(x, y);
 
@@ -199,9 +219,9 @@ bool RuntimeProvider::resolveAsIndexedPlotDrawing(QSharedPointer<Plot> plot, QSh
     // try it as an indexed, hopefully that will work
     auto tf = Function::temporaryFunction(plot->plotTarget, assignment.get());
     IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-    double v = tf->Calculate(this, ia, a);
+    auto v = tf->Calculate(this, ia, a);
 
-    if(v == std::numeric_limits<double>::quiet_NaN() && !ia)
+    if(!v.has_value() && !ia)
     {
         reportError(plot->lineNumber,  ERRORCODE(15), "Invalid data to plot: " + plot->plotTarget);
     }
@@ -226,6 +246,17 @@ bool RuntimeProvider::resolveAsIndexedPlotDrawing(QSharedPointer<Plot> plot, QSh
                     double x = assignment->precalculatedPoints[ia->index].x();
                     double y = assignment->precalculatedPoints[ia->index].y();
 
+                    if(plot->polarPlot)
+                    {
+                        // need to convert the polar coordinate (x, y) to ccartesizan ones, that can be plotted
+
+                        double carX = y * cos( x );
+                        double carY = y * sin( x );
+
+                        x = carX;
+                        y = carY;
+                    }
+
                     m_pointDrawer(x, y);
                 }
                 else
@@ -242,6 +273,17 @@ bool RuntimeProvider::resolveAsIndexedPlotDrawing(QSharedPointer<Plot> plot, QSh
                 {
                     double x = assignment->precalculatedPoints[ia->index].x();
                     double y = assignment->precalculatedPoints[ia->index].y();
+
+                    if(plot->polarPlot)
+                    {
+                        // need to convert the polar coordinate (x, y) to ccartesizan ones, that can be plotted
+
+                        double carX = y * cos( x );
+                        double carY = y * sin( x );
+
+                        x = carX;
+                        y = carY;
+                    }
 
                     m_pointDrawer(x, y);
                 }
@@ -264,6 +306,14 @@ bool RuntimeProvider::resolveAsIndexedPlotDrawing(QSharedPointer<Plot> plot, QSh
 
 bool RuntimeProvider::resolveAsPrecalculatedDrawing(QSharedPointer<Plot> plot, QSharedPointer<Assignment> assignment)
 {
+    bool first = true;
+    double px = 0, py = 0; // previous x,y
+    if(plot->continuous && assignment->precalculatedPoints.size() > 0)
+    {
+        px = assignment->precalculatedPoints.at(0).x();
+        py = assignment->precalculatedPoints.at(0).y();
+    }
+
     if(!assignment->precalculatedSetForce)
     {
         return false;
@@ -273,8 +323,35 @@ bool RuntimeProvider::resolveAsPrecalculatedDrawing(QSharedPointer<Plot> plot, Q
     {
         double x = assignment->precalculatedPoints[i].x();
         double y = assignment->precalculatedPoints[i].y();
+        if(plot->polarPlot)
+        {
+            // need to convert the polar coordinate (x, y) to ccartesizan ones, that can be plotted
 
-        m_pointDrawer(x, y);
+            double carX = y * cos( x );
+            double carY = y * sin( x );
+
+            x = carX;
+            y = carY;
+        }
+        if(plot->continuous)
+        {
+            if(first)
+            {
+                px = x;
+                py = y;
+                first = false;
+            }
+            else
+            {
+                m_lineDrawer(px, py, x, y);
+                px = x;
+                py = y;
+            }
+        }
+        else
+        {
+            m_pointDrawer(x, y);
+        }
     }
 
     return true;
@@ -282,13 +359,14 @@ bool RuntimeProvider::resolveAsPrecalculatedDrawing(QSharedPointer<Plot> plot, Q
 
 void RuntimeProvider::reset()
 {
-    plots.clear();
-    functions.clear();
+    m_plots.clear();
+    m_functions.clear();
+    m_parametricFunctions.clear();
     populateBuiltinFunctions();
 
-    assignments.clear();
+    m_assignments.clear();
     m_setts.clear();
-    statements.clear();
+    m_statements.clear();
     m_numericVariables.clear();
     m_allVariables.clear();
     setPen(0, 0, 0, 255);
@@ -304,8 +382,8 @@ bool RuntimeProvider::parse(const QStringList& codelines)
 {
     m_codelines = codelines;
     m_codelinesSize = m_codelines.size();
-    ce.reset(new CodeEngine(codelines, this));
-    return ce->parse();
+    m_codeEngine.reset(new CodeEngine(codelines, this));
+    return m_codeEngine->parse();
 }
 
 void RuntimeProvider::addOrUpdateAssignment(QSharedPointer<Assignment> a)
@@ -334,15 +412,15 @@ void RuntimeProvider::addOrUpdateAssignment(QSharedPointer<Assignment> a)
 
                 else
                 {
-                    assignments.removeAll(pa); // we have a more specialized assignment to this point, remove the weaker
-                    assignments.append(a);
+                    m_assignments.removeAll(pa); // we have a more specialized assignment to this point, remove the weaker
+                    m_assignments.append(a);
                 }
             }
         }
     }
     else
     {
-        assignments.append(a);
+        m_assignments.append(a);
     }
 }
 
@@ -387,7 +465,7 @@ QString RuntimeProvider::typeOfVariable(const char *n)
     }
 
     // this is a point/array assiogned variable, held in the assignments
-    for(const auto& adef : qAsConst(assignments))
+    for(const auto& adef : qAsConst(m_assignments))
     {
         if(adef->varName == n && !m_allVariables.contains(n))
         {
@@ -411,7 +489,12 @@ QString RuntimeProvider::typeOfVariable(const QString &s)
 
 void RuntimeProvider::addFunction(QSharedPointer<FunctionDefinition> fd)
 {
-    functions.push_back(fd);
+    m_functions.push_back(fd);
+}
+
+void RuntimeProvider::addParametricFunction(QSharedPointer<Parametric> pfd)
+{
+    m_parametricFunctions.append(pfd);
 }
 
 void RuntimeProvider::addVariable(const QString &name, const QString &type)
@@ -436,8 +519,7 @@ double RuntimeProvider::getIndexedVariableValue(const char *n, int index)
             throw syntax_error_exception(ERRORCODE(55), "Index out of bounds for <b>%s</b>. Requested <b>%s</b>, available: <b>%s</b>", n, index, arrayAssignment->m_elements.size());
         }
 
-        IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-        return arrayAssignment->m_elements[index]->Calculate(this, ia, a);
+        return arrayAssignment->m_elements[index]->Calculate();
     }
     else
     {
@@ -470,24 +552,24 @@ const QString &RuntimeProvider::getCurrentPalette() const
 
 QVector<QSharedPointer<Statement> > &RuntimeProvider::getStatements()
 {
-    return statements;
+    return m_statements;
 }
 
 const QVector<QSharedPointer<FunctionDefinition> > &RuntimeProvider::getFunctions() const
 {
-    return functions;
+    return m_functions;
 }
 
 void RuntimeProvider::debugVariables()
 {
-    return;
+#ifdef DEBUG
     for(const auto& [n, v]:m_numericVariables.toStdMap())
     {
         qDebug() << "N=" << n << "V=" <<v;
     }
 
     // this is a point/array assiogned variable, held in the assignments
-    for(const auto& adef : qAsConst(assignments))
+    for(const auto& adef : qAsConst(m_assignments))
     {
         qDebug() << adef->varName << "@" << (void*)adef.data() << "D:" << domainOfVariable(adef->varName) << " ST:" << adef->statement;
     }
@@ -496,7 +578,7 @@ void RuntimeProvider::debugVariables()
     {
         qDebug() << "A N=" << n << "V=" <<v;
     }
-
+#endif
 }
 
 void RuntimeProvider::populateBuiltinFunctions()
@@ -524,13 +606,24 @@ void RuntimeProvider::setShowCoordinates(bool newShowCoordinates)
     m_showCoordinates = newShowCoordinates;
 }
 
+void RuntimeProvider::setupConnections(QObject *o)
+{
+    QObject::connect(this, SIGNAL(rotationAngleChange(double)), o, SLOT(on_rotationAngleChange(double)));
+    QObject::connect(this, SIGNAL(zoomFactorChange(double)), o, SLOT(on_zoomFactorChange(double)));
+    QObject::connect(this, SIGNAL(gridChange(bool)), o, SLOT(on_gridChange(bool)));
+    QObject::connect(this, SIGNAL(coordEndYChange(double)), o, SLOT(on_coordEndYChange(double)));
+    QObject::connect(this, SIGNAL(coordStartYChange(double)), o, SLOT(on_coordStartYChange(double)));
+    QObject::connect(this, SIGNAL(coordEndXChange(double)), o, SLOT(on_coordEndXChange(double)));
+    QObject::connect(this, SIGNAL(coordStartXChange(double)), o, SLOT(on_coordStartXChange(double)));
+}
+
 void RuntimeProvider::execute()
 {
     m_running = true;
     int lineNo = 0;
     try
     {
-        for(const auto& stmt : qAsConst(statements))
+        for(const auto& stmt : qAsConst(m_statements))
         {
             if(!m_running)
             {
@@ -596,6 +689,8 @@ void RuntimeProvider::resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPoin
 {
     QSharedPointer<Function> stepFun = nullptr;
 
+    counted &= plot->counted;
+
     if(assignment)
     {
         if(!plot->start)
@@ -610,14 +705,12 @@ void RuntimeProvider::resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPoin
             }
             else
             {
-                IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-                plotStart = assignment->startValueProvider()->Calculate(this, ia, a);
+                plotStart = assignment->startValueProvider()->Calculate();
             }
         }
         else
         {
-            IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-            plotStart = plot->start->Calculate(this, ia, a);
+            plotStart = plot->start->Calculate();
         }
 
         if(!plot->end)
@@ -632,14 +725,12 @@ void RuntimeProvider::resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPoin
             }
             else
             {
-                IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-                plotEnd = assignment->endValueProvider()->Calculate(this, ia, a);
+                plotEnd = assignment->endValueProvider()->Calculate();
             }
         }
         else
         {
-            IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-            plotEnd = plot->end->Calculate(this, ia, a);
+            plotEnd = plot->end->Calculate();
         }
         continuous = assignment->continuous || plot->continuous;
         counted |= assignment->counted;
@@ -650,23 +741,21 @@ void RuntimeProvider::resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPoin
     {
         stepFun = plot->step;
         continuous = plot->continuous;
+
         if(plot->start)
         {
-            IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-            plotStart = plot->start->Calculate(this, ia, a);
+            plotStart = plot->start->Calculate();
         }
 
         if(plot->end)
         {
-            IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-            plotEnd = plot->end->Calculate(this, ia, a);
+            plotEnd = plot->end->Calculate();
         }
     }
 
     if(stepFun)
     {
-        IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-        count = stepFun->Calculate(this, ia, a);
+        count = stepFun->Calculate();
         if(counted)
         {
             if(count > 1)
@@ -682,7 +771,7 @@ void RuntimeProvider::resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPoin
         }
         else
         {
-            stepValue = stepFun->Calculate(this, ia, a);
+            stepValue = stepFun->Calculate();
             qDebug() << "StepValue:" << stepValue;
         }
     }
@@ -692,14 +781,14 @@ void RuntimeProvider::resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPoin
 
 QVector<QSharedPointer<Assignment> >& RuntimeProvider::getAssignments()
 {
-    return assignments;
+    return m_assignments;
 }
 
 QSharedPointer<Assignment> RuntimeProvider::getAssignment(const QString &n)
 {
-    for(int fds_c = assignments.size() - 1; fds_c >= 0; fds_c--)
+    for(int fds_c = m_assignments.size() - 1; fds_c >= 0; fds_c--)
     {
-        QSharedPointer<Assignment> fds = assignments[fds_c];
+        QSharedPointer<Assignment> fds = m_assignments[fds_c];
         if(fds.get()->varName == n)
         {
             return fds;
@@ -709,9 +798,22 @@ QSharedPointer<Assignment> RuntimeProvider::getAssignment(const QString &n)
     return nullptr;
 }
 
+QSharedPointer<Parametric> RuntimeProvider::getParametricFunction(const QString &n)
+{
+    for(const auto& pf : m_parametricFunctions)
+    {
+        if(pf->funName == n)
+        {
+            return pf;
+        }
+    }
+
+    return nullptr;
+}
+
 QSharedPointer<Function> RuntimeProvider::getFunction(const QString &n)
 {
-    for(const auto& fds : qAsConst(this->functions))
+    for(const auto& fds : qAsConst(this->m_functions))
     {
         if(fds.data()->f->get_name() == n.toStdString())
         {
@@ -739,7 +841,7 @@ std::vector<std::string> RuntimeProvider::getFunctionNames() const
 {
     std::vector<std::string> function_names;
 
-    for(const auto& fds : this->functions)
+    for(const auto& fds : this->m_functions)
     {
         function_names.push_back(fds.data()->f->get_name());
     }
@@ -750,7 +852,7 @@ std::vector<std::string> RuntimeProvider::getFunctionNames() const
 std::vector<std::string> RuntimeProvider::getVariables() const
 {
     std::vector<std::string> variables;
-    for(const auto& fds : this->assignments)
+    for(const auto& fds : this->m_assignments)
     {
         variables.push_back(fds->varName.toStdString());
     }
@@ -789,7 +891,7 @@ std::vector<std::string> RuntimeProvider::getAllVariables() const
 
 QSharedPointer<CodeEngine> RuntimeProvider::getCodeEngine() const
 {
-    return ce;
+    return m_codeEngine;
 }
 
 bool RuntimeProvider::hasVariable(const QString &name) const

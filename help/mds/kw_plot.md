@@ -56,3 +56,17 @@ done
 Generating the following plot:
 
 <img src="/home/fld/work/p/funkplot/help/mds/plot_3.png" alt="image-20221114103240152" style="zoom:50%;" />
+
+### Plotting polar data
+
+**funkplot** can interpret the data to be plotted as a series of polar data if you precede it with the `polar` keyword. The following program:
+
+```
+set pixel size 3
+function f(x) = 5* sin(3 * x) 
+polar plot f  over (0, 6.28) continuous
+```
+
+will generate the following graph:
+
+<img src="/home/fld/work/p/funkplot/help/mds/imgs/plot_3.png" alt="image-20230120140436857" style="zoom:33%;" />

@@ -73,6 +73,18 @@
 		}
 		,
 		{
+		"displayName":"Functions",
+		"name":"Functions",
+		"content":[
+		  {
+			"itemType":"action",
+			"type":"instantPopup",
+			"name":"actionFunctions"
+		  }
+		]
+		}
+		,
+		{
 		"displayName":"View",
 		"name":"View",
 		"content":[

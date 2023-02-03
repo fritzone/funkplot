@@ -10,6 +10,11 @@ set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/AboutDialog.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/AboutDialog.h
 	${CMAKE_CURRENT_SOURCE_DIR}/AboutDialog.ui
+	${CMAKE_CURRENT_SOURCE_DIR}/Builtin.h
+	${CMAKE_CURRENT_SOURCE_DIR}/Builtin.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/BuiltinFunctionDetailer.h
+	${CMAKE_CURRENT_SOURCE_DIR}/BuiltinFunctionDetailer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/BuiltinFunctionDetailer.ui
 	${CMAKE_CURRENT_SOURCE_DIR}/ClickableLabel.h
 	${CMAKE_CURRENT_SOURCE_DIR}/ClickableLabel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/CodeEditorTabPage.h
@@ -35,6 +40,8 @@ set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/MainWindow.h
 	${CMAKE_CURRENT_SOURCE_DIR}/MainWindow.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/MainWindow.ui
+	${CMAKE_CURRENT_SOURCE_DIR}/MouseSensitiveLabel.h
+	${CMAKE_CURRENT_SOURCE_DIR}/MouseSensitiveLabel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/MyGraphicsView.h
 	${CMAKE_CURRENT_SOURCE_DIR}/MyGraphicsView.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/TextEditWithCodeCompletion.h
@@ -53,6 +60,7 @@ set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/ViewType.h
 
 	${CMAKE_CURRENT_SOURCE_DIR}/main.qrc
+	${CMAKE_CURRENT_SOURCE_DIR}/builtins.qrc
 
 	${APP_ICON_RESOURCE_WINDOWS}
 )

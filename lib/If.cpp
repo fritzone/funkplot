@@ -9,8 +9,7 @@ bool If::execute(RuntimeProvider *rp)
     {
 
         rp->setCurrentStatement(this->statement);
-        IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-        auto v = expression->Calculate(rp, ia, a);
+        auto v = expression->Calculate();
         if(v != 0.0)
         {
             for(const auto& stmt : qAsConst(ifBody))

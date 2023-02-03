@@ -147,6 +147,13 @@ char *isfunc(const char *s, RuntimeProvider* rp)
         return s2;
     }
 
+    auto fp = rp->getParametricFunction(s2);
+    if(fp)
+    {
+        return s2;
+    }
+
+
     delete[] s2;
     return nullptr;
 }

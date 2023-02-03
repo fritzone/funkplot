@@ -2,7 +2,10 @@
 #define _FUNCTION_H_
 
 #include "IndexedAccess.h"
+#include "ArithmeticAssignment.h"
 #include "util.h"
+#include "ArithmeticAssignmentToArrayElement.h"
+#include "PointDefinitionAssignmentToOtherPoint.h"
 #include <iomanip>
 #include <sstream>
 
@@ -11,6 +14,7 @@
 #include <QString>
 #include <map>
 #include <set>
+#include <optional>
 
 class RuntimeProvider;
 struct Assignment;
@@ -28,15 +32,7 @@ class Function
 {
 public:
 
-    static QSharedPointer<Function> temporaryFunction(const QString& definition, Statement* s);
-    static QSharedPointer<Function> temporaryFunction(const char* definition, Statement* s);
-
-
-	template<class T> static QSharedPointer<Function> temporaryFunction(T definition, Statement* s)
-	{
-        return Function::temporaryFunction(QString::number(definition, 'f', 6), s);
-	}
-
+    Function() = default;
     Function(const char *expr, Statement *s);
     virtual ~Function();
 
@@ -45,12 +41,7 @@ public:
 	 */
     void SetVariable(const std::string&varn, double valu);
 
-	/*
-	 * This returns the value of the function for the given variables
-	 */
-    double Calculate(RuntimeProvider *rp, IndexedAccess *&ia, Assignment *&a);
-
-    double Calculate();
+    double Calculate(int parFIdx = 1);
 
     const std::string &get_name() const;
 
@@ -59,18 +50,27 @@ public:
     void add_variable(const char*);
 
     const QString &get_funBody() const;
+
+public:
+
+    static QSharedPointer<Function> temporaryFunction(const QString& definition, Statement* s);
+    static QSharedPointer<Function> temporaryFunction(const char* definition, Statement* s);
+
+public:
+
+    template<class T> static QSharedPointer<Function> temporaryFunction(T definition, Statement* s)
+    {
+        return Function::temporaryFunction(QString::number(definition, 'f', 6), s);
+    }
+
+    std::string getPreverified() const;
+
 private:
-    //the name of the function. Ex.: f
-    std::string m_name;
-    //the variables of the function. Ex: "x" -> 12
-    std::map<std::string, double> vars;
 
-    QString funBody;
+    Function(const Function&) = delete;
+    const Function& operator = (const Function&) = delete;
 
-	//the tree of the function
-	tree* root;
-
-	/*
+    /*
 	 * Eliminates all spaces from the string, also it puts (0-1)* instead of a - sign
 	 */
     std::string preverify_formula(char *expr);
@@ -78,10 +78,10 @@ private:
 	/*
 	 * The dirty job maker :))
 	 */
-    void doit(const char *expr, tree* node, RuntimeProvider *rp);
+    void interpret(const char *expr, tree* node, RuntimeProvider *rp);
 
 	//look for a level 0 additive or multiplicative operator
-    int l0ops(const char *expr, char op1, char op2, char op3 = 0);
+    int l0ops(const char *expr, char op1, char op2, char op3 = 0, char op4 = 0);
 
 	//looks for a lvel 0 additive operator
     int l0add(const char *expr);
@@ -99,14 +99,14 @@ private:
 	/*
 	 * This calculates the value of the expression, for defined values, and also numbers
 	 */
-    double calc(tree*node, RuntimeProvider *rp, IndexedAccess*& ia, Assignment *&a);
+    std::optional<double> calc(tree*node, RuntimeProvider *rp, IndexedAccess*& ia, Assignment *&a, int parFIdx);
 
     void free_tree(tree* node);
 
 	/*
 	 * This depending on s returns the result of the operation betwen op1, op2
 	 */
-    double op(const std::string &s, double op1, double op2, RuntimeProvider *rp);
+    std::optional<double> op(const std::string &s, double op1, double op2, RuntimeProvider *rp, int parFIdx);
 
 	/*
 	 * returns true if s is a defined variable or a number
@@ -118,6 +118,28 @@ private:
 
     bool breakUpAsLogicOps(const char *expr, tree *node, const char* o, RuntimeProvider *rp);
 
+    /*
+     * This returns the value of the function for the given variables
+     */
+    std::optional<double> Calculate(RuntimeProvider *rp, IndexedAccess *&ia, Assignment *&a, int parFIdx = 1);
+    friend bool ArithmeticAssignment::execute(RuntimeProvider*);
+    friend bool ArithmeticAssignmentToArrayElement::execute(RuntimeProvider *);
+    friend bool PointDefinitionAssignmentToOtherPoint::execute(RuntimeProvider *rp);
+    friend class RuntimeProvider;
+
+
+private:
+
+    //the name of the function. Ex.: f
+    std::string m_name;
+    //the variables of the function. Ex: "x" -> 12
+    std::map<std::string, double> vars;
+
+    QString funBody;
+
+    //the tree of the function
+    tree* root = nullptr;
+    std::string preverified;
 };
 
 #endif

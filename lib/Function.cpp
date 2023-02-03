@@ -1,4 +1,5 @@
 #include "Function.h"
+#include "Parametric.h"
 #include "util.h"
 #include "RuntimeProvider.h"
 #include <QDebug>
@@ -7,6 +8,7 @@
 #include <memory>
 #include <set>
 #include <charconv>
+#include <optional>
 
 Function::Function(const char *expr, Statement* s) : funBody(expr)
 {
@@ -58,6 +60,7 @@ Function::Function(const char *expr, Statement* s) : funBody(expr)
     // now begin translating the part two of the formula
     char* expr_p2 = after(eqpos, expr);
     std::string sc = preverify_formula(expr_p2);
+    preverified = sc;
     char* cexpr_p2 = strdup(sc.c_str());
     // first: a new tree will be created
     root = new tree;
@@ -65,7 +68,7 @@ Function::Function(const char *expr, Statement* s) : funBody(expr)
     root->right = nullptr;
     root->stmt = s;
 
-    doit(cexpr_p2, root, RuntimeProvider::get());
+    interpret(cexpr_p2, root, RuntimeProvider::get());
     free(reinterpret_cast<void*>(cexpr_p2));
     delete[] expr_p1;
     delete[] expr_p2;
@@ -84,26 +87,33 @@ void Function::SetVariable(const std::string& varn, double valu)
     vars[sst] = valu;
 }
 
-double Function::Calculate(RuntimeProvider *rp, IndexedAccess*& ia, Assignment*& a)
+std::optional<double> Function::Calculate(RuntimeProvider *rp, IndexedAccess*& ia, Assignment*& a, int parFIdx)
 {
-    double res = calc(root, rp, ia, a);
+    auto res = calc(root, rp, ia, a, parFIdx);
     if(ia != nullptr)
     {
         res =rp->getIndexedVariableValue(ia->indexedVariable.toStdString().c_str(), ia->index);
-        if(!std::isnan(res))
+        if(!std::isnan(res.value()))
         {
             delete ia;
             ia = nullptr;
+            return {};
         }
     }
     return res;
 }
 
-double Function::Calculate()
+std::string Function::getPreverified() const
+{
+    return preverified;
+}
+
+double Function::Calculate(int parFIdx)
 {
     IndexedAccess* ia = nullptr;
     Assignment* a = nullptr;
-    return Calculate(RuntimeProvider::get(), ia, a);
+    auto v = Calculate(RuntimeProvider::get(), ia, a, parFIdx);
+    return v ? v.value() : std::numeric_limits<double>::quiet_NaN();
 }
 
 const std::string &Function::get_name() const
@@ -153,14 +163,21 @@ std::string Function::preverify_formula(char* expr)
                 }
             }
         }
+        if (expr[i] == '{')
+        {
+            s += "(";
+        }
+        if (expr[i] == '}')
+        {
+            s += ")";
+        }
         if(std::isspace(expr[i]))
         {
             // peek forward, see if we have a keyword there
             int j = i;
             while(isspace(expr[j])) j++;
-            int firstNonSpace = j;
             std::string peekWord;
-            while(isalnum(expr[j]))
+            while(isalnum(expr[j]) || isoperator(expr[j]))
             {
                 peekWord += expr[j]; j++;
             }
@@ -175,7 +192,7 @@ std::string Function::preverify_formula(char* expr)
     return s;
 }
 
-void Function::doit(const char* expr, tree* node, RuntimeProvider* rp)
+void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
 {
 
     // or check comes before "and" check, because and has higher priority
@@ -200,11 +217,11 @@ void Function::doit(const char* expr, tree* node, RuntimeProvider* rp)
         node->left = new tree;
         node->left->parent = node;
 
-        doit(beforOp, node->left, rp);
+        interpret(beforOp, node->left, rp);
 
         node->right = new tree;
         node->right->parent = node;
-        doit(afterOp, node->right, rp);
+        interpret(afterOp, node->right, rp);
         
         return;
     }    
@@ -227,12 +244,12 @@ void Function::doit(const char* expr, tree* node, RuntimeProvider* rp)
         node->left = new tree;
         node->left->parent = node;
 
-        doit(beforer, node->left, rp);
+        interpret(beforer, node->left, rp);
         delete[] beforer;
 
         node->right = new tree;
         node->right->parent = node;
-        doit(afterer, node->right, rp);
+        interpret(afterer, node->right, rp);
         delete[] afterer;
     }
     else
@@ -250,12 +267,40 @@ void Function::doit(const char* expr, tree* node, RuntimeProvider* rp)
                     delete[] expr2;
                     throw syntax_error_exception(ERRORCODE(20), "Syntax error in statement: <b>%s</b>. Unmatched empty parenthesis", expr);
                 }
-                doit(expr2, node, rp);
+                interpret(expr2, node, rp);
                 delete[] expr2;
             }
             else
             {
-                throw syntax_error_exception(ERRORCODE(21), "Possible error in statement: <b>%s</b>. Not found enclosing parenthesis", expr);
+                int l0pwr = l0ops(expr, '^', '^', '^');
+                if(l0pwr != -1)
+                {
+                    node->info = "^";
+                    char* beforer2 = before(l0pwr, expr);
+                    if (strlen(beforer2) == 0)
+                    {
+                        throw syntax_error_exception(ERRORCODE(28), "Possible error in statement:<b>%s</b>. No data before position %i (%c)", expr, zlop, expr[l0pwr]);
+                    }
+                    char* afterer2 = after(l0pwr, expr);
+                    if (strlen(afterer2) == 0)
+                    {
+                        throw syntax_error_exception(ERRORCODE(29), "Possible error in statement: <b>%s</b>. No data after position %i (%c)", expr, zlop, expr[l0pwr]);
+                    }
+                    node->left = new tree;
+                    node->left->parent = node;
+
+                    interpret(beforer2, node->left, rp);
+                    delete[] beforer2;
+
+                    node->right = new tree;
+                    node->right->parent = node;
+                    interpret(afterer2, node->right, rp);
+                    delete[] afterer2;
+                }
+                else
+                {
+                    throw syntax_error_exception(ERRORCODE(21), "Possible error in statement: <b>%s</b>. Not found enclosing parenthesis", expr);
+                }
             }
 
         }
@@ -296,11 +341,11 @@ void Function::doit(const char* expr, tree* node, RuntimeProvider* rp)
 
                     node->left = new tree;
                     node->left->parent = node;
-                    doit(p1.c_str(), node->left, rp);
+                    interpret(p1.c_str(), node->left, rp);
 
                     node->right = new tree;
                     node->right->parent = node;
-                    doit(p2.c_str(), node->right, rp);
+                    interpret(p2.c_str(), node->right, rp);
                 }
                 else
                 {
@@ -330,17 +375,17 @@ void Function::doit(const char* expr, tree* node, RuntimeProvider* rp)
                         {
                             throw syntax_error_exception(ERRORCODE(26), "Possible error in statement: <b>%s</b> Improper power expression (%s)", expr, expr3);
                         }
-                        doit(power.c_str(), node->right, rp);
+                        interpret(power.c_str(), node->right, rp);
                     }
 
-                    doit(expr3, node->left, rp);
+                    interpret(expr3, node->left, rp);
                 }
 
             }
-            else if (expr[strlen(expr) - 1] == ')')
-            {
-                throw syntax_error_exception(ERRORCODE(27), "Possible error in formula: <b>%s</b>. This does not look like a valid expression.", expr);
-            }
+//            else if (expr[strlen(expr) - 1] == ')')
+//            {
+//                throw syntax_error_exception(ERRORCODE(27), "Possible error in formula: <b>%s</b>. This does not look like a valid expression.", expr);
+//            }
             else
                 if(strchr(expr, '[') && strchr (expr, ']')) // is this an indexed expression=, like a[2]
                 {
@@ -352,8 +397,8 @@ void Function::doit(const char* expr, tree* node, RuntimeProvider* rp)
                     node->left->parent = node;
                     node->right = new tree;
                     node->right->parent = node;
-                    doit(indxd.c_str(), node->left, rp);
-                    doit(indx.c_str(), node->right, rp);
+                    interpret(indxd.c_str(), node->left, rp);
+                    interpret(indx.c_str(), node->right, rp);
                 }
                 else
                 {
@@ -375,12 +420,12 @@ void Function::doit(const char* expr, tree* node, RuntimeProvider* rp)
                         node->left = new tree;
                         node->left->parent = node;
 
-                        doit(beforer2, node->left, rp);
+                        interpret(beforer2, node->left, rp);
                         delete[] beforer2;
 
                         node->right = new tree;
                         node->right->parent = node;
-                        doit(afterer2, node->right, rp);
+                        interpret(afterer2, node->right, rp);
                         delete[] afterer2;
                     }
                     else
@@ -479,7 +524,7 @@ int Function::l0logic(const char *expr, std::string & zlop, const std::string& r
 }
 
 
-int Function::l0ops(const char* expr, char op1, char op2, char op3)
+int Function::l0ops(const char* expr, char op1, char op2, char op3, char op4)
 {
     unsigned int i = 0, level = 0;
     while (i < strlen(expr))
@@ -488,7 +533,7 @@ int Function::l0ops(const char* expr, char op1, char op2, char op3)
             level++;
         if (expr[i] == ')' || expr[i] == ']')
             level--;
-        if ((expr[i] == op1 || expr[i] == op2 || (expr[i] == op3 && op3) ) && level == 0)
+        if ((expr[i] == op1 || expr[i] == op2 || (expr[i] == op3 && op3) || (expr[i] == op4 && op4) ) && level == 0)
             return i;
         i++;
     }
@@ -505,7 +550,7 @@ int Function::l0mlt(const char* expr)
     return l0ops(expr, '*', '/', '%');
 }
 
-double Function::calc(tree* node, RuntimeProvider* rp, IndexedAccess*& ia, Assignment*& a)
+std::optional<double> Function::calc(tree* node, RuntimeProvider* rp, IndexedAccess*& ia, Assignment*& a, int parFIdx)
 {
     if (node->left)
     {
@@ -516,7 +561,7 @@ double Function::calc(tree* node, RuntimeProvider* rp, IndexedAccess*& ia, Assig
             auto it = std::find_if(supported_functions.begin(), supported_functions.end(), [node](fun_desc_solve fds){ return fds.name == node->info && fds.standalone_plottable;});
             if(it == supported_functions.end())
             {
-                auto r = calc(node->right, rp, ia, a);
+                auto r = calc(node->right, rp, ia, a, parFIdx);
                 if(node->info == "[]")
                 {
                     // do this only if node->left->info is a point type variable
@@ -526,33 +571,33 @@ double Function::calc(tree* node, RuntimeProvider* rp, IndexedAccess*& ia, Assig
 
                         ia = new IndexedAccess;
                         ia->indexedVariable = QString::fromStdString(node->left->info);
-                        ia->index = r;
+                        ia->index = r.value();
 
                         return std::numeric_limits<double>::quiet_NaN();
                     }
                     else
                     {
-                        return rp->getIndexedVariableValue(node->left->info.c_str(), r);
+                        return rp->getIndexedVariableValue(node->left->info.c_str(), r.value());
                     }
                 }
                 else
                 {
-                    auto l = calc(node->left, rp, ia, a);
-                    return op(node->info, l, r, rp);
+                    auto l = calc(node->left, rp, ia, a, parFIdx);
+                    return op(node->info, l.value(), r.value(), rp, parFIdx);
                 }
             }
             else
             {
-                double the_value = op(node->info, calc(node->left, rp, ia, a), 0, rp);
+                double the_value = op(node->info, calc(node->left, rp, ia, a, parFIdx).value(), 0, rp, parFIdx).value();
                 // let's calculate the power amount of it
-                double the_power = calc(node->right, rp, ia, a);
+                double the_power = calc(node->right, rp, ia, a, parFIdx).value();
                 return pow(the_value, the_power);
             }
         }
         else
         {
             // this is a plain old function calculation
-            return op(node->info, calc(node->left, rp, ia, a), 0, rp);
+            return op(node->info, calc(node->left, rp, ia, a, parFIdx).value(), 0, rp, parFIdx);
         }
     }
     else
@@ -578,7 +623,7 @@ double Function::calc(tree* node, RuntimeProvider* rp, IndexedAccess*& ia, Assig
                     // find the root of this:
                     tree* t = node;
                     while(t && t->parent) t = t->parent;
-                    throw syntax_error_exception(ERRORCODE(30), "Possible error in <b>%s</b> statement: <b>%s</b> is not understood.", t->stmt->statement.toLocal8Bit().data(), node->info);
+                    throw syntax_error_exception(ERRORCODE(30), "Possible error in <b>%s</b> expression: <b>%s</b> is not understood.", node->info, node->info);
                 }
             }
         }
@@ -588,12 +633,12 @@ double Function::calc(tree* node, RuntimeProvider* rp, IndexedAccess*& ia, Assig
 
 void Function::free_tree(tree *node)
 {
-    if (node->left)
+    if (node && node->left)
     {
         free_tree(node->left);
     }
 
-    if(node->right)
+    if(node && node->right)
     {
         free_tree(node->right);
     }
@@ -601,7 +646,7 @@ void Function::free_tree(tree *node)
     delete node;
 }
 
-double Function::op(const std::string& s, double op1, double op2, RuntimeProvider* rp)
+std::optional<double> Function::op(const std::string& s, double op1, double op2, RuntimeProvider* rp, int parFIdx)
 {
     auto it = std::find_if(supported_functions.begin(), supported_functions.end(), [s](fun_desc_solve fds){ return fds.name == s;});
     if(it != supported_functions.end())
@@ -609,6 +654,7 @@ double Function::op(const std::string& s, double op1, double op2, RuntimeProvide
         return it->solver(op1, op2);
     }
 
+    {
     // let's see if rp has a function for this
     auto f = rp->getFunction(s.c_str());
     if(f)
@@ -618,12 +664,49 @@ double Function::op(const std::string& s, double op1, double op2, RuntimeProvide
         {
             IndexedAccess* ia = nullptr; Assignment* a = nullptr;
             f->SetVariable(pars[0].c_str(), op1);
-            auto fv = f->Calculate(rp, ia, a);
+            auto fv = f->Calculate(rp, ia, a, parFIdx);
             return fv;
         }
     }
+    }
 
-    return -1;
+    // let's see if rp has a parametric function for this
+    auto pf = rp->getParametricFunction(s.c_str());
+    if(pf)
+    {
+        if(parFIdx == 1)
+        {
+            auto pars = pf->functions.first->get_domain_variables();
+
+            if(pars.size() == 1)
+            {
+                IndexedAccess* ia = nullptr; Assignment* a = nullptr;
+                pf->functions.first->SetVariable(pars[0].c_str(), op1);
+                auto fv = pf->functions.first->Calculate(rp, ia, a, parFIdx);
+                return fv;
+            }
+        }
+        else
+        if(parFIdx == 2)
+        {
+            auto pars = pf->functions.second->get_domain_variables();
+
+            if(pars.size() == 1)
+            {
+                IndexedAccess* ia = nullptr; Assignment* a = nullptr;
+                pf->functions.second->SetVariable(pars[0].c_str(), op1);
+                auto fv = pf->functions.second->Calculate(rp, ia, a, parFIdx);
+                return fv;
+            }
+        }
+        else
+        {
+            throw syntax_error_exception(ERRORCODE(30), "Possible error in <b>%s</b> statement: Not found avalid parametric function.", s.c_str());
+        }
+
+    }
+
+    return {};
 }
 
 int Function::defd(const std::string& s, RuntimeProvider* rp, Assignment*& assig)
@@ -683,11 +766,11 @@ bool Function::breakUpAsLogicOps(const char*expr, tree*node, const char *o, Runt
         node->left = new tree;
         node->left->parent = node;
 
-        doit(beforOp, node->left, rp);
+        interpret(beforOp, node->left, rp);
 
         node->right = new tree;
         node->right->parent = node;
-        doit(afterOp, node->right, rp);
+        interpret(afterOp, node->right, rp);
 
         return true;
     }

@@ -68,26 +68,61 @@ void Assignment::resolvePrecalculatedPointsForIndexedAccessWithFunction(QSharedP
     if(currentCalculatedId != lastPrecalculatedIntervalData)
     {
         Executor<decltype(pointGatherer)> pgex(pointGatherer);
-        lastPrecalculatedIntervalData = pgex.execute(plot,
-                     sharedFromThis(),
-                     funToUse,
-                     [&rp](QSharedPointer<Plot> plot,
-                           QSharedPointer<Assignment> assignment,
-                           bool& continuous,
-                           double& plotStart,
-                           double& plotEnd,
-                           bool& counted,
-                           double& stepValue,
-                           int& count,
-                           bool useDefaultValues)
+
+        // let's see if we have a function or a parametric function
+        if(funToUse)
+        {
+            lastPrecalculatedIntervalData = pgex.execute(plot,
+                         sharedFromThis(),
+                         funToUse,
+                         [&rp](QSharedPointer<Plot> plot,
+                               QSharedPointer<Assignment> assignment,
+                               bool& continuous,
+                               double& plotStart,
+                               double& plotEnd,
+                               bool& counted,
+                               double& stepValue,
+                               int& count,
+                               bool useDefaultValues)
+                        {
+                             rp->resolvePlotInterval(plot, assignment, continuous, plotStart, plotEnd, counted, stepValue, count, useDefaultValues);
+                        },
+                        true,
+                        [&rp, this](int l, int c, QString s) {rp->reportError(lineNumber, c, s); },
+                        -1,
+                        rp,
+                        plot->plotTarget
+            );
+        }
+        else
+        {
+            auto pf = RuntimeProvider::get()->getParametricFunction(plot->plotTarget);
+            if(pf)
+            {
+                lastPrecalculatedIntervalData = pgex.executeParametricFunction(plot,
+                    sharedFromThis(),
+                    pf,
+                    [&rp](QSharedPointer<Plot> plot,
+                          QSharedPointer<Assignment> assignment,
+                          bool& continuous,
+                          double& plotStart,
+                          double& plotEnd,
+                          bool& counted,
+                          double& stepValue,
+                          int& count,
+                          bool useDefaultValues)
                     {
-                         rp->resolvePlotInterval(plot, assignment, continuous, plotStart, plotEnd, counted, stepValue, count, useDefaultValues);
+                        rp->resolvePlotInterval(plot, assignment, continuous, plotStart, plotEnd, counted, stepValue, count, useDefaultValues);
                     },
                     true,
                     [&rp, this](int l, int c, QString s) {rp->reportError(lineNumber, c, s); },
                     -1,
-                    rp
-        );
+                    rp,
+                    plot->plotTarget
+                    );
+            }
+
+        }
 
         if(allPoints.isEmpty())
         {
@@ -95,7 +130,7 @@ void Assignment::resolvePrecalculatedPointsForIndexedAccessWithFunction(QSharedP
         }
 
         precalculatedPoints = allPoints;
-        precalculatedSetForce = false;
+        precalculatedSetForce = true;
     }
 }
 
@@ -114,17 +149,16 @@ void Assignment::dealWithIndexedAssignmentToSomething(RuntimeProvider *rp, Index
                 if(p->precalculatedPoints.isEmpty())
                 {
                     // get the start/end of the "Stepped" object
-                    IndexedAccess* ia = nullptr; Assignment* a = nullptr;
                     auto svp = p->startValueProvider();
-                    double v = svp ? svp->Calculate(rp, ia, a) : -1.0;
+                    double v = svp ? svp->Calculate() : -1.0;
                     auto evp = p->endValueProvider();
-                    double e = evp ? evp->Calculate(rp, ia, a) : 1.0;
+                    double e = evp ? evp->Calculate() : 1.0;
                     auto stepFun = p->step;
                     double stepv = DEFAULT_RANGE_STEP;
 
                     if(stepFun)
                     {
-                        auto count = stepFun->Calculate(rp, ia, a);
+                        auto count = stepFun->Calculate();
                         if(p->counted)
                         {
                             if(count > 1)
@@ -155,9 +189,8 @@ void Assignment::dealWithIndexedAssignmentToSomething(RuntimeProvider *rp, Index
                     {
                         do
                         {
-                            IndexedAccess* ia = nullptr; Assignment* a = nullptr;
                             f->SetVariable(pars[0].c_str(), v);
-                            auto fv = f->Calculate(rp, ia, a);
+                            auto fv = f->Calculate();
                             allPoints.push_back({v, fv});
                             v += stepv;
                             if(stepv < 0.0 && v < e)
@@ -227,8 +260,7 @@ void Assignment::dealWithIndexedAssignmentToSomething(RuntimeProvider *rp, Index
                                              source->varName.toStdString().c_str(), statement.toStdString().c_str(), ia_m->index, arrayAssignment->m_elements.size());
             }
 
-            IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-            double v = arrayAssignment->m_elements[ia_m->index]->Calculate(rp, ia, a);
+            double v = arrayAssignment->m_elements[ia_m->index]->Calculate();
             rp->variables()[varName] = v;
         }
         else
@@ -427,7 +459,14 @@ QVector<QSharedPointer<Statement> > Assignment::create(int ln, const QString &co
                 result.reset(new PointDefinitionAssignmentToOtherPoint(ln, codeline));
                 result->otherPoint = targetProperties; // yeah, almost
                 // if this was an indexed stuff ...
-                if(delimiter == '[') result->otherPoint += "["+ assignment_body;
+                if(delimiter == '[')
+                {
+                    result->otherPoint += "["+ assignment_body;
+                }
+                else
+                {
+                    result->otherPoint += assignment_body;
+                }
                 result->varName = varName;
 
                 RuntimeProvider::get()->addOrUpdateAssignment(result);
@@ -501,7 +540,7 @@ QSharedPointer<Assignment> Assignment::providePointsOfDefinition(int ln, const Q
     result->ofWhat = getDelimitedId(assignment_body);
     QSharedPointer<Assignment> assignment;
 
-    if(!RuntimeProvider::get()->getNameFunctionOrAssignment(result->ofWhat, assignment))
+    if(!RuntimeProvider::get()->getNameFunctionOrAssignment(result->ofWhat, assignment) && !RuntimeProvider::get()->getParametricFunction(result->ofWhat))
     {
         throw syntax_error_exception(ERRORCODE(52), "Invalid assignment: %s. No such function: %s", codeline.toStdString().c_str(), result->ofWhat.toStdString().c_str());
     }

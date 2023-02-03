@@ -6,9 +6,11 @@
 #include "Function.h"
 #include "RuntimeProvider.h"
 #include "StatementHandler.h"
+#include "util.h"
 
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 #define CATCH_CONFIG_ENABLE_BENCHMARKING
+#include <QLineF>
 #include <catch2/catch_all.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -30,15 +32,16 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 }
 
 
-static std::tuple<RuntimeProvider::CB_ErrorReporter, RuntimeProvider::CB_StringPrinter, RuntimeProvider::CB_PointDrawer, RuntimeProvider::CB_StatementTracker, RuntimeProvider::CB_PenSetter, RuntimeProvider::CB_PlotDrawer> RuntimeProviderParameterProvider()
+static std::tuple<RuntimeProvider::CB_ErrorReporter, RuntimeProvider::CB_StringPrinter, RuntimeProvider::CB_PointDrawer, RuntimeProvider::CB_LineDrawer, RuntimeProvider::CB_StatementTracker, RuntimeProvider::CB_PenSetter, RuntimeProvider::CB_PlotDrawer> RuntimeProviderParameterProvider()
 {
     qInstallMessageHandler(myMessageOutput);
 
-    std::tuple<RuntimeProvider::CB_ErrorReporter, RuntimeProvider::CB_StringPrinter, RuntimeProvider::CB_PointDrawer, RuntimeProvider::CB_StatementTracker, RuntimeProvider::CB_PenSetter, RuntimeProvider::CB_PlotDrawer> r =
+    std::tuple<RuntimeProvider::CB_ErrorReporter, RuntimeProvider::CB_StringPrinter, RuntimeProvider::CB_PointDrawer, RuntimeProvider::CB_LineDrawer, RuntimeProvider::CB_StatementTracker, RuntimeProvider::CB_PenSetter, RuntimeProvider::CB_PlotDrawer> r =
         {
             [](int l, int c, QString e) { qWarning() << "ERROR" << c << "AT" << l << e;},
             [](QString s) { qWarning() << "PRINT" << s;},
             [](double x, double y) {qInfo() << "POINT AT" << QPointF(x ,y); },
+            [](double x1, double y1, double x2, double y2) {qInfo() << "LINE AT" << QLineF(x1 ,y1, x2, y2); },
             [](QString s) { qInfo() << "CURRENT STATEMENT"<<s;},
             [](int r, int g, int b, int a, int s) { qInfo() << "COLOR" << r << g << b << a << "SIZE:" <<  s; },
             [](QSharedPointer<Plot> p) { qInfo() << "PLOTTING" <<p->plotTarget; }
@@ -46,7 +49,6 @@ static std::tuple<RuntimeProvider::CB_ErrorReporter, RuntimeProvider::CB_StringP
 
     return r;
 }
-
 
 TEST_CASE( "Function handling", "[functions]" )
 {
@@ -96,13 +98,45 @@ TEST_CASE( "Function handling", "[functions]" )
         REQUIRE(f->get_name() == "f");
     }
 
-    SECTION( "Power")
+    SECTION("Power of sin")
     {
         std::unique_ptr<Function> f  { new Function("f(x) = sin^2(x)", nullptr) };
         f->SetVariable("x", 1.570795); // PI/2
-        IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-        double cc=f->Calculate(nullptr, ia, a);
+        double cc=f->Calculate();
         REQUIRE_THAT(cc, Catch::Matchers::WithinRel(1.0, 0.001) || Catch::Matchers::WithinAbs(0, 0.000001) );
+        REQUIRE(f->get_name() == "f");
+    }
+
+    SECTION("Simple power")
+    {
+        std::unique_ptr<Function> f  { new Function("f(x) = x^2", nullptr) };
+        f->SetVariable("x", 2); // PI/2
+        double cc=f->Calculate();
+        REQUIRE_THAT(cc, Catch::Matchers::WithinRel(4.0, 0.001) || Catch::Matchers::WithinAbs(0, 0.000001) );
+        REQUIRE(f->get_name() == "f");
+    }
+
+    SECTION("Preverifier")
+    {
+        std::unique_ptr<Function> f  { new Function("f(x) =     a * ( 2 * cos(t) - cos(2 * t) )", nullptr) };
+        std::string p = f->getPreverified();
+        REQUIRE(p == "a*(2*cos(t)+(0-1)*cos(2*t))");
+        REQUIRE(f->get_name() == "f");
+    }
+
+    SECTION("Preverifier 2")
+    {
+        std::unique_ptr<Function> f  { new Function("f(t)=(a+b)*sin(t)-b*sin((a/b+1)*t)", nullptr) };
+        std::string p = f->getPreverified();
+        REQUIRE(p == "(a+b)*sin(t)-b*sin((a/b+1)*t)");
+        REQUIRE(f->get_name() == "f");
+    }
+
+    SECTION("Preverifier 3")
+    {
+        std::unique_ptr<Function> f  { new Function("f(x) = t*sqrt( 1 - ((b^4 - 4 * a^2*t^2 - t^4) / (4 * a * t^3))^2 )", nullptr) };
+        std::string p = f->getPreverified();
+        REQUIRE(p == "t*sqrt(1+(0-1)*((b^4+(0-1)*4*a^2*t^2+(0-1)*t^4)/(4*a*t^3))^2)");
         REQUIRE(f->get_name() == "f");
     }
 
@@ -112,6 +146,7 @@ TEST_CASE( "Parsing", "[parser]" )
 {
 
     RuntimeProvider rp{RuntimeProviderParameterProvider()};
+    registerClasses();
 
     SECTION("Expression extractor")
     {
@@ -122,11 +157,25 @@ TEST_CASE( "Parsing", "[parser]" )
 
         REQUIRE(ex == "sin(x)");
     }
-}
 
+
+    SECTION("Extracter")
+    {
+        QString fnai;
+        QString codeli = "ps[12]";
+        QString funToPlot = extract_proper_expression(codeli, fnai, {' ', '['}, {Keywords::KW_COUNTS, Keywords::KW_OVER, Keywords::KW_CONTINUOUS, Keywords::KW_FOR}, true);
+
+        REQUIRE(funToPlot.toStdString() == "ps");
+
+    }
+}
 
 TEST_CASE( "Compiler operations", "[compiler]" )
 {
+
+    RuntimeProvider rp{RuntimeProviderParameterProvider()};
+    registerClasses();
+
     SECTION("list declaration")
     {
         QString s{
@@ -136,7 +185,6 @@ TEST_CASE( "Compiler operations", "[compiler]" )
             )"
         };
 
-        RuntimeProvider rp{RuntimeProviderParameterProvider()};
         QStringList codelines = s.split("\n");
         rp.parse(codelines);
         rp.execute();
@@ -156,7 +204,6 @@ TEST_CASE( "Compiler operations", "[compiler]" )
             )"
         };
 
-        RuntimeProvider rp{RuntimeProviderParameterProvider()};
         QStringList codelines = s.split("\n");
         rp.parse(codelines);
         rp.execute();
@@ -182,7 +229,6 @@ TEST_CASE( "Compiler operations", "[compiler]" )
             )"
         };
 
-        RuntimeProvider rp{RuntimeProviderParameterProvider()};
         QStringList codelines = s.split("\n");
         rp.parse(codelines);
         rp.execute();
@@ -204,7 +250,6 @@ TEST_CASE( "Compiler operations", "[compiler]" )
             )"
         };
 
-        RuntimeProvider rp{RuntimeProviderParameterProvider()};
         QStringList codelines = s.split("\n");
         rp.parse(codelines);
         rp.execute();
@@ -228,7 +273,6 @@ TEST_CASE( "Compiler operations", "[compiler]" )
             )"
         };
 
-        RuntimeProvider rp{RuntimeProviderParameterProvider()};
         QStringList codelines = s.split("\n");
         rp.parse(codelines);
         rp.execute();
@@ -253,7 +297,6 @@ TEST_CASE( "Compiler operations", "[compiler]" )
           )"
         };
 
-        RuntimeProvider rp{RuntimeProviderParameterProvider()};
         QStringList codelines = s.split("\n");
         rp.parse(codelines);
         rp.execute();
@@ -275,7 +318,6 @@ TEST_CASE( "Compiler operations", "[compiler]" )
             )"
         };
 
-        RuntimeProvider rp{RuntimeProviderParameterProvider()};
         QStringList codelines = s.split("\n");
         rp.parse(codelines);
         rp.execute();
@@ -300,9 +342,7 @@ TEST_CASE( "Compiler operations", "[compiler]" )
             )"
         };
 
-        RuntimeProvider rp{RuntimeProviderParameterProvider()};
 
-        registerClasses();
 
         QStringList codelines = s.split("\n");
         rp.parse(codelines);
@@ -323,7 +363,6 @@ TEST_CASE( "Compiler operations", "[compiler]" )
             )"
         };
 
-        RuntimeProvider rp{RuntimeProviderParameterProvider()};
         QStringList codelines = s.split("\n");
         rp.parse(codelines);
         rp.execute();
@@ -333,52 +372,114 @@ TEST_CASE( "Compiler operations", "[compiler]" )
 
     }
 
-}
+    SECTION("list of points_assignment")
+    {
+        QString s{
+            R"(
+                var l list of points
+                var p point
+                let l = list [ (1,2) , (3,4) ]
+                let p = l[1]
 
+            )"
+        };
 
-/*
-*/
+        QStringList codelines = s.split("\n");
+        rp.parse(codelines);
+        rp.execute();
 
-/*
-TEST_CASE("list_of_points_assignment", "[compiler]")
-{
-    QString s{
-        R"(var l list of points
-let l = list [ (1,2) , (3,4) ]
-plot l[1]
-)"
+        REQUIRE(rp.value("p", "x") == 3);
+        REQUIRE(rp.value("p", "y") == 4);
+    }
+
+    SECTION( "list append points")
+    {
+        QString s{
+            R"(var l list of points, p point
+                let l = list [ (1,2) , (3,4) ]
+                append to l points (5,6)
+                let p = l[2]
+            )"
+        };
+
+        QStringList codelines = s.split("\n");
+        rp.parse(codelines);
+        rp.execute();
+
+        REQUIRE(rp.value("p", "x") == 5);
+        REQUIRE(rp.value("p", "y") == 6);
     };
 
-    RuntimeProvider rp{RuntimeProviderParameterProvider()};
-    QStringList codelines = s.split("\n");
-    rp.parse(codelines);
-    rp.execute();
 }
 
-*/
-/*
-TEST_CASE( "list_append_points", "[compiler]" )
+TEST_CASE( "Parametric functions", "[compiler]" )
 {
-    QString s{
-        R"(var l list of points, p point
-let l = list [ (1,2) , (3,4) ]
-append to l points (5,6)
-for p in l do
- plot p
-done
-)"
+
+    RuntimeProvider rp{RuntimeProviderParameterProvider()};
+    registerClasses();
+
+
+    SECTION( "parametric function simple assignment")
+    {
+        QString s{
+            R"(parametric function f(t)
+                    x = t
+                    y = 2 * t
+                end
+
+                var p point
+                let p = f(1)
+            )"
+        };
+
+        QStringList codelines = s.split("\n");
+        rp.parse(codelines);
+        rp.execute();
+
+        REQUIRE(rp.value("p", "x") == 1);
+        REQUIRE(rp.value("p", "y") == 2);
     };
 
-    RuntimeProvider rp{RuntimeProviderParameterProvider()};
-    QStringList codelines = s.split("\n");
-    rp.parse(codelines);
-    rp.execute();
+    SECTION( "parametric function simple assignment to sum of functions")
+    {
+        QString s{
+            R"(parametric function f(t)
+                    x = t
+                    y = 2 * t
+                end
+
+                var p point
+                let p = f(1) + f(2)
+            )"
+        };
+
+        QStringList codelines = s.split("\n");
+        rp.parse(codelines);
+        rp.execute();
+
+        REQUIRE(rp.value("p", "x") == 3);
+        REQUIRE(rp.value("p", "y") == 6);
+    };
+
+    SECTION( "parametric function simple assignment to multiplication")
+    {
+        QString s{
+            R"(parametric function f(t)
+                    x = t
+                    y = 2 * t
+                end
+
+                var p point
+                let p =3 * f(2)
+            )"
+        };
+
+        QStringList codelines = s.split("\n");
+        rp.parse(codelines);
+        rp.execute();
+
+        REQUIRE(rp.value("p", "x") == 6);
+        REQUIRE(rp.value("p", "y") == 12);
+    };
+
 }
-*/
-
-
-
-
-
-
-

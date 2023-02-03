@@ -28,6 +28,10 @@ if(SNAP_BUILD)
   add_definitions("-DSNAP_BUILD")
 endif()
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	add_compile_definitions("DEBUG")
+endif()
+
 if(HELP_TARGET_DIR)
 	message("Target help dir: ${HELP_TARGET_DIR}")
 	add_definitions("-DHELP_TARGET_DIR=${HELP_TARGET_DIR}")
@@ -39,7 +43,7 @@ endif()
 
 if(USE_QT6)
   if(NOT WIN32)
-    set(CMAKE_PREFIX_PATH "/home/fld/Qt/6.3.0/gcc_64/lib/cmake")
+	set(CMAKE_PREFIX_PATH "/home/fld/Qt/6.4.2/gcc_64/lib/cmake")
   else()
     set(CMAKE_PREFIX_PATH "d:/work/Qt6/6.2.1/msvc2019_64/lib/cmake")
   endif()  
@@ -194,6 +198,7 @@ if(BUILD_WEB)
   add_subdirectory(web)
 endif()
 
+# add_subdirectory(moth)
 
 if(BUILD_GUI)
 

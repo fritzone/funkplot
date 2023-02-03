@@ -110,6 +110,7 @@ int main(int argc, char* argv[])
         [](int l, int c, QString e) { qWarning() << "ERROR" << c << "AT" << l << e;},
         [](QString s) {},
         [imgDrawer, &p, &size](double x, double y) { imgDrawer->addPoint({x, y}, p, size); },
+        [imgDrawer, &p, &size](double x1, double y1, double x2, double y2) { imgDrawer->addLine(QLineF{x1, y1, x2, y2}, p, size); },
         [](QString s) {},
         [&p, &size](int r, int g, int b, int a, int s) {
             p = QPen{QColor {r , g , b , a}}; size = s;

@@ -2,6 +2,7 @@
 #include "ArrayAssignment.h"
 #include "PointArrayAssignment.h"
 #include "RuntimeProvider.h"
+#include "Function.h"
 
 bool Append::execute(RuntimeProvider* rp)
 {
@@ -28,9 +29,8 @@ bool Append::execute(RuntimeProvider* rp)
             {
                 auto p = pointValues[idx_v];
 
-                IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-                double x = std::get<0>(p)->Calculate(rp, ia, a);
-                double y = std::get<1>(p)->Calculate(rp, ia, a);
+                double x = std::get<0>(p)->Calculate();
+                double y = std::get<1>(p)->Calculate();
 
                 auto fx = Function::temporaryFunction(QString::number(x, 'f', 6), this);
                 auto fy = Function::temporaryFunction(QString::number(y, 'f', 6), this);

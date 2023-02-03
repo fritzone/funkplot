@@ -45,8 +45,7 @@ bool Rotation::execute(RuntimeProvider *rp)
 
 double Rotation::getAngle() const
 {
-    IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-    double angle = degree->Calculate(RuntimeProvider::get(), ia, a);
+    double angle = degree->Calculate();
 
     if(unit != "radians")
     {
@@ -58,13 +57,11 @@ double Rotation::getAngle() const
 
 std::tuple<double, double> Rotation::getRotationPoint()
 {
-    IndexedAccess* ia = nullptr; Assignment* as = nullptr;
-
     auto rotfX = Function::temporaryFunction(aroundX, this);
     auto rotfY = Function::temporaryFunction(aroundY, this);
 
-    double dRPx = rotfX->Calculate(RuntimeProvider::get(), ia, as);
-    double dRPy = rotfY->Calculate(RuntimeProvider::get(), ia, as);
+    double dRPx = rotfX->Calculate();
+    double dRPy = rotfY->Calculate();
 
     return {dRPx, dRPy};
 }

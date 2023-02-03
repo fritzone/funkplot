@@ -4,6 +4,7 @@
 #include "PointArrayAssignment.h"
 #include "PointsOfObjectAssignment.h"
 #include "RuntimeProvider.h"
+#include "Function.h"
 
 ArrayIteratorLoopTarget::ArrayIteratorLoopTarget(QSharedPointer<Loop> l)
 {
@@ -25,8 +26,7 @@ bool ArrayIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider *rp)
         auto els = arrayAssignment->m_elements;
         for(const auto& el : els)
         {
-            IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-            double v = el->Calculate(rp, ia, a);
+            double v = el->Calculate();
             theLoop->updateLoopVariable(v);
 
             // update the variable too
@@ -48,9 +48,8 @@ bool ArrayIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider *rp)
         auto els = pointArrayAssignment->m_elements;
         for(const auto& el : els)
         {
-            IndexedAccess* ia = nullptr; Assignment* a = nullptr;
-            double x = std::get<0>(el)->Calculate(rp, ia, a);
-            double y = std::get<1>(el)->Calculate(rp, ia, a);
+            double x = std::get<0>(el)->Calculate();
+            double y = std::get<1>(el)->Calculate();
 
             QPointF p{x, y};
 

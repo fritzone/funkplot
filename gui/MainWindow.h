@@ -20,7 +20,7 @@ class QGraphicsScene;
 class MyGraphicsView;
 class Program;
 class DrawingForm;
-
+class Builtin;
 class CodeEditorTabPage;
 
 namespace KDDockWidgets { class DockWidget; }
@@ -51,10 +51,10 @@ public:
     void updateCurrentTabTextToReflectSavestate();
 
 private slots:
-    void on_actionAbout_triggered();
-    void runCurrentCode();
+    void on_actionFunctions_triggered();
 
 private slots:
+    void on_actionAbout_triggered();
     void on_actionExport_triggered();
     void on_tabWidget_tabCloseRequested(int index);
     void on_actionOpen_triggered();
@@ -67,9 +67,11 @@ private slots:
     void on_actionPalettes_triggered();
 
 private slots:
+    void runCurrentCode();
     void runningFinished();
     void onErrorReceived(int,int,QString);
     void onStringReceived(QString);
+    void onFunctionsMenuEntryTriggered();
 
 signals:
 
@@ -83,6 +85,7 @@ private:
     void createDefaultProgram(const QString &prgName = "noname 1");
     void closeEvent(QCloseEvent* event) override;
     void showEvent( QShowEvent* event ) override;
+    void buildFunctionDatabase();
 
 private:
 
@@ -99,6 +102,10 @@ private:
     RuntimeProvider* m_rp;
     QVector<std::tuple<int, int, QString>> m_sessionErrors;
     tt::Builder m_ttb {this};
+    QMenu* m_functionsMenu = new QMenu(this);
+    QMap<QString, QMenu*> m_classMenus;
+    QMap<QString, QMenu*> m_categoryMenus;
+    QMap<QString, QSharedPointer<Builtin>> m_builtins;
 };
 
 #endif // MAINWINDOW_H

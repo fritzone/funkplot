@@ -15,8 +15,6 @@ struct FunctionDefinition : public Statement
     FunctionDefinition() = default;
     explicit FunctionDefinition(int ln, QString a) : Statement(ln, a) {}
 
-    bool execute(RuntimeProvider* mw) override;
-
     QString keyword() const override
     {
         return kw();
@@ -33,6 +31,7 @@ struct FunctionDefinition : public Statement
 
     static bool regFunctionDefinition;
 };
+
 REGISTER_STATEMENTHANDLER(FunctionDefinition)
 
 

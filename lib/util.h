@@ -134,7 +134,7 @@ std::unique_ptr<char[]> formatImplS(size_t bufSizeGuess, char const* formatCStr,
 {
     std::unique_ptr<char[]> buf(new char[bufSizeGuess]);
 
-    doPrint(std::cout, std::forward<Args>(args)...);
+   // doPrint(std::cout, std::forward<Args>(args)...);
 
     size_t expandedStrLen = snprintf(buf.get(), bufSizeGuess, formatCStr, args...);
 
@@ -181,13 +181,13 @@ public:
     template<class ... Args>
     syntax_error_exception(int en, const char* fmt, Args& ...args) : errst(format(fmt, std::forward<Args>(args)...)), error_number(en)
     {
-        doPrint(std::cout, std::forward<Args>(args)...);
+        //doPrint(std::cout, std::forward<Args>(args)...);
     }
 
     template<class ... Args>
     syntax_error_exception(int en, const char* fmt, const Args& ...args) : errst(format(fmt, std::forward<const Args>(args)...)), error_number(en)
     {
-        doPrint(std::cout, std::forward<const Args>(args)...);
+        //doPrint(std::cout, std::forward<const Args>(args)...);
     }
 
     syntax_error_exception(int en, const char* e) : errst(e), error_number(en)

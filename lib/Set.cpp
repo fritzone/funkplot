@@ -5,6 +5,7 @@
 #include "RuntimeProvider.h"
 #include "colors.h"
 #include "Plot.h"
+#include "Function.h"
 
 #include <QFile>
 #include <QtMath>
@@ -36,13 +37,12 @@ bool Set::execute(RuntimeProvider *rp)
 
                 if(vs[0] == "size")
                 {
-                    IndexedAccess* ia = nullptr; Assignment* as = nullptr;
                     QString size;
                     for(int i=1; i<vs.size(); i++)
                     {
                         size += vs[i];
                     }
-                    auto s = Function::temporaryFunction(size.simplified(), this)->Calculate(rp, ia, as);
+                    auto s = Function::temporaryFunction(size.simplified(), this)->Calculate();
                     qDebug() << "Setting pixel size:" << s;
                     rp->setPixelSize(s);
                 }
@@ -186,9 +186,7 @@ void Set::setColor(RuntimeProvider *rp)
 
             if(!local_value.isEmpty()) local_value = local_value.mid(1);
 
-
-            IndexedAccess* ia = nullptr; Assignment* as = nullptr;
-            int pidx = Function::temporaryFunction(palIdx.simplified(), this)->Calculate(rp, ia, as),
+            int pidx = Function::temporaryFunction(palIdx.simplified(), this)->Calculate(),
                 cidx = 0;
 
             QString p = rp->getCurrentPalette();
@@ -215,8 +213,7 @@ void Set::setColor(RuntimeProvider *rp)
                                 local_value = local_value.mid(1);
                                 if(!local_value.isEmpty())
                                 {
-                                    IndexedAccess* ia = nullptr; Assignment* as = nullptr;
-                                    alpha = Function::temporaryFunction(local_value.simplified(), this)->Calculate(rp, ia, as);
+                                    alpha = Function::temporaryFunction(local_value.simplified(), this)->Calculate();
                                 }
                             }
                         }
@@ -246,17 +243,15 @@ void Set::setColor(RuntimeProvider *rp)
                 {
                 case 4: // R,G,B,A
                 {
-                    IndexedAccess* ia = nullptr; Assignment* as = nullptr;
-                    a = Function::temporaryFunction(values[3].simplified(), this)->Calculate(rp, ia, as);
+                    a = Function::temporaryFunction(values[3].simplified(), this)->Calculate();
                 }
                     [[fallthrough]];
 
                 case 3: // R,G,B
                 {
-                    IndexedAccess* ia = nullptr; Assignment* as = nullptr;
-                    qreal r = Function::temporaryFunction(values[0].simplified(), this)->Calculate(rp, ia, as);
-                    qreal g = Function::temporaryFunction(values[1].simplified(), this)->Calculate(rp, ia, as);
-                    qreal b = Function::temporaryFunction(values[2].simplified(), this)->Calculate(rp, ia, as);
+                    qreal r = Function::temporaryFunction(values[0].simplified(), this)->Calculate();
+                    qreal g = Function::temporaryFunction(values[1].simplified(), this)->Calculate();
+                    qreal b = Function::temporaryFunction(values[2].simplified(), this)->Calculate();
 
                     qreal finalR = r;
                     qreal finalG = g;
@@ -290,8 +285,7 @@ void Set::setColor(RuntimeProvider *rp)
                     {
                         auto cui = Colors::colormap.at(values[0].simplified().toStdString());
 
-                        IndexedAccess* ia = nullptr; Assignment* as = nullptr;
-                        a = Function::temporaryFunction(values[1].simplified(), this)->Calculate(rp, ia, as);
+                        a = Function::temporaryFunction(values[1].simplified(), this)->Calculate();
                         qreal finalA = a;
 
                         if(a < 1.0)
@@ -305,8 +299,7 @@ void Set::setColor(RuntimeProvider *rp)
                         if(value.startsWith("#"))
                         {
                             auto rgb = Colors::decodeHexRgb(values[0].simplified().toStdString().c_str());
-                            IndexedAccess* ia = nullptr; Assignment* as = nullptr;
-                            a = Function::temporaryFunction(values[1].simplified(), this)->Calculate(rp, ia, as);
+                            a = Function::temporaryFunction(values[1].simplified(), this)->Calculate();
                             qreal finalA = a < 1.0 ? 255.0 * a : a;
 
                             rp->setPen(std::get<0>(rgb), std::get<1>(rgb), std::get<2>(rgb), static_cast<int>(finalA));

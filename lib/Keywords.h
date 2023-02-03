@@ -54,6 +54,7 @@ const QString KW_RUN = KEYWORD("run");              // python script run print(a
 const QString KW_PARAMETRIC = KEYWORD("parametric");// parametric function f(t) = { x = function(t), y = function(t) }
 const QString KW_APPEND = KEYWORD("append");        // append to l values 1,2,3,4
 const QString KW_SCRIPT = KEYWORD("script");        // python script begin ... end
+const QString KW_POLAR = KEYWORD("polar");          // polar plot ...
 
 static const QVector<QString> all()
 {

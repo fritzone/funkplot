@@ -87,6 +87,7 @@ int main(int argc, char *argv[])
         [&df, &mainWidget](int l, int c, QString e) { mainWidget->reportError(l, c, e); },
         [&df, &mainWidget](QString s) { mainWidget->printString(s); },
         [&df, &mainWidget](double x, double y) {df->drawPoint(x ,y); },
+        [&df, &mainWidget](double x1, double y1, double x2, double y2) { df->drawLine(x1, y1, x2, y2); },
         [&df, &mainWidget](QString s) { mainWidget->setCurrentStatement(s); },
         [&df, &mainWidget](int r, int g, int b, int a, int s) { df->setDrawingPen(r, g, b, a, s); },
         [&df, &mainWidget](QSharedPointer<Plot> p) { df->drawPlot(p); }
@@ -95,13 +96,7 @@ int main(int argc, char *argv[])
     registerClasses();
 
     df = new DrawingForm(rp);
-    QObject::connect(rp, SIGNAL(rotationAngleChange(double)), df, SLOT(on_rotationAngleChange(double)));
-    QObject::connect(rp, SIGNAL(zoomFactorChange(double)), df, SLOT(on_zoomFactorChange(double)));
-    QObject::connect(rp, SIGNAL(gridChange(bool)), df, SLOT(on_gridChange(bool)));
-    QObject::connect(rp, SIGNAL(coordEndYChange(double)), df, SLOT(on_coordEndYChange(double)));
-    QObject::connect(rp, SIGNAL(coordStartYChange(double)), df, SLOT(on_coordStartYChange(double)));
-    QObject::connect(rp, SIGNAL(coordEndXChange(double)), df, SLOT(on_coordEndXChange(double)));
-    QObject::connect(rp, SIGNAL(coordStartXChange(double)), df, SLOT(on_coordStartXChange(double)));
+    rp->setupConnections(df);
 
     hw = new HelpWindow();
 

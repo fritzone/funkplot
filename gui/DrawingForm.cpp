@@ -206,8 +206,19 @@ QVector<QPointF> DrawingForm::drawPlot(QSharedPointer<Plot> plot)
 
     QVector<QPointF> points;
 
-    auto executor = [this, &cx, &cy, &first, &points](double x, double y, bool continuous)
+    auto executor = [this, &cx, &cy, &first, &points, &plot](double x, double y, bool continuous)
     {
+        if(plot->polarPlot)
+        {
+            // need to convert the polar coordinate (x, y) to ccartesizan ones, that can be plotted
+
+            double carX = y * cos( x );
+            double carY = y * sin( x );
+
+            x = carX;
+            y = carY;
+        }
+
         points.append({x, y});
         if(continuous)
         {
@@ -219,7 +230,10 @@ QVector<QPointF> DrawingForm::drawPlot(QSharedPointer<Plot> plot)
             }
             else
             {
-                addLine(static_cast<qreal>(cx), static_cast<qreal>(cy), static_cast<qreal>(x), static_cast<qreal>(y));
+                //if(std::abs(cx - x) < 0.1 && std::abs(cy - y))
+                {
+                    addLine(static_cast<qreal>(cx), static_cast<qreal>(cy), static_cast<qreal>(x), static_cast<qreal>(y));
+                }
                 cx = x;
                 cy = y;
             }
@@ -273,6 +287,11 @@ QPixmap DrawingForm::screenshot()
 void DrawingForm::drawPoint(double x, double y)
 {
     addPoint(x, y);
+}
+
+void DrawingForm::drawLine(double x1, double y1, double x2, double y2)
+{
+    addLine(x1, y1, x2, y2);
 }
 
 void DrawingForm::on_rotationAngleChange(double v)
