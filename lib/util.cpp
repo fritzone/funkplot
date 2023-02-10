@@ -438,7 +438,7 @@ std::vector<std::string> split(const std::string &s, const std::string &delimite
     {
         token = s.substr (pos_start, pos_end - pos_start);
         pos_start = pos_end + delim_len;
-        if(!token.empty() || token.empty() && keepEmpty)
+        if(!token.empty() || keepEmpty)
         {
             res.push_back (token);
         }
@@ -446,7 +446,7 @@ std::vector<std::string> split(const std::string &s, const std::string &delimite
 
     token = s.substr (pos_start);
 
-    if(!token.empty() || token.empty() && keepEmpty)
+    if(!token.empty() || keepEmpty)
     {
         res.push_back (token);
     }
@@ -485,4 +485,33 @@ QPointF rotatePoint(std::tuple<double, double> rp, double angle, QPointF p)
 bool islogicop(const std::string &p)
 {
     return std::set<std::string>{"and", "or", "not"}.count(p) > 0;
+}
+
+QString normalize(const QString &s)
+{
+    static QStringList minuses = {"\U000002D7", "\U000006D4", "\U00002010", "\U00002011", "\U00002012", "\U00002013", "\U00002043", "\U00002212", "\U00002796", "\U00002CBA", "\U0000FE58"};
+    static QStringList pluses = {"\U000016ED", "\U00002795", "\U0001029B"};
+    static QStringList mults = {"\U0000066D", "\U0000204E", "\U00002217", "\U0001031F"};
+    static QStringList pers = {"\U0000002F", "\U00001735", "\U00002041", "\U00002044", "\U00002215", "\U00002571", "\U000027CB", "\U000029F8", "\U00002CC6", "\U00002F03", "\U00003033", "\U000030CE", "\U000031D3", "\U00004E3F", "\U0001D23A"};
+
+    QString result = s;
+
+    auto replacer = [&result](const QStringList& l, const QString& w) -> QString
+    {
+        for(const auto& m : l)
+        {
+            result = result.replace(m, w);
+        }
+        return result;
+    };
+
+    result = replacer(minuses, "-");
+    result = replacer(pluses, "+");
+    result = replacer(mults, "*");
+
+    result = result.replace("e", "2.71828");
+    result = result.replace("pi", "3.14152");
+    result = result.replace("π", "3.14152");
+
+    return result;
 }

@@ -56,9 +56,9 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     QPixmap pixmap(":/img/img/about.png");
     QSplashScreen *splash = new QSplashScreen(pixmap, Qt::WindowStaysOnTopHint);
-    splash->show();
+    //splash->show();
     a.processEvents();
-    splash->repaint();
+    // splash->repaint();
     QCoreApplication::processEvents();
 
     KDDockWidgets::MainWindow mainWindow(QStringLiteral("fũnkplot"), KDDockWidgets::MainWindowOption_HasCentralWidget);
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
     mainWindow.setWindowIcon(QIcon(":/icons/icons/fx.png"));
 
     QApplication::setStyle(QStyleFactory::create("Fusion"));
-    splash->finish(&mainWindow);
+    //splash->finish(&mainWindow);
 
     return a.exec();
 }

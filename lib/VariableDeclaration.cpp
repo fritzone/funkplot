@@ -55,6 +55,11 @@ QVector<QSharedPointer<Statement>> VariableDeclaration::create(int ln, const QSt
 
             for(const auto& vn : qAsConst(declI))
             {
+                if(vn == "e")
+                {
+                    throw syntax_error_exception(ERRORCODE(2), "Invalid variable name <b>e</b>. <b>e</b> is reserved for the Euler constant <b>2.71</b>.");
+                }
+
                 QSharedPointer<VariableDeclaration> resultI;
                 resultI.reset(new VariableDeclaration(ln, codeline));
                 resultI->name = vn;
@@ -113,8 +118,5 @@ QVector<QSharedPointer<Statement>> VariableDeclaration::create(int ln, const QSt
             }
         }
     }
-
-
     return handleStatementCallback(result, cb);
-
 }

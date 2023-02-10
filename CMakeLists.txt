@@ -18,7 +18,7 @@ set(CMAKE_AUTOUIC ON)
 
 option(coverage-build "gcov/lcov test coverage analysis (make coverage_test)" OFF)
 option(BUILD_GUI "Build the GUI of the application" ON)
-option(BUILD_COMPILER "Build the compiler of the application" OFF)
+option(BUILD_COMPILER "Build the compiler of the application" ON)
 option(BUILD_WEB "Build the WEB part of the application" OFF)
 option(USE_QT6 "Use Qt6 for building" OFF)
 option(USE_UNITTEST "Build some unittesting too" OFF)

@@ -196,9 +196,18 @@ void TextEditWithCodeCompletion::keyPressEvent(QKeyEvent *e)
         m_timer.start();
     }
 
+    if(m.testFlag(Qt::AltModifier))
+    {
+        if(e->key() == Qt::Key_P)
+        {
+            insertText("π");
+            emit pTextChanged();
+            return;
+        }
+    }
+
     if(m.testFlag(Qt::ControlModifier))
     {
-        int t = e->key();
         if(e->key() == Qt::Key_Space)
         {
             QPoint p = cursorRect().bottomRight();

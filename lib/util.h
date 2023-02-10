@@ -323,4 +323,7 @@ std::vector<std::string> split(const std::string& s, const std::string& delimite
 // expects: X:xxxx&Y:yyyyy&Z:zzzz then returns the appropriate value for the given key
 std::string fromPythonDict(const std::string& ps, const std::string& key);
 
+// normalizes the string, removes all strange characters and adds only mathematically correct ones
+QString normalize(const QString&);
+
 #endif

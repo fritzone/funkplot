@@ -5,6 +5,14 @@ find_package(OpenGL REQUIRED)
 
 set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/ggui.rc")
 
+# Generate the builtin qrc
+add_custom_command(	OUTPUT ${CMAKE_BINARY_DIR}/builtins.qrc
+					DEPENDS funkplot-compiler
+					COMMAND python ../scripts/builtins.py
+					WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+					BYPRODUCTS ${CMAKE_BINARY_DIR}/builtins.qrc
+)
+
 set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/AboutDialog.cpp
@@ -60,7 +68,7 @@ set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/ViewType.h
 
 	${CMAKE_CURRENT_SOURCE_DIR}/main.qrc
-	${CMAKE_CURRENT_SOURCE_DIR}/builtins.qrc
+	${CMAKE_BINARY_DIR}/builtins.qrc
 
 	${APP_ICON_RESOURCE_WINDOWS}
 )

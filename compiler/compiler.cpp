@@ -118,6 +118,7 @@ int main(int argc, char* argv[])
         [&rp, &executor](QSharedPointer<Plot> p) {  rp->genericPlotIterator(p, executor); }
     };
 
+    registerClasses();
 
     QObject::connect(rp, SIGNAL(rotationAngleChange(double)), imgDrawer, SLOT(setRotationAngle(double)));
     QObject::connect(rp, SIGNAL(zoomFactorChange(double)), imgDrawer, SLOT(setZoomFactor(double)));

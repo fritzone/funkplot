@@ -10,8 +10,17 @@
 #include <charconv>
 #include <optional>
 
-Function::Function(const char *expr, Statement* s) : funBody(expr)
+Function::Function(const char *pexpr, Statement* s)
 {
+    QString qs = normalize(pexpr);
+
+    funBody = qs;
+    char*expr = new char[qs.length() + 1];
+    memset(expr, 0, qs.length() + 1);
+    strncpy(expr, qs.toLocal8Bit().data(), qs.length());
+    std::unique_ptr<char> wrp;
+    wrp.reset(expr);
+
     const char* eqp_chr = strchr(expr, '=');
     if(!eqp_chr)
     {
@@ -171,6 +180,7 @@ std::string Function::preverify_formula(char* expr)
         {
             s += ")";
         }
+
         if(std::isspace(expr[i]))
         {
             // peek forward, see if we have a keyword there

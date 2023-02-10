@@ -15,7 +15,7 @@ BuiltinFunctionDetailer::BuiltinFunctionDetailer(QSharedPointer<Builtin> b, QWid
     ui->lblName->setText(b->getName());
 
     ui->txtDescription->setText(b->getDescription());
-    ui->imgFormula->setPixmap(QPixmap {":/builtin/builtins/" + b->getKey() + ".png"});
+    ui->imgFormula->setPixmap(QPixmap {":/builtin/" + b->getKey() + ".png"});
 
     ui->lblDummy->hide();
 
