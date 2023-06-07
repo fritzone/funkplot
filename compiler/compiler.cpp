@@ -6,6 +6,9 @@
 #include <QCommandLineParser>
 #include <QCoreApplication>
 #include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QPen>
 
 #include <iostream>
@@ -45,8 +48,10 @@ int main(int argc, char* argv[])
     parser.addHelpOption();
     parser.addVersionOption();
     parser.addPositionalArgument("source", QCoreApplication::translate("main", "Source file to interpret."));
-    parser.addPositionalArgument("destination", QCoreApplication::translate("main", "Destinationimage file."));
+    parser.addPositionalArgument("destination", QCoreApplication::translate("main", "Destination image file."));
 
+    QCommandLineOption summarizeOption(QStringList() << "summarize", QCoreApplication::translate("main", "Summarize the applcation [default = summary.json]"),  QCoreApplication::translate("main", "summary"));
+    parser.addOption(summarizeOption);
     QCommandLineOption widthOption(QStringList() << "width", QCoreApplication::translate("main", "The width of the result file [default = 640]"),  QCoreApplication::translate("main", "width"));
     parser.addOption(widthOption);
     QCommandLineOption heightOption(QStringList() << "height", QCoreApplication::translate("main", "The height of the result file [default = 480]"),  QCoreApplication::translate("main", "height"));
@@ -151,6 +156,20 @@ int main(int argc, char* argv[])
     imgDrawer->drawCoordinateSystem();
     imgDrawer->redrawEverything();
     imgDrawer->save(parser.positionalArguments().at(1));
+
+    QString summaryOpt = parser.value(summarizeOption);
+    QJsonDocument d;
+    QJsonArray variables;
+
+    const auto& av = rp->getAllVariables();
+    for(const auto& v : av)
+    {
+        QJsonObject obj;
+        obj["n"] = v.c_str();
+        variables.append(obj);
+    }
+
+    d.setArray(variables);
 
     delete rp;
 

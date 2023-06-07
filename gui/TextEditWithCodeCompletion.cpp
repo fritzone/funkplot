@@ -13,6 +13,8 @@
 #include <colors.h>
 #include <QLabel>
 #include <QHBoxLayout>
+#include <QMenu>
+#include <QClipboard>
 
 int TextEditWithCodeCompletion::TablePositionInText::colorCounter = -1;
 
@@ -131,6 +133,15 @@ void TextEditWithCodeCompletion::enableRow(int row)
 void TextEditWithCodeCompletion::onVScroll(int)
 {
     updateLineNumbers();
+}
+
+void TextEditWithCodeCompletion::saveRich()
+{
+    QString html = document()->toHtml();
+
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    // etc.
+    clipboard->setText(html);
 }
 
 void TextEditWithCodeCompletion::onTextChanged()
@@ -288,6 +299,15 @@ void TextEditWithCodeCompletion::keyPressEvent(QKeyEvent *e)
     }
 
     resetHighlighter();
+}
+
+void TextEditWithCodeCompletion::contextMenuEvent(QContextMenuEvent *event)
+{
+    QMenu *menu = createStandardContextMenu();
+    QAction* a = menu->addAction(tr("Copy HTML"));
+    connect(a, SIGNAL(triggered()), this, SLOT(saveRich()));
+    menu->exec(event->globalPos());
+    delete menu;
 }
 
 void TextEditWithCodeCompletion::setInitialText(const QString &s)

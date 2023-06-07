@@ -114,10 +114,11 @@ void PointDefinitionAssignmentToOtherPoint::resolveAssignmentFromIndexed(Assignm
     QString indexStr = otherPoint.mid(otherPoint.indexOf("[") + 1, otherPoint.indexOf("]") - otherPoint.indexOf("[") - 1);
     auto tempFun = Function::temporaryFunction(indexStr, this);
     double idx = tempFun->Calculate();
-    int pps = pas->precalculatedPoints.size();
+    auto pcp = pas->getPrecalculatedPoints();
+    int pps = pcp.size();
     if(idx < pps)
     {
-        QPointF p = pas->precalculatedPoints[idx];
+        QPointF p = pcp[idx];
         x = Function::temporaryFunction(QString::number(p.x(), 'f', 6), this);
         y = Function::temporaryFunction(QString::number(p.y(), 'f', 6), this);
         rotated = false;

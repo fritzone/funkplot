@@ -33,7 +33,7 @@ public:
     TextEditWithCodeCompletion(QWidget *p = 0, RuntimeProvider *rp = 0);
 
     void keyPressEvent ( QKeyEvent * e );
-
+    void contextMenuEvent(QContextMenuEvent *event);
     void setInitialText(const QString&);
     void insertText(const QString&);
     void resetBackgrounds();
@@ -51,11 +51,11 @@ private slots:
     void onTimer();
     void onListItemDoubleClicked(QModelIndex);
     void onVScroll(int);
+    void saveRich();
 
 public slots:
 
     void onTextChanged();
-
 
 private:
     void populateCodeCompletionListbox();
@@ -69,7 +69,6 @@ private:
     QColor m_currentBgColor;
     QVector<TablePositionInText> m_lastTablePositions;
     QSharedPointer<Highlighter> m_highlighter;
-    QStringList m_tabs;
     RuntimeProvider* m_rp = nullptr;
     FrameForLineNumbers *m_frameForLineNumbers;
     QVector<int> m_disabledRows {};

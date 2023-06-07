@@ -74,7 +74,7 @@ bool ArrayIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider *rp)
     {
         pointsOfObjectAssignment->resolvePrecalculatedPointsForIndexedAccessWithList(nullptr, rp);
 
-        auto els = pointsOfObjectAssignment->precalculatedPoints;
+        auto els = pointsOfObjectAssignment->getPrecalculatedPoints();
         for(const auto& el : els)
         {
             IndexedAccess* ia = nullptr; Assignment* a = nullptr;

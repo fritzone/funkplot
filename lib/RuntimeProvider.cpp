@@ -241,10 +241,11 @@ bool RuntimeProvider::resolveAsIndexedPlotDrawing(QSharedPointer<Plot> plot, QSh
             {
                 assignment->resolvePrecalculatedPointsForIndexedAccessWithFunction(plot, funToUse, this);
                 // fetch the point with the given index
-                if(ia->index < assignment->precalculatedPoints.size())
+                auto& pcp = assignment->getPrecalculatedPoints();
+                if(ia->index < pcp.size())
                 {
-                    double x = assignment->precalculatedPoints[ia->index].x();
-                    double y = assignment->precalculatedPoints[ia->index].y();
+                    double x = pcp[ia->index].x();
+                    double y = pcp[ia->index].y();
 
                     if(plot->polarPlot)
                     {
@@ -261,7 +262,7 @@ bool RuntimeProvider::resolveAsIndexedPlotDrawing(QSharedPointer<Plot> plot, QSh
                 }
                 else
                 {
-                    reportError(plot->lineNumber,  ERRORCODE(55), "Index out of bounds for " + plot->plotTarget + ". Found:" + QString::number(assignment->precalculatedPoints.size() - 1) + " points, requested: " + QString::number(ia->index) );
+                    reportError(plot->lineNumber,  ERRORCODE(55), "Index out of bounds for " + plot->plotTarget + ". Found:" + QString::number(assignment->getPrecalculatedPoints().size() - 1) + " points, requested: " + QString::number(ia->index) );
                     return false;
                 }
             }
@@ -269,10 +270,12 @@ bool RuntimeProvider::resolveAsIndexedPlotDrawing(QSharedPointer<Plot> plot, QSh
             {
                 assignment->resolvePrecalculatedPointsForIndexedAccessWithList(plot, this);
                 // fetch the point with the given index
-                if(ia->index < assignment->precalculatedPoints.size())
+                auto& pcp = assignment->getPrecalculatedPoints();
+
+                if(ia->index < pcp.size())
                 {
-                    double x = assignment->precalculatedPoints[ia->index].x();
-                    double y = assignment->precalculatedPoints[ia->index].y();
+                    double x = pcp[ia->index].x();
+                    double y = pcp[ia->index].y();
 
                     if(plot->polarPlot)
                     {
@@ -289,7 +292,7 @@ bool RuntimeProvider::resolveAsIndexedPlotDrawing(QSharedPointer<Plot> plot, QSh
                 }
                 else
                 {
-                    reportError(plot->lineNumber,  ERRORCODE(55), "Index out of bounds for " + plot->plotTarget + ". Found:" + QString::number(assignment->precalculatedPoints.size() - 1) + " points, requested: " + QString::number(ia->index) );
+                    reportError(plot->lineNumber,  ERRORCODE(55), "Index out of bounds for " + plot->plotTarget + ". Found:" + QString::number(assignment->getPrecalculatedPoints().size() - 1) + " points, requested: " + QString::number(ia->index) );
                     return false;
                 }
             }
@@ -308,10 +311,11 @@ bool RuntimeProvider::resolveAsPrecalculatedDrawing(QSharedPointer<Plot> plot, Q
 {
     bool first = true;
     double px = 0, py = 0; // previous x,y
-    if(plot->continuous && assignment->precalculatedPoints.size() > 0)
+    auto& pcp = assignment->getPrecalculatedPoints();
+    if(plot->continuous && pcp.size() > 0)
     {
-        px = assignment->precalculatedPoints.at(0).x();
-        py = assignment->precalculatedPoints.at(0).y();
+        px = pcp.at(0).x();
+        py = pcp.at(0).y();
     }
 
     if(!assignment->precalculatedSetForce)
@@ -319,10 +323,10 @@ bool RuntimeProvider::resolveAsPrecalculatedDrawing(QSharedPointer<Plot> plot, Q
         return false;
     }
 
-    for(auto i = 0; i<assignment->precalculatedPoints.size(); i++)
+    for(auto i = 0; i<pcp.size(); i++)
     {
-        double x = assignment->precalculatedPoints[i].x();
-        double y = assignment->precalculatedPoints[i].y();
+        double x = pcp[i].x();
+        double y = pcp[i].y();
         if(plot->polarPlot)
         {
             // need to convert the polar coordinate (x, y) to ccartesizan ones, that can be plotted

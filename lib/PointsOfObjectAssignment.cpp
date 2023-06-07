@@ -39,12 +39,12 @@ QString PointsOfObjectAssignment::providedFunction()
 QString PointsOfObjectAssignment::toString()
 {
     execute(runtimeProvider);
-
-    if(!precalculatedPoints.empty())
+    auto pcp = getPrecalculatedPoints();
+    if(!pcp.empty())
     {
         QString result = "[";
         QStringList points;
-        for(const auto& pcp : precalculatedPoints)
+        for(const auto& pcp : pcp)
         {
             points.append("Point(" + QString::number(pcp.x(), 'f', 6) + ", " + QString::number(pcp.y(), 'f', 6) + ")");
         }
@@ -71,16 +71,17 @@ void PointsOfObjectAssignment::rotate(std::tuple<double, double> rp, double angl
 {
     // firstly let's populate the points
     execute(RuntimeProvider::get());
+    auto pcp = getPrecalculatedPoints();
 
     // then rotate all the precalculated points
-    if(!precalculatedPoints.empty())
+    if(!pcp.empty())
     {
         QVector<QPointF> rotated;
-        for(const auto& pcp : qAsConst(precalculatedPoints))
+        for(const auto& pcp : qAsConst(pcp))
         {
             rotated.append( rotatePoint(rp, angle, pcp) );
         }
-        precalculatedPoints.swap(rotated);
+        pcp.swap(rotated);
         setPrecalculatedSetForce(true);
     }
 

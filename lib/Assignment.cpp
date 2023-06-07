@@ -281,6 +281,16 @@ void Assignment::setPrecalculatedSetForce(bool newPrecalculatedSetForce)
     precalculatedSetForce = newPrecalculatedSetForce;
 }
 
+QVector<QPointF>& Assignment::getPrecalculatedPoints()
+{
+    return precalculatedPoints;
+}
+
+void Assignment::setPrecalculatedPoints(const QVector<QPointF> &newPrecalculatedPoints)
+{
+    precalculatedPoints = newPrecalculatedPoints;
+}
+
 QString Assignment::kw()
 {
     return Keywords::KW_LET;

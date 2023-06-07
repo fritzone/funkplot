@@ -10,7 +10,7 @@ bool PointArrayAssignment::execute(RuntimeProvider *rp)
 
 QString PointArrayAssignment::toString()
 {
-    if(precalculatedPoints.empty())
+    if(getPrecalculatedPoints().empty())
     {
         return "[]";
     }
@@ -18,7 +18,7 @@ QString PointArrayAssignment::toString()
     {
         QString result = "[";
         QStringList points;
-        for(const auto& pcp : qAsConst(precalculatedPoints))
+        for(const auto& pcp : qAsConst(getPrecalculatedPoints()))
         {
             points.append("Point(" + QString::number(pcp.x(), 'f', 6) + ", " + QString::number(pcp.y(), 'f', 6) + ")");
         }
@@ -32,15 +32,32 @@ void PointArrayAssignment::resolvePrecalculatedPointsForIndexedAccessWithList(QS
 {
     QVector<QPointF> allPoints;
 
-    for(const auto& p : qAsConst(m_elements))
+    if(m_elements.size() > 0)
     {
-        double x = std::get<0>(p)->Calculate();
-        double y = std::get<1>(p)->Calculate();
+        for(const auto& p : qAsConst(m_elements))
+        {
+            double x = std::get<0>(p)->Calculate();
+            double y = std::get<1>(p)->Calculate();
 
-        allPoints.append(QPointF{x, y});
+            allPoints.append(QPointF{x, y});
+        }
+    }
+    else
+    {
+        auto pcp = getPrecalculatedPoints();
+        if(pcp.size() > 0)
+        {
+            for(const auto& p : qAsConst(pcp))
+            {
+                allPoints.append(p);
+            }
+        }
     }
 
-    precalculatedPoints = allPoints;
+    if(allPoints.size() > 0)
+    {
+        setPrecalculatedPoints(allPoints);
+    }
 
 }
 

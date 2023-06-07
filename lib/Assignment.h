@@ -95,7 +95,6 @@ struct Assignment : public Stepped, public Statement, public QEnableSharedFromTh
 
     /***********************************************************************************************/
 
-    QVector<QPointF> precalculatedPoints;// if any precalculation happens, this is the place
     QString varName;                     // the name of the object we will refer to in later code (such as: plot assignedStuff)
     QString targetProperties;            // the name of the properties of the assigned objects, such as: points. If targetProperties is "arythmetic" then a new function is created and evaluated at run time
     bool precalculatedSetForce = false;
@@ -111,6 +110,13 @@ struct Assignment : public Stepped, public Statement, public QEnableSharedFromTh
 
 public:
     void setPrecalculatedSetForce(bool newPrecalculatedSetForce);
+
+    QVector<QPointF> &getPrecalculatedPoints();
+    void setPrecalculatedPoints(const QVector<QPointF> &newPrecalculatedPoints);
+
+private:
+    QVector<QPointF> precalculatedPoints;// if any precalculation happens, this is the place
+
 };
 
 REGISTER_STATEMENTHANDLER(Assignment)
