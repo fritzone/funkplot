@@ -2,8 +2,6 @@ import json
 import os
 import subprocess
 
-from numpy.testing._private.parameterized import param
-
 tex_parametric_1 = r'''\documentclass{article}
 \pagenumbering{gobble}
 \usepackage{amsmath}
