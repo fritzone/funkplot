@@ -427,26 +427,28 @@ void MainWindow::buildFunctionDatabase()
     val = file.readAll();
     file.close();
     QJsonParseError err;
-    QJsonDocument jd = QJsonDocument::fromJson(val.toLatin1(), &err);
+    QJsonDocument jd = QJsonDocument::fromJson(val.toUtf8(), &err);
 
     if(jd.isNull())
     {
         qWarning() << "Cannot get curve database:" << err.errorString();
-
         return;
     }
 
     // The dictionary
-    for(const auto& de : jd.object()["dictionary"].toArray())
+    const auto& dics = jd.object()["dictionary"].toArray();
+    for(const auto& de : qAsConst(dics))
     {
-        for(const auto&w : de.toObject()["words"].toArray())
+        const auto& ws = de.toObject()["words"].toArray();
+        for(const auto&w : qAsConst(ws))
         {
             BuiltinDictionary::addEntry(w.toObject()["word"].toString(),de.toObject()["description"].toString() );
         }
     }
 
     // Then gather the classes
-    for(const auto& c : jd.object()["classes"].toArray())
+    const auto& clss = jd.object()["classes"].toArray();
+    for(const auto& c : qAsConst(clss))
     {
         QMenu* subMenu = new QMenu(c.toObject()["description"].toString(), this);
         m_functionsMenu->addMenu(subMenu);
@@ -454,14 +456,17 @@ void MainWindow::buildFunctionDatabase()
     }
 
     // Then the categories
-    for(const auto& c : jd.object()["categories"].toArray())
+    const auto& cats = jd.object()["categories"].toArray();
+    for(const auto& c : qAsConst(cats))
     {
         QMenu* subMenu = new QMenu(c.toObject()["description"].toString(), this);
         m_classMenus[c.toObject()["class"].toString()]->addMenu(subMenu);
         m_categoryMenus[c.toObject()["class"].toString() + "-" + c.toObject()["name"].toString()] = subMenu;
     }
 
-    for(const auto& c : jd.object()["curves"].toArray())
+    // and the curves
+    const auto& crvs = jd.object()["curves"].toArray();
+    for(const auto& c : qAsConst(crvs))
     {
         QAction* a = new QAction(c.toObject()["name"].toString(), this);
         a->setData(c.toObject()["key"].toVariant());
@@ -474,13 +479,20 @@ void MainWindow::buildFunctionDatabase()
         if(m_categoryMenus.contains(key))
         {
             m_categoryMenus[key]->addAction(a);
+
+            auto b = QSharedPointer<Builtin>(new Builtin(c.toObject()));
+            m_builtins[c.toObject()["key"].toString()] = b;
+
+            qInfo() << "Added:" << b->getName();
+            Builtin::m_allBuiltins.append(b);
+
+            qDebug() << "Loaded:" << c.toObject()["key"].toString() << "(" << c.toObject()["name"].toString() << ")";
         }
-
-        m_builtins[c.toObject()["key"].toString()] = QSharedPointer<Builtin>(new Builtin(c.toObject()));
-        qDebug() << "Loaded:" << c.toObject()["key"].toString();
+        else
+        {
+            qWarning() << "Category: [" << c.toObject()["category"].toString() << "] for [" << c.toObject()["name"].toString() << "] is not valid";
+        }
     }
-
-
 }
 
 

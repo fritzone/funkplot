@@ -17,7 +17,6 @@ void MouseSensitiveLabel::mouseMoveEvent(QMouseEvent *event)
 {
     QTextCursor cursor = cursorForPosition(event->pos());
     cursor.select(QTextCursor::WordUnderCursor);
-    qInfo() << cursor.selectedText();
     QString de = BuiltinDictionary::entry(cursor.selectedText());
     if(de != "")
     {

@@ -15,6 +15,7 @@
 		{"name": "polarcurves", "class": "2d","description": "Polar Curves"},
 		{"name": "general", "class": "2d","description": "Other Curves"},
 		{"name": "folium", "class": "2d","description": "Foliums"},
+        {"name": "parabola", "class": "2d","description": "Parabolas"},
 		{"name": "spiral", "class": "2d","description": "Spirals"},
 		{"name": "statistic", "class": "2d","description": "Statistical curves"}
 	],
@@ -159,7 +160,7 @@
             "equation": { "type": "parametric",
                 "formula": { 
                     "x": "t", 
-					"y": "(a * (e ^ {t/a} + e ^ {-t/a})) / 2"
+					"y": "(a * ( ℯ ^ {t/a} + ℯ ^ {-t/a})) / 2"
                 } 
             },
             "interval": { "start": "-3", "end": "3"},
@@ -170,7 +171,13 @@
 			"category": "algebraic",
 			"class": "2d",
             "description": "Cayley's sextic is the pedal of the cardioid with respect to its cuspidal point",
-            "equation": {"type": "parametric", "formula" : {"x": "cos^3(t) * cos(3*t)", "y": "cos^3(t) * sin(3*t)" } },
+            "equation": {
+                "type": "parametric", 
+                "formula" : {
+                    "x": "cos^3(t) * cos(3*t)", 
+                    "y": "cos^3(t) * sin(3*t)" 
+                } 
+            },
 			"key": "cayley_sextic",
             "interval": { "start": "-pi", "end": "pi"}
         },
@@ -330,7 +337,7 @@
 				"type": "parametric",
 				"formula": {
 					"x": "a * sin(t)",
-					"y": "b * sin(t)"
+					"y": "b * cos(t)"
 				}
 			},
 			"parameter": [
@@ -353,8 +360,8 @@
 				}
 			},
 			"parameter": [
-				{"name": "a", "role": "radius", "description": "The radius of the first circle", "default": "1"},
-				{"name": "b", "role": "radius", "description": "The radius of the second circle", "default": "2"}
+				{"name": "a", "role": "radius", "description": "The radius of the first circle", "default": "0.5"},
+				{"name": "b", "role": "radius", "description": "The radius of the second circle", "default": "1"}
 			],
 			"interval": { "start": "-2pi", "end": "2pi"},
 			"key": "epicycloid"
@@ -372,8 +379,8 @@
 				}
 			},
 			"parameter": [
-				{"name": "a", "role": "radius", "description": "The radius of the first circle", "default": "1"},
-				{"name": "b", "role": "radius", "description": "The radius of the second circle", "default": "2"},
+				{"name": "a", "role": "radius", "description": "The radius of the first circle", "default": "0.5"},
+				{"name": "b", "role": "radius", "description": "The radius of the second circle", "default": "1"},
 				{"name": "h", "role": "distance", "description": "The distance of the point from the center of the circle", "default": "1"}
 			],
 			"interval": { "start": "-2pi", "end": "2pi"},
@@ -387,7 +394,7 @@
 			"equation": {
 				"type": "polar",
 				"formula": {
-					"r": "a*e^{t * cot(b)}"
+					"r": "a*ℯ^{t * cot(b)}"
 				}
 			},
 			"parameter": [
@@ -409,10 +416,10 @@
 				}
 			},
 			"parameter": [
-				{"name": "a", "role": "size", "description": "The size of the spiral", "default": "1"},
-				{"name": "m", "role": "modifier", "description": "The tightness of the spiral", "default": "1"}
+				{"name": "a", "role": "size", "description": "The size of the spiral", "default": "0.5"},
+				{"name": "m", "role": "modifier", "description": "The tightness of the spiral", "default": "2"}
 			],
-			"interval": { "start": "-2pi", "end": "2pi"},
+			"interval": { "start": "0", "end": "40"},
 			"key": "archimidean_spiral"
 		},
         {
@@ -476,7 +483,7 @@
 			"equation": {
 				"type": "cartesian",
 				"formula": {
-					"y": "sqrt(2 * 3.14)*e^{-(x^2)/2}"
+					"y": "sqrt(2 * 3.14)*ℯ^{-(x^2)/2}"
 				}
 			},
 			"interval": { "start": "-10", "end": "10"},
@@ -514,10 +521,10 @@
 				}
 			},
 			"parameter": [
-				{"name": "a", "role": "radius", "description": "The radius of the big circle", "default": "2"},
+				{"name": "a", "role": "radius", "description": "The radius of the big circle", "default": "5"},
 				{"name": "b", "role": "radius", "description": "The radius of the small circle", "default": "1"}
 			],
-			"interval": { "start": "-3.14", "end": "3.14"},
+			"interval": { "start": "0", "end": "6.28"},
 			"key": "hypocycloid"
         },
         {
@@ -534,106 +541,234 @@
 			},
 			"parameter": [
 				{"name": "a", "role": "radius", "description": "The radius of the big circle", "default": "2"},
-				{"name": "b", "role": "radius", "description": "The radius of the small circle", "default": "1"}
+				{"name": "b", "role": "radius", "description": "The radius of the small circle", "default": "1"},
+                {"name": "h", "role": "distance", "description": "Distance", "default": "2"}
 			],
 			"interval": { "start": "-3.14", "end": "3.14"},
-			"key": "hypocycloid"
-        },
-        {
-            "name": "Involute of a Circle",
-			"class": "2d",
-            "equation": "",
-			"key": ""
+			"key": "hypotrochoid"
         },
         {
             "name": "Kampyle of Eudoxus",
 			"class": "2d",
-            "equation": "",
-			"key": ""
+            "category": "algebraic",
+            "description": "The Kampyle of Eudoxus is the locus of the intersection point between the line (OP) and the line parallel to Oy passing through Q, where P is a point travelling on a circle C of centre O, and the tangent to C at P cuts Ox in Q",
+            "parameter": [
+                {"name": "a", "role": "radius", "description": "Size modifier", "default": "1"},
+                {"name": "b", "role": "radius", "description": "Size modifier", "default": "1"}
+            ],
+            "equation": {
+                "type": "polar",
+                "formula": {
+                    "r" : "b^2 / (a * cos ^2(t) )"
+                }
+            },
+            "interval": { "start": "0", "end": "6.28"},
+			"key": "kampyle_of_eudoxus"
         },
         {
             "name": "Kappa Curve",
-			"class": "2d",
-            "equation": "",
-			"key": ""
+            "description": "The kappa curve is also called Gutschoven's curve. It was first studied by G. van Gutschoven around 1662",
+            "category": "polarcurves",
+            "parameter": [
+                {"name": "a", "role": "radius", "description": "The opening of the curve", "default": "1"}
+            ],
+            "equation": {
+                "type": "polar",
+                "formula": {
+                    "r" : "a * cot(t)"
+                }
+            },
+            "interval": { "start": "0", "end": "6.28"},
+            "key": "kappa_curve"
         },
         {
-            "name": "Lame Curves",
+            "name": "Lamé Curves",
+            "category": "algebraic",
+            "description": "A Lamé curve (named after Gabriel Lamé), also known as a superellipse, is a closed curve resembling the ellipse, retaining the geometric features of semi-major axis and semi-minor axis, and symmetry about them, but a different overall shape.",
 			"class": "2d",
-            "equation": "",
-			"key": ""
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "abs(cos^(2/m)(t)) * a * sgn(cos(t))",
+                    "y": "abs(sin^(2/n)(t)) * b * sgn(sin(t))"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "radius", "description": "The radius of the big circle", "default": "2"},
+                {"name": "b", "role": "radius", "description": "The radius of the small circle", "default": "1"},
+                {"name": "n", "role": "distance", "description": "Distance", "default": "2"},
+                {"name": "m", "role": "distance", "description": "Distance", "default": "0.2"}
+            ],
+            "interval": { "start": "-3.14", "end": "3.14"},
+            "key": "lame_curve"
         },
         {
             "name": "Lemniscate of Bernoulli",
+            "category": "polarcurves",
 			"class": "2d",
-            "equation": "",
-			"key": ""
+            "description": "The lemniscate of Bernoulli is a special case of a Cassinian Oval which had been described by Cassini in 1680.",
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "(a * cos(t)) / (sin^2(t) + 1)",
+                    "y": "(a * sin(t) * cos(t)) / (sin^2(t) + 1)"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "size", "description": "The size of the curve", "default": "2"}
+            ],
+            "interval": { "start": "-3.14", "end": "3.14"},
+            "key": "lemniscate_of_bernoulli"
         },
         {
             "name": "Limacon of Pascal",
-			"class": "2d",
-            "equation": "",
-			"key": ""
+            "category": "polarcurves",
+            "class": "2d",
+            "description": "Limacon of Pascal was discovered by Étienne Pascal when he used it as an example of his methods of drawing tangents i.e. differentiation.",
+            "equation": {
+                "type": "polar",
+                "formula": {
+                    "r": "b + a*cos(t)"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "size", "description": "The size of the curve", "default": "1"},
+                {"name": "b", "role": "size", "description": "The size of the curve", "default": "1"}
+            ],
+            "interval": { "start": "0", "end": "6.28"},
+            "key": "limacon_of_pascal"
         },
         {
             "name": "Lissajous Curves",
 			"class": "2d",
-            "equation": "",
-			"key": ""
+            "category": "other",
+            "description": "Lissajous curves (sometimes called Bowditch curves after Nathaniel Bowditch who considered them in 1815) were studied in more detail (independently) by Jules-Antoine Lissajous in 1857. Lissajous curves have applications in physics, astronomy and other sciences.",
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "a * sin(n * t + c)",
+                    "y": "b * sin(t)"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "amplitude", "description": "Horizontal amplitude", "default": "2"},
+                {"name": "b", "role": "size", "description": "Size of the figure", "default": "2"},                
+                {"name": "c", "role": "phase", "description": "Horizontal angular phase", "default": "1.57"},
+                {"name": "n", "role": "frequency", "description": "Horizontal angular frequency", "default": "3"}
+            ],
+            "interval": { "start": "-3.14", "end": "3.14"},
+            "key": "lissajous_curves"
         },
         {
             "name": "Lituus",
 			"class": "2d",
-            "equation": "",
-			"key": ""
+            "category": "spiral",
+            "description": "The lituus curve originated with Cotes and is described in his book Harmonia Mensurarum (1722). Lituus means a crook, for example a bishop's crosier.",
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "a * cos(t) / sqrt(t)",
+                    "y": "a * sin(t) / sqrt(t)"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "size", "description": "Size of the figure", "default": "2"}
+            ],
+            "interval": { "start": "0", "end": "31.4"},
+			"key": "lituus"
         },
         {
-            "name": "Neile's Semi-cubical Parabola",
+            "name": "Neile Parabola",
 			"class": "2d",
-            "equation": "",
-			"key": ""
-        },
-        {
-            "name": "Nephroid",
-			"class": "2d",
-            "equation": "",
-			"key": ""
+            "category": "parabola",
+            "description": "This curve, sometimes called the semi-cubical parabola, was discovered by William Neile in 1657.",
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "a * t^2",
+                    "y": "a * t^3"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "size", "description": "Size of the figure", "default": "2"}
+            ],
+            "interval": { "start": "-10", "end": "10"},
+            "key": "neile_parabola"
         },
         {
             "name": "Newton's Diverging Parabolas",
-			"class": "2d",
-            "equation": "",
-			"key": ""
+            "description": "The diverging parabola is the third class from the four distinguishing classes of cubics Newton defined.",
+            "category": "parabolas",
+            "class": "2d",
+            "equation": {
+                "type": "cartesian",
+                "formula": {
+                    "y": "sqrt( x * (x^2 + a*x + b) )"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "size", "description": "Size of the figure", "default": "-5"},
+                {"name": "b", "role": "size", "description": "Size of the figure", "default": "2"}
+            ],            
+            "interval": { "start": "-10", "end": "10"},
+            "key": "diverging_parabolas"
         },
         {
             "name": "Parabola",
-			"class": "2d",
-            "equation": "",
-			"key": ""
-        },
-        {
-            "name": "Pearls of Sluze",
-			"class": "2d",
-            "equation": "",
-			"key": ""
-        },
-        {
-            "name": "Pear-shaped Quartic",
-			"class": "2d",
-            "equation": "",
-			"key": ""
+            "description": "The parabola was studied by Menaechmus who was a pupil of Plato and Eudoxus. He attempted to duplicate the cube, namely to find side of a cube that has a volume double that of a given cube.",
+            "category": "parabolas",
+            "class": "2d",
+            "equation": {
+                "type": "cartesian",
+                "formula": {
+                    "y": "a * x^2 + b * x + c"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "parameter", "description": "Forming the figure", "default": "2"},
+                {"name": "b", "role": "parameter", "description": "Forming the figure", "default": "-3"},
+                {"name": "c", "role": "parameter", "description": "Forming the figure", "default": "-1"}
+            ],            
+            "interval": { "start": "-10", "end": "10"},
+            "key": "parabola"
         },
         {
             "name": "Plateau Curves",
-			"class": "2d",
-            "equation": "",
-			"key": ""
+            "class": "2d",
+            "category": "general",
+            "description": "This curve, sometimes called the semi-cubical parabola, was discovered by William Neile in 1657.",
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "a*(sin ((m+n)*t)) /(sin((m−n)*t))",
+                    "y": "2*a*(sin(m*t)*sin(n*t))/(sin((m−n)*t))"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "size", "description": "Size of the figure", "default": "2"},
+                {"name": "m", "role": "distance", "description": "Distance", "default": "5"},
+                {"name": "n", "role": "distance", "description": "Distance", "default": "3"}
+
+            ],
+            "interval": { "start": "-3.14", "end": "3.14"},
+			"key": "plateau"
         },
         {
             "name": "Pursuit Curve",
-			"class": "2d",
-            "equation": "",
-			"key": ""
+            "description": "If A moves along a known curve then P describes a pursuit curve if P is always directed towards A and A and P move with uniform velocities.",
+            "category": "general",
+            "class": "2d",
+            "equation": {
+                "type": "cartesian",
+                "formula": {
+                    "y": "c * x^2 -log(x)"
+                }
+            },
+            "parameter": [
+                {"name": "c", "role": "parameter", "description": "Forming the figure", "default": "1"}
+            ],            
+            "interval": { "start": "-10", "end": "10"},
+            "key": "pursuit_curve"
         },
         {
             "name": "Quadratrix of Hippias",

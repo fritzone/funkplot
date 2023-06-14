@@ -95,7 +95,7 @@ char *after(int pos, const char *src)
 
 int isoperator(char c)
 {
-    return c == '=' || c == '>' || c == '<' || c == '!' || 
+    return c == '=' || c == '>' || c == '<' || c == '!' ||
            c=='+' || c=='-' || c== '/' || c=='*' || c=='.' || c == '%' || c == '^';
 }
 
@@ -509,7 +509,8 @@ QString normalize(const QString &s)
     result = replacer(pluses, "+");
     result = replacer(mults, "*");
 
-    result = result.replace("e", "2.71828");
+    result = result.replace("ℯ", "2.71828");
+    result = result.replace("²", "^2");
     result = result.replace("pi", "3.14152");
     result = result.replace("π", "3.14152");
 

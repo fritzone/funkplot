@@ -35,6 +35,8 @@ public:
 
     const QVector<Parameter>& getParameters() const;
 
+    static QVector<QSharedPointer<Builtin>> m_allBuiltins;
+
 private:
 
     QString m_name;
@@ -44,6 +46,7 @@ private:
     QString m_key;
     EquationType m_eqType;
     QVector<Parameter> m_parameters;
+
 };
 
 #endif // BUILTIN_H

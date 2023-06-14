@@ -7,7 +7,7 @@ pipelines:
           - export PATH="/usr/lib/ccache:$PATH"
           - export DEBIAN_FRONTEND=noninteractive
           - apt-get -y update
-          - apt-get install -y equivs devscripts python-is-python3 wget
+          - apt-get install -y equivs devscripts python-is-python3 wget latex2rtf
           - mk-build-deps --tool 'apt-get -y -o Debug::pkgProblemResolver=yes --no-install-recommends' --install --remove debian/control
           - debuild --prepend-path /usr/lib/ccache -uc -us -b -i
           - mkdir build && cd build && cmake .. && make && make install DESTDIR=AppDir

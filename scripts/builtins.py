@@ -1,6 +1,8 @@
 import json
 import os
 import subprocess
+from subprocess import Popen
+import sys, getopt
 
 tex_parametric_1 = r'''\documentclass{article}
 \pagenumbering{gobble}
@@ -32,61 +34,121 @@ tex_cartesian_1 = r'''\documentclass{article}
     \[y='''
 
 script = '''
-set coordinates start x -4
-set coordinates start y -4
-set coordinates end x 4
-set coordinates end y 4
-set coordinates zoom 110
-var '''
+set coordinates start x -6
+set coordinates start y -6
+set coordinates end x 6
+set coordinates end y 6
+set coordinates zoom 50
+set pixel size 2
+'''
 
+# The size of the generates image by default
+genwidth = 640
+genheight = 300
 
+#
+# Latexizes the given string
+#
 def latexize(form):
     form = form.replace("*", " \\cdot ")
     form = form.replace("3.14", "\\pi")
     return form
 
-
+#
+# Unlatexizes the given text
+#
 def unlatexize(s):
-    s = s.replace("\\pi", "3.141592")
+    s = s.replace("\\pi", "3.14")
+    s = s.replace("\\2pi", "6.28")
+    s = s.replace("\\cdot", "*")
+    s = s.replace("2pi", "6.28")
+    s = s.replace("pi", "3.14")
+
     return s
 
+#
+# Renders the function, with the script code and template script
+#
+def render_function(fun_name, lscript, tscript):
 
-def create_coord_script(fun_name, form, vs, st, en, polar):
-
-    lscript = script
-    for v in vs:
-        lscript += v["name"]
-
-    lscript += " number\n"
-    for v in vs:
-        lscript += "let " + v["name"] + " = " + v["value"] + "\n"
-
-    if polar:
-        lscript += "function f(t) = " + form
-    else:
-        lscript += "function f(x) = " + form
-
-    if polar:
-        lscript += "polar "
-
-    lscript += "plot f over (" + unlatexize(st) + ", " + unlatexize(en) + ")\n"
     dir_path = os.getcwd()
+
 
     with open(dir_path + "/" + fun_name + ".fnk", "w") as fq:
         fq.write(lscript)
-    subprocess.run([os.getcwd() + "/compiler/funkplot-compiler", "--width", "320", "--height", "200", dir_path + "/" + fun_name + ".fnk", dir_path + "/" + fun_name + ".g.png"])
-    return
+    with open(dir_path + "/" + fun_name + ".t.fnk", "w") as fq:
+        fq.write(tscript)
 
 
-def create_parametric_script(fun_name, formx, formy, vs, st, en):
+    comp = [dir_path + "/compiler/funkplot-compiler", 
+                "--width", str(genwidth), 
+                "--height", str(genheight), 
+                dir_path + "/" + fun_name + ".fnk", 
+                dir_path + "/" + fun_name + ".g.png"]
 
+    print(" ".join(comp))
+
+    subprocess.run(comp)
+
+#
+# Create a function with cartesian/polar coordinates
+#
+def create_coord_script(fun_name, form, vs, st, en, polar):
+
+    vars = []
     lscript = script
-    for v in vs:
-        lscript += str(v["name"]).strip()
+    tscript = script
 
-    lscript += " number\n"
+    for v in vs:
+        vars.append(str(v["name"]).strip())
+
+    if len(vars) > 0 :
+        lscript += "var " + " ".join(vars) + " number\n"
+        tscript += "var " + " ".join(vars) + " number\n"
+
     for v in vs:
         lscript += "let " + v["name"] + " = " + v["value"] + "\n"
+        tscript += "let " + v["name"] + " = {{" + v["name"] + "}}\n"
+
+    if polar:
+        lscript += "function f(t) = " + form
+        tscript += "function f(t) = " + form
+    else:
+        lscript += "function f(x) = " + form
+        tscript += "function f(x) = " + form
+
+    lscript += "\n"
+    tscript += "\n"
+
+    if polar:
+        lscript += "polar "
+        tscript += "polar "
+
+    lscript += "plot f over (" + unlatexize(st) + ", " + unlatexize(en) + ")\n"
+    tscript += "plot f over (" + unlatexize(st) + ", " + unlatexize(en) + ")\n"
+
+    render_function(fun_name, lscript, tscript)
+    return
+
+#
+# Creates a parametric script
+#
+def create_parametric_script(fun_name, formx, formy, vs, st, en):
+
+    vars = []
+    lscript = script
+    tscript = script
+
+    for v in vs:
+        vars.append(str(v["name"]).strip())
+
+    if len(vars) > 0 :
+        lscript += "var " + " ".join(vars) + " number\n"
+        tscript += "var " + " ".join(vars) + " number\n"
+
+    for v in vs:
+        lscript += "let " + v["name"] + " = " + v["value"] + "\n"
+        tscript += "let " + v["name"] + " = {{" + v["name"] + "}}\n"
 
     lscript += "parametric function f(t)\n"
     lscript += "  x=" + formx + "\n"
@@ -94,34 +156,46 @@ def create_parametric_script(fun_name, formx, formy, vs, st, en):
     lscript += "end\n"
 
     lscript += "plot f over (" + unlatexize(st) + ", " + unlatexize(en) + ")\n"
-    dir_path = os.getcwd()
 
-    with open(dir_path + "/" + fun_name + ".fnk", "w") as fq:
-        fq.write(lscript)
-    subprocess.run([os.getcwd() + "/compiler/funkplot-compiler", "--width", "320", "--height", "200", dir_path + "/" + fun_name + ".fnk", dir_path + "/" + fun_name + ".g.png"])
+    # template
+    tscript += "parametric function f(t)\n"
+    tscript += "  x=" + formx + "\n"
+    tscript += "  y=" + formy + "\n"
+    tscript += "end\n"
+    tscript += "plot f over (" + unlatexize(st) + ", " + unlatexize(en) + ")\n"
+
+    render_function(fun_name, lscript, tscript)
     return
 
-
-def create_data(name):
+#
+# Creates the QRC data, the image files, the script files, for the specified curve, or for all if none
+#
+def create_data(name, curve):
     qrc = qrcG
+    if len(curve) > 0:
+        print("Requested:", curve)
+
     with open(name, 'r') as f:
         v = json.load(f)
         for c in v["curves"]:
-            if c["key"]:
+            if len(curve) > 0 and c["key"] == curve or len(curve) == 0 and c["key"]:
                 print("Generating:", c["key"])
+
                 # parameters
                 parameters = []
                 if "parameter" in c:
                     for p in c["parameter"]:
                         parameters.append({"name": p["name"], "value": p["default"]})
                 qrc += "<file>" + c["key"] + ".png" + "</file>\n"
+                qrc += "<file>" + c["key"] + ".t.fnk" + "</file>\n"
                 qrc += "<file>" + c["key"] + ".g.png" + "</file>\n"
                 finaltex = ''
                 start = c["interval"]["start"]
                 end = c["interval"]["end"]
-                start = start.replace("pi", "\pi")
-                end = end.replace("pi", "\pi")
+                start = start.replace("pi", "\\pi")
+                end = end.replace("pi", "\\pi")
                 size = "x64"
+
                 if c["equation"]["type"] == "parametric":
                     formx = latexize(c["equation"]["formula"]["x"])
                     formy = latexize(c["equation"]["formula"]["y"])
@@ -140,7 +214,10 @@ def create_data(name):
 
                 with open("" + c["key"]+".tex", "w") as f2:
                     f2.write(finaltex)
-                subprocess.run(["latex2png", c["key"]+".tex"])
+                
+                proc = Popen(["latex2png", "-c", c["key"]+".tex"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                proc.wait()
+
                 png_file = c["key"]+".png"
                 subprocess.run(["convert", png_file, "-transparent", "white", "-geometry", size, png_file] )
                 os.remove(c["key"]+".tex")
@@ -149,5 +226,20 @@ def create_data(name):
             fq.write(qrc)
 
 
+# Main function
+def main(argv):
+    opts, args = getopt.getopt(argv,"hn:",["n="])
+    cname = ""
+
+    for opt, arg in opts:
+        if opt == '-h':
+            print ('builtins.py -n <curve>')
+            sys.exit()
+        elif opt in ("-n", "--n"):
+            cname = arg
+
+    create_data('../gui/2dcurves.json', cname)
+
+
 if __name__ == '__main__':
-    create_data('../gui/2dcurves.json')
+    main(sys.argv[1:])

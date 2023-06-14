@@ -1,7 +1,6 @@
-#include "Function.h"
 #include <Set.h>
 #include <ImageDrawer.h>
-#include "RuntimeProvider.h"
+#include <RuntimeProvider.h>
 
 #include <QCommandLineParser>
 #include <QCoreApplication>
@@ -86,8 +85,17 @@ int main(int argc, char* argv[])
     QPen p;
     int size = 1;
 
-    auto executor = [&cx, &cy, &first, &points, imgDrawer, p, size](double x, double y, bool continuous)
+    auto executor = [&cx, &cy, &first, &points, imgDrawer, &p, &size](QSharedPointer<Plot> plot, double x, double y, bool continuous)
     {
+        if(plot->polarPlot)
+        {
+            double carX = y * cos( x );
+            double carY = y * sin( x );
+
+            x = carX;
+            y = carY;
+        }
+
         points.append({x, y});
         if(continuous)
         {
@@ -118,6 +126,7 @@ int main(int argc, char* argv[])
         [imgDrawer, &p, &size](double x1, double y1, double x2, double y2) { imgDrawer->addLine(QLineF{x1, y1, x2, y2}, p, size); },
         [](QString s) {},
         [&p, &size](int r, int g, int b, int a, int s) {
+            qDebug() << "Setting pixel size:" << s;
             p = QPen{QColor {r , g , b , a}}; size = s;
         },
         [&rp, &executor](QSharedPointer<Plot> p) {  rp->genericPlotIterator(p, executor); }
@@ -140,6 +149,9 @@ int main(int argc, char* argv[])
     auto sts = rp->getStatements();
     for(auto& st : sts)
     {
+
+        qInfo() << st->statement;
+
         auto stsm = dynamic_cast<Set*>(st.get());
         if(stsm)
         {
@@ -156,6 +168,8 @@ int main(int argc, char* argv[])
     imgDrawer->drawCoordinateSystem();
     imgDrawer->redrawEverything();
     imgDrawer->save(parser.positionalArguments().at(1));
+
+    qInfo() << "Saved as: " << parser.positionalArguments().at(1);
 
     QString summaryOpt = parser.value(summarizeOption);
     QJsonDocument d;

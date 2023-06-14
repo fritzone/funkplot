@@ -59,7 +59,7 @@ public:
                 if(!std::isnan(y))
                 {
                     qDebug() << "X=" << x << "Y=" << y;
-                    executor(x, y, continuous);
+                    executor(plot, x, y, continuous);
                 }
                 pointsDrawn ++;
 
@@ -73,7 +73,7 @@ public:
 
                 if(!std::isnan(y))
                 {
-                    executor(plotEnd, y, continuous);
+                    executor(plot, plotEnd, y, continuous);
                 }
             }
         }
@@ -118,7 +118,7 @@ public:
             double y = funToUse->functions.second->Calculate();
 
             qDebug() << "t=" << t << "X=" << x << "Y=" << y;
-            if(!std::isnan(y) && ! std::isnan(x)) executor(x, y, continuous);
+            if(!std::isnan(y) && ! std::isnan(x)) executor(plot, x, y, continuous);
 
             pointsDrawn ++;
 
@@ -137,7 +137,10 @@ public:
             double y = funToUse->functions.second->Calculate();
 
             qDebug() << "plotEnd:" << plotEnd << "X=" << x << "Y=" << y;
-            if(!std::isnan(y) && ! std::isnan(x)) executor(x, y, continuous);
+            if(!std::isnan(y) && ! std::isnan(x))
+            {
+                executor(plot, x, y, continuous);
+            }
 
 
         }

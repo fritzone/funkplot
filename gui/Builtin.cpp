@@ -6,6 +6,7 @@
 #include <QJsonObject>
 
 QMap<QString, QString> BuiltinDictionary::m_map;
+QVector<QSharedPointer<Builtin>> Builtin::m_allBuiltins;
 
 Builtin::Builtin(const QJsonObject &o) : m_name (o["name"].toString()),
     m_description(o["description"].toString()),

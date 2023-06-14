@@ -3,6 +3,7 @@
 #include "Highlighter.h"
 #include "FrameForLineNumbers.h"
 #include "RuntimeProvider.h"
+#include "qnamespace.h"
 
 #include <QKeyEvent>
 #include <QMessageBox>
@@ -209,12 +210,26 @@ void TextEditWithCodeCompletion::keyPressEvent(QKeyEvent *e)
 
     if(m.testFlag(Qt::AltModifier))
     {
-        if(e->key() == Qt::Key_P)
+        if(e->key() == Qt::Key_P) // PI, 3.1415
         {
             insertText("π");
             emit pTextChanged();
             return;
         }
+
+        if(e->key() == Qt::Key_E) // E - Eulers' 2.7
+        {
+            insertText("ℯ");
+            emit pTextChanged();
+            return;
+        }
+        if(e->key() == Qt::Key_2) // Power of 2
+        {
+            insertText("²");
+            emit pTextChanged();
+            return;
+        }
+
     }
 
     if(m.testFlag(Qt::ControlModifier))
@@ -232,6 +247,7 @@ void TextEditWithCodeCompletion::keyPressEvent(QKeyEvent *e)
             return;
         }
     }
+
 
     if(e->key() == Qt::Key_Escape)
     {

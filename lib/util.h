@@ -53,11 +53,11 @@ struct fun_desc_solve
 static const std::vector<fun_desc_solve> supported_functions
 {
      {"==", "Equality of elements", [](double v, double v2) -> double { return std::fabs(v - v2) < 0.000001; }, false, false },
-     {"<=", "Equality of elements", [](double v, double v2) -> double { return v >= v2; }, false, false },    
-     {">=", "Equality of elements", [](double v, double v2) -> double { return v >= v2; }, false, false },    
-     {"<", "Equality of elements", [](double v, double v2) -> double { return v < v2; }, false, false },    
-     {">", "Equality of elements", [](double v, double v2) -> double { return v > v2; }, false, false },    
-     {">=", "Equality of elements", [](double v, double v2) -> double { return v != v2; }, false, false },    
+     {"<=", "Equality of elements", [](double v, double v2) -> double { return v >= v2; }, false, false },
+     {">=", "Equality of elements", [](double v, double v2) -> double { return v >= v2; }, false, false },
+     {"<", "Equality of elements", [](double v, double v2) -> double { return v < v2; }, false, false },
+     {">", "Equality of elements", [](double v, double v2) -> double { return v > v2; }, false, false },
+     {">=", "Equality of elements", [](double v, double v2) -> double { return v != v2; }, false, false },
 
      // basic stuff
      {"^", "Power of an element", [](double v, double v2) -> double { return pow(v, v2); }, false, false },
@@ -98,6 +98,11 @@ static const std::vector<fun_desc_solve> supported_functions
      {"and", "Logical and", [](double v, double v2) -> double { return static_cast<double>(static_cast<bool>(v) && static_cast<bool>(v2)); } , false, true},
      {"or", "Logical or", [](double v, double v2) -> double { return static_cast<double>(static_cast<bool>(v) || static_cast<bool>(v2)); } , false, true},
      {"not", "Logical and", [](double v, double v2) -> double { return static_cast<double>(! static_cast<bool>(v)); } , false, true},
+
+     // other
+     {"sgn", "The sign function", [](double v, double v2) -> double { return v < 0 ? -1 : (v > 0 ? +1 : v); }, true, true },
+     {"abs", "The absolute function", [](double v, double v2) -> double { return std::abs(v); }, true, true },
+
 };
 
 enum class random_string_class

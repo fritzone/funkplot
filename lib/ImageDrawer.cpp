@@ -1,6 +1,7 @@
 #include "ImageDrawer.h"
 
 #include <QPainter>
+#include <QDebug>
 
 ImageDrawer::ImageDrawer(int w, int h, QWidget *parent) : AbstractDrawer(),
     m_w(w), m_h(h)
@@ -33,6 +34,7 @@ void ImageDrawer::redrawEverything()
     for(const auto& dl : qAsConst(m_drawnLines))
     {
         painter.setPen(dl.pen);
+        qDebug() << dl.pen.width();
         QPoint p1 = toScene(dl.line.p1());
         QPoint p2 = toScene(dl.line.p2());
         painter.drawLine(QLine{p1, p2});

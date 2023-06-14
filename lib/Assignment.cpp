@@ -48,8 +48,17 @@ std::tuple<QSharedPointer<Function>, QSharedPointer<Function> > Assignment::full
 void Assignment::resolvePrecalculatedPointsForIndexedAccessWithFunction(QSharedPointer<Plot> plot, QSharedPointer<Function> funToUse, RuntimeProvider* rp)
 {
     QVector<QPointF> allPoints;
-    auto pointGatherer = [&allPoints](double x, double y, bool c)
+    auto pointGatherer = [&allPoints](QSharedPointer<Plot> p, double x, double y, bool c)
     {
+        if(p->polarPlot)
+        {
+            double carX = y * cos( x );
+            double carY = y * sin( x );
+
+            x = carX;
+            y = carY;
+        }
+
         allPoints.append({ x, y });
     };
 

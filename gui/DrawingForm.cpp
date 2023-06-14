@@ -206,7 +206,7 @@ QVector<QPointF> DrawingForm::drawPlot(QSharedPointer<Plot> plot)
 
     QVector<QPointF> points;
 
-    auto executor = [this, &cx, &cy, &first, &points, &plot](double x, double y, bool continuous)
+    auto executor = [this, &cx, &cy, &first, &points](QSharedPointer<Plot> plot, double x, double y, bool continuous)
     {
         if(plot->polarPlot)
         {
