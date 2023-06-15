@@ -772,57 +772,130 @@
         },
         {
             "name": "Quadratrix of Hippias",
-			"class": "2d",
-            "equation": "",
-			"key": ""
+            "description": "The quadratrix was discovered by Hippias of Elis in 430 BC.",
+            "category": "general",
+            "class": "2d",
+            "equation": {
+                "type": "cartesian",
+                "formula": {
+                    "y": "x * cot( (pi * x)/(2 * a) )"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "scale", "description": "The scaling of the figure", "default": "1"}
+            ],            
+            "interval": { "start": "-6.28", "end": "6.28"},
+            "key": "quadratrix_of_hippias"
         },
         {
             "name": "Rhodonea Curves",
-			"class": "2d",
-            "equation": "",
-			"key": ""
+            "class": "2d",
+            "category": "polarcurves",
+            "description": "These curves were named by the Italian mathematician Guido Grandi between 1723 and 1728 because they looked like roses.",
+            "equation": {
+                "type": "polar",
+                "formula": {
+                    "r": "a * sin(k * t)"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "scale", "description": "The scaling of the figure", "default": "2"},
+                {"name": "k", "role": "former", "description": "The number of petals", "default": "3"}
+            ],
+            "interval": { "start": "-6.28", "end": "6.28"},
+            "key": "rhodonea_curves"
         },
         {
             "name": "Right Strophoid",
-			"class": "2d",
-            "equation": "",
-			"key": ""
+            "class": "2d",
+            "category": "polarcurves",
+            "description": "The strophoid is the locus of the focus of the conic obtained when a plane cutting the cone rotates about the tangent at its vertex",
+            "equation": {
+                "type": "polar",
+                "formula": {
+                    "r": "a * cos(2* t)/cos(t)"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "scale", "description": "The scaling of the figure", "default": "2"}
+            ],
+            "interval": { "start": "-6.28", "end": "6.28"},
+            "key": "right_strophoid"
         },
         {
             "name": "Serpentine",
-			"class": "2d",
-            "equation": "",
-			"key": ""
+            "class": "2d",
+            "category": "general",
+            "description": "This curve was named and studied by Newton in 1701.",
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "a * cot(t)",
+                    "y": "b * sin(t) * cos(t)"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "scale", "description": "Horizontal scale of the figure", "default": "2"},
+                {"name": "b", "role": "scale", "description": "Vertical scale of the figure", "default": "4"}
+
+            ],
+            "interval": { "start": "-3.14", "end": "3.14"},
+            "key": "serpentine"
         },
         {
             "name": "Sinusoidal Spirals",
-			"class": "2d",
-            "equation": "",
-			"key": ""
-        },
-        {
-            "name": "Spiric Sections",
-			"class": "2d",
-            "equation": "",
-			"key": ""
-        },
-        {
-            "name": "Straight Line",
-			"class": "2d",
-            "equation": "",
-			"key": ""
+            "class": "2d",
+            "category": "polarcurves",
+            "description": "The sinusoidal spirals are a family of curves which more looke like roses, not specifically spirals.",
+            "equation": {
+                "type": "polar",
+                "formula": {
+                    "r": "((a^k) * sin(k * t)) ^ (1/k)"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "scale", "description": "The scaling of the figure", "default": "2"},
+                {"name": "k", "role": "shaper", "description": "The shaper of the figure", "default": "1/2"}
+            ],
+            "interval": { "start": "-6.28", "end": "6.28"},
+            "key": "sinusoidal_spirals"
         },
         {
             "name": "Talbot's Curve",
-			"class": "2d",
-            "equation": "",
-			"key": ""
+            "class": "2d",
+            "category": "general",
+            "description": "Talbot's curve is the negative pedal of an ellipse with respect to its centre. It has four cusps and two nodes provided the square of the eccentricity of the ellipse is greater than 1/2.",
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "( (cos(t)) * ( (a^2 - b^2) *  sin^2(t) + a^2  )) / a",
+                    "y": " (sin(t) * ( (a^2 - b^2) * (sin^2(t)) - 2 * (a^2 - b^2) + a ^2)) / b"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "scale", "description": "Horizontal scale of the figure", "default": "3"},
+                {"name": "b", "role": "scale", "description": "Vertical scale of the figure", "default": "1"}
+
+            ],
+            "interval": { "start": "-3.14", "end": "3.14"},
+            "key": "talbots_curve"
         },
         {
             "name": "Tractrix",
-			"class": "2d",
-            "equation": "",
-			"key": ""
+            "class": "2d",
+            "category": "general",
+            "description": "The tractrix (or tractory curve) is generated by the path of an object dragged along a horizontal plane by a string of constant length when the end of the string not joined to the object moves along a straight line in the plane",
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "1 / cosh(t)",
+                    "y": "t - tanh(t)"
+                }
+            },
+            "parameter": [
+            ],
+            "interval": { "start": "-3.14", "end": "3.14"},
+            "key": "tractrix"
         },
         {
             "name": "Tricuspoid",

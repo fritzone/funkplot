@@ -139,6 +139,22 @@ TEST_CASE( "Function handling", "[functions]" )
         REQUIRE(p == "t*sqrt(1+(0-1)*((b^4+(0-1)*4*a^2*t^2+(0-1)*t^4)/(4*a*t^3))^2)");
         REQUIRE(f->get_name() == "f");
     }
+}
+
+TEST_CASE("Power", "[power]")
+{
+
+    RuntimeProvider rp{RuntimeProviderParameterProvider()};
+    registerClasses();
+
+    SECTION("PowerTest")
+    {
+        std::unique_ptr<Function> f  { new Function("f(x) = (x)^(-1/2)", nullptr) };
+        f->SetVariable("x", 4); // PI/2
+        double cc=f->Calculate();
+        REQUIRE(f->get_name() == "f");
+        REQUIRE(cc == 0.5);
+    }
 
 }
 
@@ -163,7 +179,7 @@ TEST_CASE( "Parsing", "[parser]" )
     {
         QString fnai;
         QString codeli = "ps[12]";
-        QString funToPlot = extract_proper_expression(codeli, fnai, {' ', '['}, {Keywords::KW_COUNTS, Keywords::KW_OVER, Keywords::KW_CONTINUOUS, Keywords::KW_FOR}, true);
+        QString funToPlot = extract_proper_expression(codeli, fnai, {' ', '['}, {Keywords::KW_COUNTS, Keywords::KW_OVER, Keywords::KW_CONTINUOUS, Keywords::KW_FOR}, false);
 
         REQUIRE(funToPlot.toStdString() == "ps");
 

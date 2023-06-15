@@ -226,9 +226,16 @@ void TextEditWithCodeCompletion::keyPressEvent(QKeyEvent *e)
         if(e->key() == Qt::Key_2) // Power of 2
         {
             insertText("²");
+                emit pTextChanged();
+            return;
+        }
+        if(e->key() == Qt::Key_T) // Theta
+        {
+            insertText("θ");
             emit pTextChanged();
             return;
         }
+
 
     }
 

@@ -819,7 +819,7 @@ QSharedPointer<Function> RuntimeProvider::getFunction(const QString &n)
 {
     for(const auto& fds : qAsConst(this->m_functions))
     {
-        if(fds.data()->f->get_name() == n.toStdString())
+        if(fds && fds.data()->f && fds.data()->f->get_name() == n.toStdString())
         {
             return fds.data()->f;
         }

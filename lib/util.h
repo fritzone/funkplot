@@ -83,6 +83,12 @@ static const std::vector<fun_desc_solve> supported_functions
      {"asec", "The arcsecant function", [](double v, double v2) -> double { return std::cos(1.0/v) != 0 ? 1.0 / std::cos(1.0/v) : std::numeric_limits<double>::quiet_NaN(); } , true, true},
      {"acosec", "The arc-cosecant function", [](double v, double v2) -> double { return std::sin(1.0/v)!= 0 ? 1.0 / std::sin(1.0/v) : std::numeric_limits<double>::quiet_NaN(); } , true, true},
 
+     // hyperbolic functions
+     {"sinh", "The hyperbolic sine function", [](double v, double v2) -> double { return (1 - std::pow(M_E, -2 * v)) / (2 * std::pow(M_E, -v)) ; }, true, true },
+     {"cosh", "The hyperbolic cosine function", [](double v, double v2) -> double { return (1 + std::pow(M_E, -2 * v)) / (2 * std::pow(M_E, -v)) ; }, true, true },
+     {"tanh", "The hyperbolic tangent function", [](double v, double v2) -> double { return (std::pow(M_E, 2 * v) - 1) / (std::pow(M_E, 2 * v) + 1) ; }, true, true },
+     {"coth", "The hyperbolic cotangent function", [](double v, double v2) -> double { return (std::pow(M_E, 2 * v) + 1) / (std::pow(M_E, 2 * v) - 1) ; }, true, true },
+
      // Algebraic functions
      {"exp", "The exponential function", [](double v, double v2) -> double { return std::exp(v); } , true, true},
      {"log", "The common logarithmic function", [](double v, double v2) -> double { return std::log10(v); } , true, true},

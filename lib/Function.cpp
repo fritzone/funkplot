@@ -222,7 +222,7 @@ void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
     {
         char* beforOp = before(zlcmp, expr);
         const char *afterOp = expr + zlcmp + zlcmpOp.length();
-        
+
         node->info = zlcmpOp;
         node->left = new tree;
         node->left->parent = node;
@@ -232,14 +232,14 @@ void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
         node->right = new tree;
         node->right->parent = node;
         interpret(afterOp, node->right, rp);
-        
+
         return;
-    }    
-    
+    }
+
     int zladd = l0add(expr), zlmlt = l0mlt(expr),
             zlop = zladd == -1 ? zlmlt == -1 ? -1 : zlmlt : zladd;
 
-    if (zlop != -1) 
+    if (zlop != -1)
     {
         char* beforer = before(zlop, expr);
         if (strlen(beforer) == 0) {
@@ -266,7 +266,7 @@ void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
     {
         if (expr[0] == '(')
         {
-            if (expr[strlen(expr) - 1] == ')')
+            if (expr[strlen(expr) - 1] == ')' && first_in_parens_is_contained(expr))
             {
                 char* expr2 = new char[strlen(expr)];
                 const char* ext = expr + 1;
@@ -459,10 +459,10 @@ int Function::l0cmp(const char *expr, std::string& zlop)
             level++;
         if (expr[i] == ')' || expr[i] == ']')
             level--;
-        
+
         for(const std::string& op : comp_operators)
         {
-                    
+
             if(expr[i] == op[0])
             {
                 if(op.length() > 1)
@@ -474,7 +474,7 @@ int Function::l0cmp(const char *expr, std::string& zlop)
                             zlop = op;
                             return i;
                         }
-                    }                    
+                    }
                 }
                 else
                 {
@@ -785,6 +785,35 @@ bool Function::breakUpAsLogicOps(const char*expr, tree*node, const char *o, Runt
         return true;
     }
     return false;
+}
+
+// The role of this function is to see whether the very first
+// expression contained in parenthesis in expr is the same as the full expression
+bool Function::first_in_parens_is_contained(const char *expr)
+{
+    if(strlen(expr) > 0 && expr[0] != '(') return false;
+
+    unsigned int i = 0, level = 0, l = strlen(expr);
+
+    while (i < l )
+    {
+        if (expr[i] == '(' || expr[i] == '[')
+            level++;
+        if (expr[i] == ')' || expr[i] == ']')
+        {
+            level--;
+            if(level == 0) // we are back to something on the main level
+            {
+                if(i < l - 1)
+                {
+                    return false;
+                }
+            }
+        }
+        i++;
+    }
+
+    return true;
 }
 
 
