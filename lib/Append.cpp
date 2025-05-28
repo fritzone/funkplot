@@ -58,7 +58,7 @@ QVector<QSharedPointer<Statement> > Append::create(int ln, const QString &codeli
 
     if(!append_body.startsWith(Keywords::KW_TO))
     {
-        throw syntax_error_exception(ERRORCODE(59), "<b>append</b> statement does not contain the <b>to</b> keyword in: <b>%s</b>", codeline.toStdString().c_str());
+        throw funkplot::syntax_error_exception(ERRORCODE(59), "<b>append</b> statement does not contain the <b>to</b> keyword in: <b>%s</b>", codeline.toStdString().c_str());
     }
 
     append_body = append_body.mid(Keywords::KW_TO.length());
@@ -68,19 +68,19 @@ QVector<QSharedPointer<Statement> > Append::create(int ln, const QString &codeli
 
     if(!RuntimeProvider::get()->hasVariable(result->varName))
     {
-        throw syntax_error_exception(ERRORCODE(8), "Undeclared variable <b>%s</b> while parsing: <b>%s</b>", result->varName.toStdString().c_str(), codeline.toStdString().c_str());
+        throw funkplot::syntax_error_exception(ERRORCODE(8), "Undeclared variable <b>%s</b> while parsing: <b>%s</b>", result->varName.toStdString().c_str(), codeline.toStdString().c_str());
     }
 
     result->domain = getDelimitedId(append_body)    ;
     if(!Domains::all().contains(result->domain))
     {
-        throw syntax_error_exception(ERRORCODE(63), "Unsupported domain <b>%s</b> while parsing: <b>%s</b>", result->domain.toStdString().c_str(), codeline.toStdString().c_str());
+        throw funkplot::syntax_error_exception(ERRORCODE(63), "Unsupported domain <b>%s</b> while parsing: <b>%s</b>", result->domain.toStdString().c_str(), codeline.toStdString().c_str());
     }
 
     QString domainOfVar = RuntimeProvider::get()->domainOfVariable(result->varName);
     if(result->domain != domainOfVar)
     {
-        throw syntax_error_exception(ERRORCODE(8), "Incompatible domain types for append, found <b>%s</b> expected <b>%s</b> while parsing <b>%s</b>",
+        throw funkplot::syntax_error_exception(ERRORCODE(8), "Incompatible domain types for append, found <b>%s</b> expected <b>%s</b> while parsing <b>%s</b>",
                                      result->domain.toStdString().c_str(), domainOfVar.toStdString().c_str(), codeline.toStdString().c_str());
     }
 
@@ -103,7 +103,7 @@ QVector<QSharedPointer<Statement> > Append::create(int ln, const QString &codeli
         {
             if(!e.startsWith("("))
             {
-                throw syntax_error_exception(ERRORCODE(35), "Invalid point array append: missing <b>(</b> from <b>%s</b>", codeline.toStdString().c_str());
+                throw funkplot::syntax_error_exception(ERRORCODE(35), "Invalid point array append: missing <b>(</b> from <b>%s</b>", codeline.toStdString().c_str());
             }
             e = e.mid(1);
             QString sx = getDelimitedId(e, {','});

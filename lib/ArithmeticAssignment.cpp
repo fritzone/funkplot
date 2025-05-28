@@ -19,7 +19,7 @@ bool ArithmeticAssignment::execute(RuntimeProvider *rp)
             }
             else
             {
-                throw syntax_error_exception(ERRORCODE(71), "Some error came up in this context: <b>%s</b>",  statement.toStdString().c_str());
+                throw funkplot::syntax_error_exception(ERRORCODE(71), "Some error came up in this context: <b>%s</b>",  statement.toStdString().c_str());
             }
 
             // if this is an indexed something ...
@@ -62,7 +62,7 @@ bool ArithmeticAssignment::execute(RuntimeProvider *rp)
             QString vt = rp->typeOfVariable(varName.toStdString().c_str()).toUpper();
             if(vt == "POINT")
             {
-                throw syntax_error_exception(ERRORCODE(65), "Cannot use the point type variable <b>%s</b> in this context: <b>%s</b>",  varName.toStdString().c_str(), statement.toStdString().c_str());
+                throw funkplot::syntax_error_exception(ERRORCODE(65), "Cannot use the point type variable <b>%s</b> in this context: <b>%s</b>",  varName.toStdString().c_str(), statement.toStdString().c_str());
             }
             throw;
         }

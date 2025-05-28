@@ -18,11 +18,11 @@ QVector<QSharedPointer<Statement> > Parametric::create(int ln, const QString &co
     consumeSpace(f_body);
     if(f_body.isEmpty())
     {
-        throw syntax_error_exception(ERRORCODE(69), "Invalid parametric function definition: %s. Missing <b>function</b> in declaration.", codeline.toLatin1().data());
+        throw funkplot::syntax_error_exception(ERRORCODE(69), "Invalid parametric function definition: %s. Missing <b>function</b> in declaration.", codeline.toLatin1().data());
     }
     if(f_body.at(0) != '(')
     {
-        throw syntax_error_exception(ERRORCODE(69), "Invalid parametric function definition: %s. Missing parenthesis in declaration.", codeline.toLatin1().data());
+        throw funkplot::syntax_error_exception(ERRORCODE(69), "Invalid parametric function definition: %s. Missing parenthesis in declaration.", codeline.toLatin1().data());
     }
     f_body = f_body.mid(1);
     QString fun_parname = extract_proper_expression(f_body, sp, {')'}, {}, true);
@@ -54,7 +54,7 @@ QVector<QSharedPointer<Statement> > Parametric::create(int ln, const QString &co
             }
             else
             {
-                throw syntax_error_exception(ERRORCODE(70), "Invalid parametric function definition: %s. Only the coordinates <b>x</b> and <b>y</b> are supported.", codeline.toLatin1().data());
+                throw funkplot::syntax_error_exception(ERRORCODE(70), "Invalid parametric function definition: %s. Only the coordinates <b>x</b> and <b>y</b> are supported.", codeline.toLatin1().data());
             }
 
         }
@@ -74,7 +74,7 @@ QSharedPointer<Function> Parametric::extractFunction(QString s)
 
     if(!s.isEmpty() && s.at(0) != '=')
     {
-        throw syntax_error_exception(ERRORCODE(71), "Invalid parametric function definition: %s. Need an equality sign here", s.toLatin1().data());
+        throw funkplot::syntax_error_exception(ERRORCODE(71), "Invalid parametric function definition: %s. Need an equality sign here", s.toLatin1().data());
     }
 
     QString tempFun = funName + "_" + cn + "(" + funParName + ")" + s;

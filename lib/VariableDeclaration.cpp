@@ -26,7 +26,7 @@ QVector<QSharedPointer<Statement>> VariableDeclaration::create(int ln, const QSt
 #endif
         if(declI.size() < 2)
         {
-            throw syntax_error_exception(ERRORCODE(1), "Invalid variable declaration: <b>%s</b>", s.toStdString().c_str());
+            throw funkplot::syntax_error_exception(ERRORCODE(1), "Invalid variable declaration: <b>%s</b>", s.toStdString().c_str());
         }
 
         // let's see if we have "list" in the elements
@@ -48,7 +48,7 @@ QVector<QSharedPointer<Statement>> VariableDeclaration::create(int ln, const QSt
             QString type = declI.last();
             if(!Types::all().contains(type))
             {
-                throw syntax_error_exception(ERRORCODE(2), "Invalid variable type <b>%s</b> in <b>%s", type.toStdString().c_str(), s.toStdString().c_str());
+                throw funkplot::syntax_error_exception(ERRORCODE(2), "Invalid variable type <b>%s</b> in <b>%s", type.toStdString().c_str(), s.toStdString().c_str());
             }
 
             declI.removeLast();
@@ -57,7 +57,7 @@ QVector<QSharedPointer<Statement>> VariableDeclaration::create(int ln, const QSt
             {
                 if(vn == "e")
                 {
-                    throw syntax_error_exception(ERRORCODE(2), "Invalid variable name <b>e</b>. <b>e</b> is reserved for the Euler constant <b>2.71</b>.");
+                    throw funkplot::syntax_error_exception(ERRORCODE(2), "Invalid variable name <b>e</b>. <b>e</b> is reserved for the Euler constant <b>2.71</b>.");
                 }
 
                 QSharedPointer<VariableDeclaration> resultI;
@@ -82,7 +82,7 @@ QVector<QSharedPointer<Statement>> VariableDeclaration::create(int ln, const QSt
             {
                 if(declI[list_kw_index + 1] != Keywords::KW_OF )
                 {
-                    throw syntax_error_exception(ERRORCODE(3), "Missing keyword <b>of</b> in <b>%s</b>",s.toStdString().c_str());
+                    throw funkplot::syntax_error_exception(ERRORCODE(3), "Missing keyword <b>of</b> in <b>%s</b>",s.toStdString().c_str());
                 }
                 if(list_kw_index + 2 < declI.size())
                 {
@@ -90,7 +90,7 @@ QVector<QSharedPointer<Statement>> VariableDeclaration::create(int ln, const QSt
 
                     if(Domains::all().indexOf(domain) == -1)
                     {
-                        throw syntax_error_exception(ERRORCODE(4), "Invalid list variable type <b>%s</b> in <b>%s", domain.toStdString().c_str(), s.toStdString().c_str());
+                        throw funkplot::syntax_error_exception(ERRORCODE(4), "Invalid list variable type <b>%s</b> in <b>%s", domain.toStdString().c_str(), s.toStdString().c_str());
                     }
 
                     for(int i =0; i<list_kw_index; i++)
@@ -109,12 +109,12 @@ QVector<QSharedPointer<Statement>> VariableDeclaration::create(int ln, const QSt
                 }
                 else
                 {
-                    throw syntax_error_exception(ERRORCODE(5), "Untyped lists are not supported in <b>%s</b>",s.toStdString().c_str());
+                    throw funkplot::syntax_error_exception(ERRORCODE(5), "Untyped lists are not supported in <b>%s</b>",s.toStdString().c_str());
                 }
             }
             else
             {
-                throw syntax_error_exception(ERRORCODE(6), "Untyped lists are not supported in <b>%s</b>",s.toStdString().c_str());
+                throw funkplot::syntax_error_exception(ERRORCODE(6), "Untyped lists are not supported in <b>%s</b>",s.toStdString().c_str());
             }
         }
     }

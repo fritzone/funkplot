@@ -64,7 +64,7 @@ void Stepped::resolveOverKeyword(QString codeline, QSharedPointer<Stepped> stepp
         else
             if(!codeline.isEmpty())
             {
-                throw syntax_error_exception(ERRORCODE(53), "Invalid keyword: <b>%s</b>", codeline.toStdString().c_str());
+                throw funkplot::syntax_error_exception(ERRORCODE(53), "Invalid keyword: <b>%s</b>", codeline.toStdString().c_str());
             }
     stepped->start = Function::temporaryFunction(first_par, s);
     stepped->end = Function::temporaryFunction(second_par, s);

@@ -24,7 +24,7 @@ bool PointDefinitionAssignmentToOtherPoint::execute(RuntimeProvider *rp)
         }
         else
         {
-            throw syntax_error_exception(ERRORCODE(54), "Invalid assignment: <b>%s</b> (something messy with the index for <b>%s</b>)", statement.toStdString().c_str(), otherPointsName.toStdString().c_str());
+            throw funkplot::syntax_error_exception(ERRORCODE(54), "Invalid assignment: <b>%s</b> (something messy with the index for <b>%s</b>)", statement.toStdString().c_str(), otherPointsName.toStdString().c_str());
         }
     }
 
@@ -131,6 +131,6 @@ void PointDefinitionAssignmentToOtherPoint::resolveAssignmentFromIndexed(Assignm
         std::stringstream ss;
         ss <<"Index out of bounds for <b>" << pas->varName.toStdString().c_str() << "</b> in this context: <b>" <<  statement.toStdString().c_str() <<
             "</b>. Requested <b>" << idx << "</b>, available: <b>" << pps - 1 << "</b> (Arrays start from index 0, not 1)";
-        throw syntax_error_exception(ERRORCODE(55), ss.str().c_str());
+        throw funkplot::syntax_error_exception(ERRORCODE(55), ss.str().c_str());
     }
 }

@@ -19,7 +19,7 @@ bool RangeIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider* rp)
 
     if(v < e && stepv < 0.0 || v > e && stepv > 0.0)
     {
-        throw syntax_error_exception(ERRORCODE(0), "Erroneous looping conditions detected, check your range");
+        throw funkplot::syntax_error_exception(ERRORCODE(0), "Erroneous looping conditions detected, check your range");
     }
 
     do

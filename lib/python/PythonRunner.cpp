@@ -60,20 +60,20 @@ std::string python_runner::formatPythonException(PyObject *exceptionObj, PyObjec
     PyObjectHandle tbModule(PyImport_ImportModule("traceback"));
     if (!tbModule)
     {
-        throw syntax_error_exception(ERRORCODE(68), "Python internal error: import traceback failed");
+        throw funkplot::syntax_error_exception(ERRORCODE(68), "Python internal error: import traceback failed");
     }
 
     PyObject* tbDict = PyModule_GetDict(tbModule.get());  // borrowed
     if (!tbDict)
     {
-        throw syntax_error_exception(ERRORCODE(68), "Python internal error: no dict in traceback module");
+        throw funkplot::syntax_error_exception(ERRORCODE(68), "Python internal error: no dict in traceback module");
     }
 
     // borrowed
     PyObject* formatFunc = PyDict_GetItemString(tbDict, "format_exception");
     if (!formatFunc)
     {
-        throw syntax_error_exception(ERRORCODE(68), "Python internal error: no format_exception in traceback module");
+        throw funkplot::syntax_error_exception(ERRORCODE(68), "Python internal error: no format_exception in traceback module");
     }
 
     PyObjectHandle formatted(PyObject_CallFunction(
@@ -81,12 +81,12 @@ std::string python_runner::formatPythonException(PyObject *exceptionObj, PyObjec
         traceback.get()));
     if (!formatted)
     {
-        throw syntax_error_exception(ERRORCODE(68), "Python internal error: traceback.format_exception error");
+        throw funkplot::syntax_error_exception(ERRORCODE(68), "Python internal error: traceback.format_exception error");
     }
 
     if (!PyList_Check(formatted.get()))
     {
-        throw syntax_error_exception(ERRORCODE(68), "Python internal error: traceback.format_exception didn't return a list");
+        throw funkplot::syntax_error_exception(ERRORCODE(68), "Python internal error: traceback.format_exception didn't return a list");
     }
 
     auto fg = formatted.get();

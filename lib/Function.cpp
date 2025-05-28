@@ -24,14 +24,14 @@ Function::Function(const char *pexpr, Statement* s)
     const char* eqp_chr = strchr(expr, '=');
     if(!eqp_chr)
     {
-        throw syntax_error_exception(ERRORCODE(16), "Invalid function definition: %s. Missing assignment in body.", expr);
+        throw funkplot::syntax_error_exception(ERRORCODE(16), "Invalid function definition: %s. Missing assignment in body.", expr);
     }
     int eqpos = (strchr(expr, '=') - expr);
     char* expr_p1 = before(eqpos, expr);
     char* ppar = strchr(expr_p1, '(');
     if(!ppar)
     {
-        throw syntax_error_exception(ERRORCODE(17), "Improper parametrization of the given function: <b>%s</b> (missing parameters, such as f(x) = ...)", expr_p1);
+        throw funkplot::syntax_error_exception(ERRORCODE(17), "Improper parametrization of the given function: <b>%s</b> (missing parameters, such as f(x) = ...)", expr_p1);
     }
     expr_p1[ppar - expr_p1] = 0;
     m_name = expr_p1;
@@ -42,7 +42,7 @@ Function::Function(const char *pexpr, Statement* s)
 
     if(!pparc)
     {
-        throw syntax_error_exception(ERRORCODE(17), "Improper parametrization of the given function: <b>%s</b> (missing closing parenthesis)", expr_p1);
+        throw funkplot::syntax_error_exception(ERRORCODE(17), "Improper parametrization of the given function: <b>%s</b> (missing closing parenthesis)", expr_p1);
     }
     ppar[pparc - ppar] = 0;
     while (ppar)
@@ -243,11 +243,11 @@ void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
     {
         char* beforer = before(zlop, expr);
         if (strlen(beforer) == 0) {
-            throw syntax_error_exception(ERRORCODE(18), "Possible error in statement: <b>%s</b>. No data before position %i (%c)", expr, zlop, expr[zlop]);
+            throw funkplot::syntax_error_exception(ERRORCODE(18), "Possible error in statement: <b>%s</b>. No data before position %i (%c)", expr, zlop, expr[zlop]);
         }
         char* afterer = after(zlop, expr);
         if (strlen(afterer) == 0) {
-            throw syntax_error_exception(ERRORCODE(19), "Possible error in statement: <b>%s</b>. No data after position %i (%c)", expr, zlop, expr[zlop]);
+            throw funkplot::syntax_error_exception(ERRORCODE(19), "Possible error in statement: <b>%s</b>. No data after position %i (%c)", expr, zlop, expr[zlop]);
         }
 
         node->info = c2str(expr[zlop]);
@@ -275,7 +275,7 @@ void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
                 if (strlen(expr2) == 0)
                 {
                     delete[] expr2;
-                    throw syntax_error_exception(ERRORCODE(20), "Syntax error in statement: <b>%s</b>. Unmatched empty parenthesis", expr);
+                    throw funkplot::syntax_error_exception(ERRORCODE(20), "Syntax error in statement: <b>%s</b>. Unmatched empty parenthesis", expr);
                 }
                 interpret(expr2, node, rp);
                 delete[] expr2;
@@ -289,12 +289,12 @@ void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
                     char* beforer2 = before(l0pwr, expr);
                     if (strlen(beforer2) == 0)
                     {
-                        throw syntax_error_exception(ERRORCODE(28), "Possible error in statement:<b>%s</b>. No data before position %i (%c)", expr, zlop, expr[l0pwr]);
+                        throw funkplot::syntax_error_exception(ERRORCODE(28), "Possible error in statement:<b>%s</b>. No data before position %i (%c)", expr, zlop, expr[l0pwr]);
                     }
                     char* afterer2 = after(l0pwr, expr);
                     if (strlen(afterer2) == 0)
                     {
-                        throw syntax_error_exception(ERRORCODE(29), "Possible error in statement: <b>%s</b>. No data after position %i (%c)", expr, zlop, expr[l0pwr]);
+                        throw funkplot::syntax_error_exception(ERRORCODE(29), "Possible error in statement: <b>%s</b>. No data after position %i (%c)", expr, zlop, expr[l0pwr]);
                     }
                     node->left = new tree;
                     node->left->parent = node;
@@ -309,7 +309,7 @@ void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
                 }
                 else
                 {
-                    throw syntax_error_exception(ERRORCODE(21), "Possible error in statement: <b>%s</b>. Not found enclosing parenthesis", expr);
+                    throw funkplot::syntax_error_exception(ERRORCODE(21), "Possible error in statement: <b>%s</b>. Not found enclosing parenthesis", expr);
                 }
             }
 
@@ -333,11 +333,11 @@ void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
 
                     if (!strcmp(expr3, "()"))
                     {
-                        throw syntax_error_exception(ERRORCODE(22), "Possible error in statement: <b>%s</b> No parameters for a function (%s)", expr, iffunc);
+                        throw funkplot::syntax_error_exception(ERRORCODE(22), "Possible error in statement: <b>%s</b> No parameters for a function (%s)", expr, iffunc);
                     }
                     if (strlen(expr3) == 0)
                     {
-                        throw syntax_error_exception(ERRORCODE(23), "Possible error in statement: <b>%s</b> Meaningless use of a function (%s)", expr, iffunc);
+                        throw funkplot::syntax_error_exception(ERRORCODE(23), "Possible error in statement: <b>%s</b> Meaningless use of a function (%s)", expr, iffunc);
                     }
 
                     // skipping the parentheses
@@ -365,11 +365,11 @@ void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
 
                     if (!strcmp(expr3, "()"))
                     {
-                        throw syntax_error_exception(ERRORCODE(24), "Possible error in statement: <b>%s</b> No parameters for a function (%s)", expr, iffunc);
+                        throw funkplot::syntax_error_exception(ERRORCODE(24), "Possible error in statement: <b>%s</b> No parameters for a function (%s)", expr, iffunc);
                     }
                     if (strlen(expr3) == 0)
                     {
-                        throw syntax_error_exception(ERRORCODE(23), "Possible error in statement: <b>%s</b> Meaningless use of a function (%s)", expr, iffunc);
+                        throw funkplot::syntax_error_exception(ERRORCODE(23), "Possible error in statement: <b>%s</b> Meaningless use of a function (%s)", expr, iffunc);
                     }
                     node->left = new tree;
                     node->left->parent = node;
@@ -383,7 +383,7 @@ void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
                         std::string power = extract_proper_expression(expr3, fnai, {'('}, {}, false);
                         if(power.empty())
                         {
-                            throw syntax_error_exception(ERRORCODE(26), "Possible error in statement: <b>%s</b> Improper power expression (%s)", expr, expr3);
+                            throw funkplot::syntax_error_exception(ERRORCODE(26), "Possible error in statement: <b>%s</b> Improper power expression (%s)", expr, expr3);
                         }
                         interpret(power.c_str(), node->right, rp);
                     }
@@ -394,7 +394,7 @@ void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
             }
 //            else if (expr[strlen(expr) - 1] == ')')
 //            {
-//                throw syntax_error_exception(ERRORCODE(27), "Possible error in formula: <b>%s</b>. This does not look like a valid expression.", expr);
+//                throw funkplot::syntax_error_exception(ERRORCODE(27), "Possible error in formula: <b>%s</b>. This does not look like a valid expression.", expr);
 //            }
             else
                 if(strchr(expr, '[') && strchr (expr, ']')) // is this an indexed expression=, like a[2]
@@ -420,12 +420,12 @@ void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
                         char* beforer2 = before(l0pwr, expr);
                         if (strlen(beforer2) == 0)
                         {
-                            throw syntax_error_exception(ERRORCODE(28), "Possible error in statement:<b>%s</b>. No data before position %i (%c)", expr, zlop, expr[l0pwr]);
+                            throw funkplot::syntax_error_exception(ERRORCODE(28), "Possible error in statement:<b>%s</b>. No data before position %i (%c)", expr, zlop, expr[l0pwr]);
                         }
                         char* afterer2 = after(l0pwr, expr);
                         if (strlen(afterer2) == 0)
                         {
-                            throw syntax_error_exception(ERRORCODE(29), "Possible error in statement: <b>%s</b>. No data after position %i (%c)", expr, zlop, expr[l0pwr]);
+                            throw funkplot::syntax_error_exception(ERRORCODE(29), "Possible error in statement: <b>%s</b>. No data after position %i (%c)", expr, zlop, expr[l0pwr]);
                         }
                         node->left = new tree;
                         node->left->parent = node;
@@ -633,7 +633,7 @@ std::optional<double> Function::calc(tree* node, RuntimeProvider* rp, IndexedAcc
                     // find the root of this:
                     tree* t = node;
                     while(t && t->parent) t = t->parent;
-                    throw syntax_error_exception(ERRORCODE(30), "Possible error in <b>%s</b> expression: <b>%s</b> is not understood.", node->info, node->info);
+                    throw funkplot::syntax_error_exception(ERRORCODE(30), "Possible error in <b>%s</b> expression: <b>%s</b> is not understood.", node->info, node->info);
                 }
             }
         }
@@ -711,7 +711,7 @@ std::optional<double> Function::op(const std::string& s, double op1, double op2,
         }
         else
         {
-            throw syntax_error_exception(ERRORCODE(30), "Possible error in <b>%s</b> statement: Not found avalid parametric function.", s.c_str());
+            throw funkplot::syntax_error_exception(ERRORCODE(30), "Possible error in <b>%s</b> statement: Not found avalid parametric function.", s.c_str());
         }
 
     }

@@ -175,6 +175,9 @@ T ifStringThenConvertToCharBuf(T const& t)
 }
 }
 
+namespace funkplot
+{
+
 template <typename... Args>
 std::string format(std::string const& formatString, Args&&... args)
 {
@@ -220,6 +223,7 @@ private:
     int error_number;
 };
 
+}
 
 // this is an enumerator function
 typedef int (*ENUMERATOR)(void *, void *);

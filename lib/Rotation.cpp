@@ -75,13 +75,13 @@ QVector<QSharedPointer<Statement> > Rotation::create(int ln, const QString &code
 
     if(!RuntimeProvider::get()->hasVariable(rotate_what))
     {
-        throw syntax_error_exception(ERRORCODE(44), "rotate statement tries to rotate undeclared variable");
+        throw funkplot::syntax_error_exception(ERRORCODE(44), "rotate statement tries to rotate undeclared variable");
     }
 
     QString with_keyword = getDelimitedId(r_decl);
     if(with_keyword != "with")
     {
-        throw syntax_error_exception(ERRORCODE(45), "rotate statement does not contain <b>with</b> keyword");
+        throw funkplot::syntax_error_exception(ERRORCODE(45), "rotate statement does not contain <b>with</b> keyword");
     }
 
     [[maybe_unused]] QString fnai;
@@ -96,14 +96,14 @@ QVector<QSharedPointer<Statement> > Rotation::create(int ln, const QString &code
 
     if(rotation_unit != "degrees" && rotation_unit != "radians" && !rotation_unit.isEmpty())
     {
-        throw syntax_error_exception(ERRORCODE(46), "Rotation unit must be either degree or radians (default)");
+        throw funkplot::syntax_error_exception(ERRORCODE(46), "Rotation unit must be either degree or radians (default)");
     }
     result->unit = rotation_unit;
 
     QString around_kw = getDelimitedId(r_decl);
     if(!around_kw.isEmpty() && around_kw != Keywords::KW_AROUND)
     {
-        throw syntax_error_exception(ERRORCODE(47), "Unknown keyword in rotation: <b>%s</b>" , around_kw.toStdString().c_str());
+        throw funkplot::syntax_error_exception(ERRORCODE(47), "Unknown keyword in rotation: <b>%s</b>" , around_kw.toStdString().c_str());
     }
     QString nextWord = getDelimitedId(r_decl);
     if(nextWord == "point")
@@ -111,7 +111,7 @@ QVector<QSharedPointer<Statement> > Rotation::create(int ln, const QString &code
         nextWord = getDelimitedId(r_decl);
         if(nextWord != "at")
         {
-            throw syntax_error_exception(ERRORCODE(48), "Invalid reference: <b>%s</b> (missing <b><pre>at</pre></b> keyword)", codeline.toStdString().c_str());
+            throw funkplot::syntax_error_exception(ERRORCODE(48), "Invalid reference: <b>%s</b> (missing <b><pre>at</pre></b> keyword)", codeline.toStdString().c_str());
         }
 
         if(!r_decl.isEmpty())

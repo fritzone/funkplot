@@ -32,7 +32,7 @@ bool Set::execute(RuntimeProvider *rp)
 #endif
         if(vs.size() < 2)
         {
-            throw syntax_error_exception(ERRORCODE(31), "Erroneous pixel property: <b>%s</b>", what.toStdString().c_str());
+            throw funkplot::syntax_error_exception(ERRORCODE(31), "Erroneous pixel property: <b>%s</b>", what.toStdString().c_str());
         }
 
         if(vs[0] == "size")
@@ -180,7 +180,7 @@ void Set::setColor(RuntimeProvider *rp)
 
             if(!local_value.isEmpty()&& local_value.at(0) == ']' && !needs_pq || local_value.isEmpty() && needs_pq )
             {
-                throw syntax_error_exception(ERRORCODE(32), "Wrong palette indexing: <b>%s</b>", s.c_str());
+                throw funkplot::syntax_error_exception(ERRORCODE(32), "Wrong palette indexing: <b>%s</b>", s.c_str());
             }
 
             if(!local_value.isEmpty()) local_value = local_value.mid(1);
@@ -307,7 +307,7 @@ void Set::setColor(RuntimeProvider *rp)
                 }
                 default:
                 {
-                    throw syntax_error_exception(ERRORCODE(33), "Invalid color to set:<b>%s</b>", value.toStdString().c_str());
+                    throw funkplot::syntax_error_exception(ERRORCODE(33), "Invalid color to set:<b>%s</b>", value.toStdString().c_str());
                 }
                 }
             }
@@ -327,7 +327,7 @@ QVector<QSharedPointer<Statement>> Set::create(int ln, const QString &codeline, 
     }
     if(SetTargets::all().indexOf(what) == -1)
     {
-        throw syntax_error_exception(ERRORCODE(36), "Syntax error: unsupported <b>set</b> target: <b>%s</b> in <b>%s</b>", what.toStdString().c_str(), codeline.toStdString().c_str());
+        throw funkplot::syntax_error_exception(ERRORCODE(36), "Syntax error: unsupported <b>set</b> target: <b>%s</b> in <b>%s</b>", what.toStdString().c_str(), codeline.toStdString().c_str());
     }
     s_body = s_body.mid(1);
     // to what, can be: colorname, #RRGGBB or R,G,B (real numbers for this situation)

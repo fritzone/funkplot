@@ -86,7 +86,7 @@ QSharedPointer<Statement> CodeEngine::resolveCodeline(int& ln, QStringList &code
             }
 
         }
-        catch(syntax_error_exception& ex)
+        catch(funkplot::syntax_error_exception& ex)
         {
             m_rp->reportError(ln, ex.error_code(), ex.what());
             throw;

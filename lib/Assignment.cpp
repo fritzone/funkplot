@@ -184,13 +184,13 @@ void Assignment::dealWithIndexedAssignmentToSomething(RuntimeProvider *rp, Index
 
                     if(v < e && stepv < 0.0 || v > e && stepv > 0.0)
                     {
-                        throw syntax_error_exception(ERRORCODE(0), "Erroneous looping conditions detected, check your range");
+                        throw funkplot::syntax_error_exception(ERRORCODE(0), "Erroneous looping conditions detected, check your range");
                     }
                     // and calculate the points
                     auto f = rp->getFunction(p->providedFunction());
                     if(!f)
                     {
-                        throw syntax_error_exception(ERRORCODE(60), "No function for points assignment");
+                        throw funkplot::syntax_error_exception(ERRORCODE(60), "No function for points assignment");
                     }
                     QVector<QPointF> allPoints;
                     auto pars = f->get_domain_variables();
@@ -244,7 +244,7 @@ void Assignment::dealWithIndexedAssignmentToSomething(RuntimeProvider *rp, Index
             QString sourceType = rp->typeOfVariable(source->varName);
             if(sourceType != Types::TYPE_LIST)
             {
-                throw syntax_error_exception(ERRORCODE(61), "Cannot assign a non numeric value (<b>%s</b>) to a numeric variable (<b>%s</b>)", source->varName.toStdString().c_str(), varName.toStdString().c_str());
+                throw funkplot::syntax_error_exception(ERRORCODE(61), "Cannot assign a non numeric value (<b>%s</b>) to a numeric variable (<b>%s</b>)", source->varName.toStdString().c_str(), varName.toStdString().c_str());
             }
 
             auto arrayAssignment = rp->getAssignmentAs<ArrayAssignment>(source->varName);
@@ -253,7 +253,7 @@ void Assignment::dealWithIndexedAssignmentToSomething(RuntimeProvider *rp, Index
                 auto pointsOfAssignment = rp->getAssignmentAs<PointsOfObjectAssignment>(source->varName);
                 if(!pointsOfAssignment)
                 {
-                    throw syntax_error_exception(ERRORCODE(62), "Cannot identify the object assigning from: <b>%s</b> in this context: <b>%s</b>", source->varName.toStdString().c_str(), statement.toStdString().c_str());
+                    throw funkplot::syntax_error_exception(ERRORCODE(62), "Cannot identify the object assigning from: <b>%s</b> in this context: <b>%s</b>", source->varName.toStdString().c_str(), statement.toStdString().c_str());
                 }
                 // find the point we are looking for
 
@@ -265,7 +265,7 @@ void Assignment::dealWithIndexedAssignmentToSomething(RuntimeProvider *rp, Index
             // this
             if(ia_m->index >= arrayAssignment->m_elements.size())
             {
-                throw syntax_error_exception(ERRORCODE(55), "Index out of bounds for <b>%s</b> in this context: <b>%s</b>. Requested <b>%d</b>, available: <b>%d</b>",
+                throw funkplot::syntax_error_exception(ERRORCODE(55), "Index out of bounds for <b>%s</b> in this context: <b>%s</b>. Requested <b>%d</b>, available: <b>%d</b>",
                                              source->varName.toStdString().c_str(), statement.toStdString().c_str(), ia_m->index, arrayAssignment->m_elements.size());
             }
 
@@ -274,7 +274,7 @@ void Assignment::dealWithIndexedAssignmentToSomething(RuntimeProvider *rp, Index
         }
         else
         {
-            throw syntax_error_exception(ERRORCODE(64), "Cannot identify the assignment source (<b>%s</b>)", ia_m->indexedVariable.toStdString().c_str());
+            throw funkplot::syntax_error_exception(ERRORCODE(64), "Cannot identify the assignment source (<b>%s</b>)", ia_m->indexedVariable.toStdString().c_str());
         }
     }
 }
@@ -322,7 +322,7 @@ QVector<QSharedPointer<Statement> > Assignment::create(int ln, const QString &co
     {
         if(varName.indexOf("]") == -1)
         {
-            throw syntax_error_exception(ERRORCODE(7), "Invalid assignment: <b>%s</b> (something messy with the index for <b>%s</b>)", codeline.toStdString().c_str(), varName.toStdString().c_str());
+            throw funkplot::syntax_error_exception(ERRORCODE(7), "Invalid assignment: <b>%s</b> (something messy with the index for <b>%s</b>)", codeline.toStdString().c_str(), varName.toStdString().c_str());
         }
 
         realVarName = varName.left(varName.indexOf("["));
@@ -332,13 +332,13 @@ QVector<QSharedPointer<Statement> > Assignment::create(int ln, const QString &co
 
     if(!RuntimeProvider::get()->hasVariable(varName) && !indexed)
     {
-        throw syntax_error_exception(ERRORCODE(8), "Invalid assignment: <b>%s</b> (variable <b>%s</b> was not declared)", codeline.toStdString().c_str(), varName.toStdString().c_str());
+        throw funkplot::syntax_error_exception(ERRORCODE(8), "Invalid assignment: <b>%s</b> (variable <b>%s</b> was not declared)", codeline.toStdString().c_str(), varName.toStdString().c_str());
     }
 
     // assignment operator
     if(!assignment_body.isEmpty() && assignment_body[0] != '=')
     {
-        throw syntax_error_exception(ERRORCODE(9), "Invalid assignment: <b>%s</b> (missing assignment operator)", codeline.toStdString().c_str());
+        throw funkplot::syntax_error_exception(ERRORCODE(9), "Invalid assignment: <b>%s</b> (missing assignment operator)", codeline.toStdString().c_str());
     }
 
     // skip "= "
@@ -356,7 +356,7 @@ QVector<QSharedPointer<Statement> > Assignment::create(int ln, const QString &co
         {
             if(RuntimeProvider::get()->typeOfVariable(varName) != Types::TYPE_POINT)
             {
-                throw syntax_error_exception(ERRORCODE(10), "Conflicting type assignment: <b>point</b> assigned to a non point type variable: <b>%s (%s)</b>", varName.toStdString().c_str(), RuntimeProvider::get()->typeOfVariable(varName).toStdString().c_str());
+                throw funkplot::syntax_error_exception(ERRORCODE(10), "Conflicting type assignment: <b>point</b> assigned to a non point type variable: <b>%s (%s)</b>", varName.toStdString().c_str(), RuntimeProvider::get()->typeOfVariable(varName).toStdString().c_str());
             }
 
             QString nextWord = getDelimitedId(assignment_body);
@@ -400,7 +400,7 @@ QVector<QSharedPointer<Statement> > Assignment::create(int ln, const QString &co
         {
             if(RuntimeProvider::get()->typeOfVariable(varName) != Types::TYPE_LIST)
             {
-                throw syntax_error_exception(ERRORCODE(12), "Conflicting type assignment: <b>array</b> assigned to a non array type variable: <b>%s (%s)</b>", varName.toStdString().c_str(), RuntimeProvider::get()->typeOfVariable(varName).toStdString().c_str());
+                throw funkplot::syntax_error_exception(ERRORCODE(12), "Conflicting type assignment: <b>array</b> assigned to a non array type variable: <b>%s (%s)</b>", varName.toStdString().c_str(), RuntimeProvider::get()->typeOfVariable(varName).toStdString().c_str());
             }
 
             // skip the spaces after the Types::TYPE_LIST keyword
@@ -410,7 +410,7 @@ QVector<QSharedPointer<Statement> > Assignment::create(int ln, const QString &co
             {
                 if(assignment_body.at(0) != '[' && delimiter != '[')
                 {
-                    throw syntax_error_exception(ERRORCODE(13), "Invalid array assignment: missing <b>[</b> from <b>%s</b>", codeline.toStdString().c_str());
+                    throw funkplot::syntax_error_exception(ERRORCODE(13), "Invalid array assignment: missing <b>[</b> from <b>%s</b>", codeline.toStdString().c_str());
                 }
             }
 
@@ -452,7 +452,7 @@ QVector<QSharedPointer<Statement> > Assignment::create(int ln, const QString &co
                     {
                         if(!e.startsWith("("))
                         {
-                            throw syntax_error_exception(ERRORCODE(35), "Invalid point array assignment: missing <b>(</b> from <b>%s</b>", codeline.toStdString().c_str());
+                            throw funkplot::syntax_error_exception(ERRORCODE(35), "Invalid point array assignment: missing <b>(</b> from <b>%s</b>", codeline.toStdString().c_str());
                         }
                         e = e.mid(1);
                         QString sx = getDelimitedId(e, {','});
@@ -496,7 +496,7 @@ QVector<QSharedPointer<Statement> > Assignment::create(int ln, const QString &co
             {
                 if(RuntimeProvider::get()->typeOfVariable(varName) != Types::TYPE_NUMBER && !indexed)
                 {
-                    throw syntax_error_exception(ERRORCODE(14), "Invalid assignment: <b>%s</b> (<b>arithmetic expression</b> assigned to <b>%s</b>)", varName.toStdString().c_str(), RuntimeProvider::get()->typeOfVariable(varName).toStdString().c_str());
+                    throw funkplot::syntax_error_exception(ERRORCODE(14), "Invalid assignment: <b>%s</b> (<b>arithmetic expression</b> assigned to <b>%s</b>)", varName.toStdString().c_str(), RuntimeProvider::get()->typeOfVariable(varName).toStdString().c_str());
                 }
                 if(!indexed)
                 {
@@ -531,7 +531,7 @@ QVector<QSharedPointer<Statement> > Assignment::create(int ln, const QString &co
     // here we are sure we want the points of a plot, variable type should be list
     if(RuntimeProvider::get()->typeOfVariable(varName) != Types::TYPE_LIST)
     {
-        throw syntax_error_exception(ERRORCODE(12), "Invalid assignment: <b>%s</b> (<b>array</b> assigned to <b>%s</b>)", varName.toStdString().c_str(), RuntimeProvider::get()->typeOfVariable(varName).toStdString().c_str());
+        throw funkplot::syntax_error_exception(ERRORCODE(12), "Invalid assignment: <b>%s</b> (<b>array</b> assigned to <b>%s</b>)", varName.toStdString().c_str(), RuntimeProvider::get()->typeOfVariable(varName).toStdString().c_str());
     }
     QSharedPointer<Assignment> result = providePointsOfDefinition(ln, codeline, assignment_body, varName, targetProperties);
     RuntimeProvider::get()->addOrUpdateAssignment(result);
@@ -542,7 +542,7 @@ QSharedPointer<Assignment> Assignment::providePointsOfDefinition(int ln, const Q
 {
     if(!assignment_body.startsWith(Keywords::KW_OF))
     {
-        throw syntax_error_exception(ERRORCODE(51), "Invalid assignment: <b>%s</b> (missing of keyword)", codeline.toStdString().c_str());
+        throw funkplot::syntax_error_exception(ERRORCODE(51), "Invalid assignment: <b>%s</b> (missing of keyword)", codeline.toStdString().c_str());
     }
 
     // skipping the of keyword
@@ -561,7 +561,7 @@ QSharedPointer<Assignment> Assignment::providePointsOfDefinition(int ln, const Q
 
     if(!RuntimeProvider::get()->getNameFunctionOrAssignment(result->ofWhat, assignment) && !RuntimeProvider::get()->getParametricFunction(result->ofWhat))
     {
-        throw syntax_error_exception(ERRORCODE(52), "Invalid assignment: %s. No such function: %s", codeline.toStdString().c_str(), result->ofWhat.toStdString().c_str());
+        throw funkplot::syntax_error_exception(ERRORCODE(52), "Invalid assignment: %s. No such function: %s", codeline.toStdString().c_str(), result->ofWhat.toStdString().c_str());
     }
 
     // over keyword

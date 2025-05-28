@@ -28,7 +28,7 @@ bool Loop::execute(RuntimeProvider *rp)
                 stmt->execute(rp);
             }
         }
-        catch(syntax_error_exception& ex)
+        catch(funkplot::syntax_error_exception& ex)
         {
             rp->reportError(ln, ex.error_code(), ex.what());
         }
@@ -43,7 +43,7 @@ bool Loop::execute(RuntimeProvider *rp)
         rp->setCurrentStatement(this->statement);
         loop_target->loop(looper, rp);
     }
-    catch(syntax_error_exception& ex)
+    catch(funkplot::syntax_error_exception& ex)
     {
         rp->reportError(ln, ex.error_code(), ex.what());
     }
@@ -81,7 +81,7 @@ QVector<QSharedPointer<Statement> > Loop::create(int ln, const QString &codeline
 
     if(!RuntimeProvider::get()->hasVariable(loop_variable))
     {
-        throw syntax_error_exception(ERRORCODE(37), "Undeclared variable <b>%s</b> cannot be used in for loop (%s)", loop_variable.toStdString().c_str(), codeline.toStdString().c_str());
+        throw funkplot::syntax_error_exception(ERRORCODE(37), "Undeclared variable <b>%s</b> cannot be used in for loop (%s)", loop_variable.toStdString().c_str(), codeline.toStdString().c_str());
     }
 
     result->loop_variable = loop_variable;
@@ -207,7 +207,7 @@ QVector<QSharedPointer<Statement> > Loop::create(int ln, const QString &codeline
 
             if(!l_decl.startsWith(Keywords::KW_TO))
             {
-                throw syntax_error_exception(ERRORCODE(38), "for statement with direct assignment does not contain the to keyword");
+                throw funkplot::syntax_error_exception(ERRORCODE(38), "for statement with direct assignment does not contain the to keyword");
             }
 
             // create an assignment
@@ -244,12 +244,12 @@ QVector<QSharedPointer<Statement> > Loop::create(int ln, const QString &codeline
         }
         else
         {
-            throw syntax_error_exception(ERRORCODE(39), "invalid for statement");
+            throw funkplot::syntax_error_exception(ERRORCODE(39), "invalid for statement");
         }
 
     if(!l_decl.startsWith(Keywords::KW_DO))
     {
-        throw syntax_error_exception(ERRORCODE(40), "for statement does not contain the do keyword");
+        throw funkplot::syntax_error_exception(ERRORCODE(40), "for statement does not contain the do keyword");
     }
 
     bool done = false;
@@ -269,7 +269,7 @@ QVector<QSharedPointer<Statement> > Loop::create(int ln, const QString &codeline
             {
                 st = srcb(ln, codelines, result->body, result);
             }
-            catch(syntax_error_exception& a)
+            catch(funkplot::syntax_error_exception& a)
             {
                 RuntimeProvider::get()->reportError(ln, a.error_code(), a.what());
                 throw;
@@ -281,14 +281,14 @@ QVector<QSharedPointer<Statement> > Loop::create(int ln, const QString &codeline
             }
             else
             {
-                throw syntax_error_exception(ERRORCODE(42), "something is wrong with this expression: %s", codeline.toStdString().c_str());
+                throw funkplot::syntax_error_exception(ERRORCODE(42), "something is wrong with this expression: %s", codeline.toStdString().c_str());
             }
         }
     }
 
     if(!done)
     {
-        throw syntax_error_exception(ERRORCODE(43), "for body does not end with done");
+        throw funkplot::syntax_error_exception(ERRORCODE(43), "for body does not end with done");
     }
 
     return handleStatementCallback(vectorize(result), cb);

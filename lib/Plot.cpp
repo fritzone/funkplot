@@ -48,7 +48,7 @@ QVector<QSharedPointer<Statement> > Plot::create(int ln, const QString &codeline
                 // is this a direct indexed plot?
                 if(funToPlot.indexOf('[') == -1)
                 {
-                    throw syntax_error_exception(ERRORCODE(49), "Invalid plot: <b>%s</b> was declared, but not defined to hold a value", funToPlot.toStdString().c_str());
+                    throw funkplot::syntax_error_exception(ERRORCODE(49), "Invalid plot: <b>%s</b> was declared, but not defined to hold a value", funToPlot.toStdString().c_str());
                 }
             }
 
@@ -118,7 +118,7 @@ QVector<QSharedPointer<Statement> > Plot::create(int ln, const QString &codeline
         {
             if(RuntimeProvider::get()->typeOfVariable(funToPlot) == Types::TYPE_NUMBER)
             {
-                throw syntax_error_exception(ERRORCODE(50), "Invalid plot: <b>%s</b> was declared to be <b>numeric</b>, but it is impossible to plot a number", funToPlot.toStdString().c_str());
+                throw funkplot::syntax_error_exception(ERRORCODE(50), "Invalid plot: <b>%s</b> was declared to be <b>numeric</b>, but it is impossible to plot a number", funToPlot.toStdString().c_str());
             }
         }
     }

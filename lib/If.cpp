@@ -44,7 +44,7 @@ bool If::execute(RuntimeProvider *rp)
             }
         }
     }
-    catch(syntax_error_exception& ex)
+    catch(funkplot::syntax_error_exception& ex)
     {
         rp->reportError(ln, ex.error_code(), ex.what());
     }
@@ -69,7 +69,7 @@ QVector<QSharedPointer<Statement> > If::create(int ln, const QString &codeline, 
 
     if(rest.isEmpty() || rest.at(rest.length() -1) != Keywords::KW_DO)
     {
-        throw syntax_error_exception(777, "No do keyword in if statement");
+        throw funkplot::syntax_error_exception(777, "No do keyword in if statement");
     }
     rest.removeAt(rest.length() - 1);
 
@@ -95,7 +95,7 @@ QVector<QSharedPointer<Statement> > If::create(int ln, const QString &codeline, 
             {
                 st = srcb(ln, codelines, result->ifBody, result);
             }
-            catch(syntax_error_exception& a)
+            catch(funkplot::syntax_error_exception& a)
             {
                 RuntimeProvider::get()->reportError(ln, a.error_code(), a.what());
                 throw;
@@ -108,7 +108,7 @@ QVector<QSharedPointer<Statement> > If::create(int ln, const QString &codeline, 
             }
             else
             {
-                throw syntax_error_exception(ERRORCODE(42), "something is wrong with this expression: %s", codeline.toStdString().c_str());
+                throw funkplot::syntax_error_exception(ERRORCODE(42), "something is wrong with this expression: %s", codeline.toStdString().c_str());
             }
         }
     }
@@ -131,7 +131,7 @@ QVector<QSharedPointer<Statement> > If::create(int ln, const QString &codeline, 
                 {
                     st = srcb(ln, codelines, result->elseBody, result);
                 }
-                catch(syntax_error_exception& a)
+                catch(funkplot::syntax_error_exception& a)
                 {
                     RuntimeProvider::get()->reportError(ln, a.error_code(), a.what());
                     throw;
@@ -144,7 +144,7 @@ QVector<QSharedPointer<Statement> > If::create(int ln, const QString &codeline, 
                 }
                 else
                 {
-                    throw syntax_error_exception(ERRORCODE(42), "something is wrong with this expression: %s", codeline.toStdString().c_str());
+                    throw funkplot::syntax_error_exception(ERRORCODE(42), "something is wrong with this expression: %s", codeline.toStdString().c_str());
                 }
             }
         }
@@ -152,7 +152,7 @@ QVector<QSharedPointer<Statement> > If::create(int ln, const QString &codeline, 
 
     if(!done)
     {
-        throw syntax_error_exception(ERRORCODE(43), "for body does not end with done");
+        throw funkplot::syntax_error_exception(ERRORCODE(43), "for body does not end with done");
     }
 
     return handleStatementCallback(vectorize(result), cb);

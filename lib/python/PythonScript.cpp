@@ -136,7 +136,7 @@ QVector<QSharedPointer<Statement> > PythonScript::create(int ln, const QString &
     QString scriptKeyword = getDelimitedId(python_body);
     if(scriptKeyword != Keywords::KW_SCRIPT && scriptKeyword != Keywords::KW_DO)
     {
-        throw syntax_error_exception(ERRORCODE(67), "Missing <b>script</b> or <b>do</b> keyword from python scriptlet in <b>%s</b>", codeline.toStdString().c_str());
+        throw funkplot::syntax_error_exception(ERRORCODE(67), "Missing <b>script</b> or <b>do</b> keyword from python scriptlet in <b>%s</b>", codeline.toStdString().c_str());
     }
 
     if(scriptKeyword == Keywords::KW_SCRIPT )
@@ -164,7 +164,7 @@ QVector<QSharedPointer<Statement> > PythonScript::create(int ln, const QString &
         }
         else
         {
-            throw syntax_error_exception(ERRORCODE(66), "Missing <b>begin</b> keyword from python scriptlet in <b>%s</b>", codeline.toStdString().c_str());
+            throw funkplot::syntax_error_exception(ERRORCODE(66), "Missing <b>begin</b> keyword from python scriptlet in <b>%s</b>", codeline.toStdString().c_str());
         }
     }
     else

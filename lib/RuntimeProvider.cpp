@@ -520,7 +520,7 @@ double RuntimeProvider::getIndexedVariableValue(const char *n, int index)
         // this
         if(index >= arrayAssignment->m_elements.size())
         {
-            throw syntax_error_exception(ERRORCODE(55), "Index out of bounds for <b>%s</b>. Requested <b>%s</b>, available: <b>%s</b>", n, index, arrayAssignment->m_elements.size());
+            throw funkplot::syntax_error_exception(ERRORCODE(55), "Index out of bounds for <b>%s</b>. Requested <b>%s</b>, available: <b>%s</b>", n, index, arrayAssignment->m_elements.size());
         }
 
         return arrayAssignment->m_elements[index]->Calculate();
@@ -534,7 +534,7 @@ double RuntimeProvider::getIndexedVariableValue(const char *n, int index)
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        throw syntax_error_exception(ERRORCODE(34), "Cannot identify the object assigning from: <b>%s</b>", n);
+        throw funkplot::syntax_error_exception(ERRORCODE(34), "Cannot identify the object assigning from: <b>%s</b>", n);
 
     }
 }
@@ -638,7 +638,7 @@ void RuntimeProvider::execute()
             stmt->execute(this);
         }
     }
-    catch(syntax_error_exception& ex)
+    catch(funkplot::syntax_error_exception& ex)
     {
         reportError(lineNo, ex.error_code(), ex.what());
     }

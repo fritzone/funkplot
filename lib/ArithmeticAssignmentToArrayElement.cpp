@@ -20,7 +20,7 @@ bool ArithmeticAssignmentToArrayElement::execute(RuntimeProvider *rp)
 
             if(idx_v < 0)
             {
-                throw syntax_error_exception(ERRORCODE(56), "Invalid index (<b>%d</b>) specified for: <b>%s</b> in this context: <b>%s</b>.", static_cast<int>(idx_v), varName.toStdString().c_str(), statement.toStdString().c_str());
+                throw funkplot::syntax_error_exception(ERRORCODE(56), "Invalid index (<b>%d</b>) specified for: <b>%s</b> in this context: <b>%s</b>.", static_cast<int>(idx_v), varName.toStdString().c_str(), statement.toStdString().c_str());
             }
 
             auto arrayAssignment = rp->getAssignmentAs<ArrayAssignment>(varName);
@@ -28,7 +28,7 @@ bool ArithmeticAssignmentToArrayElement::execute(RuntimeProvider *rp)
 
             if(!arrayAssignment)
             {
-                throw syntax_error_exception(ERRORCODE(57), "Cannot identify the object to assign to: <b>%s</b> in this context: <b>%s</b>", varName.toStdString().c_str(), statement.toStdString().c_str());
+                throw funkplot::syntax_error_exception(ERRORCODE(57), "Cannot identify the object to assign to: <b>%s</b> in this context: <b>%s</b>", varName.toStdString().c_str(), statement.toStdString().c_str());
             }
 
             if(arrayAssignment->m_elements.size() > idx_v)
@@ -41,7 +41,7 @@ bool ArithmeticAssignmentToArrayElement::execute(RuntimeProvider *rp)
                     {
                         if(rp->typeOfVariable(a->varName) != rp->domainOfVariable(varName))
                         {
-                            throw syntax_error_exception(ERRORCODE(58), "Incompatible assignment, types don't match. Target <b>%s</b> (<b>%s</b>), source: <b>%s</b> (being <b>%s</b>), in this context: <b>%s</b>", varName.toStdString().c_str(), rp->domainOfVariable(varName).toStdString().c_str(), a->varName.toStdString().c_str(), rp->typeOfVariable(a->varName).toStdString().c_str(), statement.toStdString().c_str());
+                            throw funkplot::syntax_error_exception(ERRORCODE(58), "Incompatible assignment, types don't match. Target <b>%s</b> (<b>%s</b>), source: <b>%s</b> (being <b>%s</b>), in this context: <b>%s</b>", varName.toStdString().c_str(), rp->domainOfVariable(varName).toStdString().c_str(), a->varName.toStdString().c_str(), rp->typeOfVariable(a->varName).toStdString().c_str(), statement.toStdString().c_str());
                         }
 
                         if(rp->domainOfVariable(varName) == Domains::DOMAIN_NUMBERS)
