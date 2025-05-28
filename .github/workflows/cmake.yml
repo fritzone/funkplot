@@ -1,4 +1,4 @@
-name: CMake and AppImage Build
+name: CMake + Builtins Script
 
 on:
   push:
@@ -10,56 +10,89 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  build-linux:
+  build-linux-2404:
     runs-on: ubuntu-24.04
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-    - name: Install Dependencies
+    - name: Install system dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          wget equivs devscripts debhelper \
-          qtbase5-dev qtdeclarative5-dev qtmultimedia5-dev \
-          qtscript5-dev libqt5opengl5-dev libqt5x11extras5-dev \
-          qtxmlpatterns5-dev-tools libqt5webkit5-dev qtwebengine5-dev \
-          libqt5svg5-dev qttools5-dev libqt5help5 \
-          qtbase5-private-dev cmake git pkg-config build-essential \
-          libpython3-dev mesa-common-dev python3 latex2rtf
+          wget \
+          build-essential \
+          cmake \
+          git \
+          pkg-config \
+          python3 \
+          python3-pip \
+          texlive-latex-base \
+          texlive-latex-extra \
+          texlive-fonts-recommended \
+          texlive-science \
+          dvipng \
+          ghostscript \
+          imagemagick \
+          qtbase5-dev \
+          qtdeclarative5-dev \
+          qtmultimedia5-dev \
+          qtscript5-dev \
+          libqt5opengl5-dev \
+          libqt5x11extras5-dev \
+          qtxmlpatterns5-dev-tools \
+          libqt5webkit5-dev \
+          qtwebengine5-dev \
+          libqt5svg5-dev \
+          qttools5-dev \
+          libqt5help5 \
+          qtbase5-private-dev \
+          latex2rtf
+
+        # Optional: ensure convert works properly
+        convert -version
 
     - name: Configure CMake
       run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
-    - name: Build Project
+    - name: Build
       run: cmake --build build --config ${{env.BUILD_TYPE}}
 
-    - name: Install to AppDir
-      run: make -C build install DESTDIR=${{github.workspace}}/AppDir
+    - name: Install
+      run: make install -C build DESTDIR=${{github.workspace}}/build/AppDir
 
-    - name: Copy Desktop Entry and Icon
+    - name: Prepare .desktop and icon
       run: |
-        mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
-        mkdir -p AppDir/usr/share/applications
-        cp debian/funkplot-gui.desktop AppDir/usr/share/applications/
-        cp debian/funkplot-gui.png AppDir/usr/share/icons/hicolor/256x256/apps/
+        cp debian/funkplot-gui.desktop build/AppDir/
+        cp debian/funkplot-gui.png build/AppDir/
 
-    - name: Download and Run linuxdeployqt
+    - name: PrepareAppimage (extra /usr copy)
       run: |
-        cd ${{github.workspace}}
-        wget -nv -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
-        chmod +x linuxdeployqt-continuous-x86_64.AppImage
+        mkdir -p build/AppDir/usr
+        cp debian/funkplot-gui.desktop build/AppDir/usr/
+        cp debian/funkplot-gui.png build/AppDir/usr/
+
+    - name: AppImage packaging
+      run: |
+        cd build
+        wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
+        chmod a+x linuxdeployqt-continuous-x86_64.AppImage
         ./linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/local/bin/funkplot-gui \
-          -appimage \
           -unsupported-bundle-everything \
           -unsupported-allow-new-glibc \
           -verbose=2 \
-          -extra-plugins=iconengines,platformthemes/libqgtk3.so,platforms
+          -extra-plugins=iconengines,platformthemes/libqgtk3.so,platforms \
+          -appimage --appimage-extract-and-run
+
+    - name: Run Builtins Generator
+      run: |
+        python3 path/to/builtins.py
 
     - name: Upload AppImage
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3
       with:
-        name: funkplot-appimage
+        name: appimage
         path: |
-          build/*.AppImage
+          build/**/*.AppImage
+          !build/linuxdeployqt-continuous-x86_64.AppImage
