@@ -215,12 +215,15 @@ def create_data(name, curve):
                 with open("" + c["key"]+".tex", "w") as f2:
                     f2.write(finaltex)
                 
-                proc = Popen(["latex2png", "-c", c["key"]+".tex"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                l2png_commands = ["latex2png", "-c", c["key"]+".tex"]
+                print(l2png_commands    )
+                proc = Popen(l2png_commands, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 proc.wait()
 
                 png_file = c["key"]+".png"
                 subprocess.run(["convert", png_file, "-transparent", "white", "-geometry", size, png_file] )
-                os.remove(c["key"]+".tex")
+                #os.remove(c["key"]+".tex")
+                
         qrc += "</qresource>\n</RCC>"
         with open("builtins.qrc", "w") as fq:
             fq.write(qrc)

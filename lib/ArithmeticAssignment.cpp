@@ -59,8 +59,8 @@ bool ArithmeticAssignment::execute(RuntimeProvider *rp)
         }
         catch(...)
         {
-            QString vt = rp->typeOfVariable(varName.toStdString().c_str());
-            if(vt == "point" || vt == "point")
+            QString vt = rp->typeOfVariable(varName.toStdString().c_str()).toUpper();
+            if(vt == "POINT")
             {
                 throw syntax_error_exception(ERRORCODE(65), "Cannot use the point type variable <b>%s</b> in this context: <b>%s</b>",  varName.toStdString().c_str(), statement.toStdString().c_str());
             }

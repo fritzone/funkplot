@@ -148,7 +148,7 @@ void Assignment::dealWithIndexedAssignmentToSomething(RuntimeProvider *rp, Index
     QString at = rp->typeOfVariable(varName);
 
     // assigning to a point
-    if(at == "point" || at == "point")
+    if(at.toLower() == "point")
     {
         auto p = rp->getAssignment(ia_m->indexedVariable);
         if(p)

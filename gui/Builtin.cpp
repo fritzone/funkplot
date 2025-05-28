@@ -20,8 +20,8 @@ Builtin::Builtin(const QJsonObject &o) : m_name (o["name"].toString()),
     {
         m_parForm.reset(new Parametric(-1, ""));
 
-        m_parForm->functions.first.reset(new Function(QString(("f(t)=") + eqO["formula"].toObject()["x"].toString()).toLocal8Bit().data(), nullptr));
-        m_parForm->functions.second.reset(new Function(QString(("f(t)=") + eqO["formula"].toObject()["y"].toString()).toLocal8Bit().data(), nullptr));
+        m_parForm->functions.first.reset(new Function(QString(("f(t)=") + eqO["formula"].toObject()[X].toString()).toLocal8Bit().data(), nullptr));
+        m_parForm->functions.second.reset(new Function(QString(("f(t)=") + eqO["formula"].toObject()[Y].toString()).toLocal8Bit().data(), nullptr));
         m_eqType = EquationType::PARAMETRIC;
     }
     else if(eqO["type"] == "polar")

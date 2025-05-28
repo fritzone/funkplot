@@ -8,6 +8,7 @@
 #include "AboutDialog.h"
 #include "Builtin.h"
 #include "BuiltinFunctionDetailer.h"
+#include "SystemSettings.h"
 
 #include <RuntimeProvider.h>
 #include <Set.h>
@@ -151,8 +152,15 @@ MainWindow::MainWindow(RuntimeProvider *rp, DrawingForm* df, QWidget *parent) :
     viewGroup->hide();
 #endif
     auto grp = m_ttb["Plot"];
-    auto btnStop = (*dynamic_cast<tt::Group*>(grp))["actionStop"];
-    btnStop->setEnabled(false);
+    if(grp)
+    {
+        auto group = dynamic_cast<tt::Group*>(grp);
+        if(group)
+        {
+            auto btnStop = (*group)["actionStop"];
+            btnStop->setEnabled(false);
+        }
+    }
 
     m_currentProgram->m_tabPage->getTextEdit()->setFocus();
 
@@ -163,6 +171,9 @@ MainWindow::MainWindow(RuntimeProvider *rp, DrawingForm* df, QWidget *parent) :
 
     // functions database
     buildFunctionDatabase();
+
+    m_showExitMsgBox  = SystemSettings::instance().value("General/AskToExitAgain", true).toBool();
+
 }
 
 MainWindow::~MainWindow()
@@ -219,45 +230,48 @@ void MainWindow::runCurrentCode()
     m_df->reset();
 
     auto grp = m_ttb["Plot"];
-    auto btnRun = (*dynamic_cast<tt::Group*>(grp))["actionRun"];
-    btnRun->setEnabled(false);
-    auto btnStop = (*dynamic_cast<tt::Group*>(grp))["actionStop"];
-    btnStop->setEnabled(true);
-
-    m_runningFuture = QtConcurrent::run([&]() -> bool
-                                        {
-                                            return m_currentProgram->run();
-                                        });
-
-    m_runningWatcher.setFuture(m_runningFuture);
-
-    QEventLoop loop;
-    connect(this, SIGNAL(runningDone()), &loop, SLOT(quit()));
-    loop.exec();
-
-    emit m_df->contentChanged();
-    m_df->repaint();
-
-    // and put up all the errors
-    if(!m_sessionErrors.isEmpty())
+    auto group = dynamic_cast<tt::Group*>(grp);
+    if(group)
     {
-        for(const auto&t : qAsConst(m_sessionErrors))
+        auto btnRun = (*group)["actionRun"];
+        btnRun->setEnabled(false);
+        auto btnStop = (*group)["actionStop"];
+        btnStop->setEnabled(true);
+        m_runningFuture = QtConcurrent::run([&]() -> bool
+                                            {
+                                                return m_currentProgram->run();
+                                            });
+
+        m_runningWatcher.setFuture(m_runningFuture);
+
+        QEventLoop loop;
+        connect(this, SIGNAL(runningDone()), &loop, SLOT(quit()));
+        loop.exec();
+
+        emit m_df->contentChanged();
+        m_df->repaint();
+
+        // and put up all the errors
+        if(!m_sessionErrors.isEmpty())
         {
-            QString err = std::get<2>(t);
-            int l = std::get<0>(t);
-            int c = std::get<1>(t);
+            for(const auto&t : qAsConst(m_sessionErrors))
+            {
+                QString err = std::get<2>(t);
+                int l = std::get<0>(t);
+                int c = std::get<1>(t);
 
-            QString errStr = "<font color=\"red\">Error " + QString::number(c) + "</font> at line " + QString::number(l) + ": " + err + "";
+                QString errStr = "<font color=\"red\">Error " + QString::number(c) + "</font> at line " + QString::number(l) + ": " + err + "";
 
-            ui->txtOutput->append(errStr);
+                ui->txtOutput->append(errStr);
+            }
         }
-    }
 
-    btnRun->setEnabled(true);
-    btnStop->setEnabled(false);
-    ui->actionExport->setEnabled(true);
-    ui->splitter->setEnabled(true);
-    ui->splitter_2->setEnabled(true);
+        btnRun->setEnabled(true);
+        btnStop->setEnabled(false);
+        ui->actionExport->setEnabled(true);
+        ui->splitter->setEnabled(true);
+        ui->splitter_2->setEnabled(true);
+    }
 }
 
 void MainWindow::stopRunningCurrentCode()
@@ -368,40 +382,67 @@ void MainWindow::onFunctionsMenuEntryTriggered()
 
         BuiltinFunctionDetailer* dlg = new BuiltinFunctionDetailer(m_builtins[key], this);
 
+        QObject::connect(dlg, &BuiltinFunctionDetailer::onBuiltinUsed, [this,dlg](QString builtinKey){
+            qDebug() << "Populating builtin" << builtinKey;
+            dlg->close();
+        });
+
         if(dlg->exec() == QDialog::Accepted)
         {
 
         }
+
+
     }
 }
 
 void MainWindow::MainWindow::closeEvent(QCloseEvent *event)
 {
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "Quit the IDE", "Are you sure you want to exit the fũnkplot IDE?", QMessageBox::Yes|QMessageBox::No);
-    if (reply == QMessageBox::Yes)
+    if (this->m_showExitMsgBox)
     {
-        event->accept();
-        m_helpWindow->deleteLater(); // I try this , solved the problem
-        m_df->deleteLater();
-        deleteLater();
-        QApplication::quit();
+        QCheckBox *cb = new QCheckBox(tr("Don't ask this again"));
+        QMessageBox msgbox;
+        msgbox.setText(tr("Are you sure you want to exit the application?"));
+        msgbox.setWindowTitle(tr("Quit the IDE"));
+        msgbox.setIcon(QMessageBox::Icon::Question);
+        msgbox.addButton(QMessageBox::Yes);
+        msgbox.addButton(QMessageBox::No);
+        msgbox.setDefaultButton(QMessageBox::No);
+        msgbox.setCheckBox(cb);
+
+        QObject::connect(cb, &QCheckBox::stateChanged, [this](int state){
+            if (static_cast<Qt::CheckState>(state) == Qt::CheckState::Checked) {
+                SystemSettings::instance().beginGroup("General");
+                SystemSettings::instance().setValue("AskToExitAgain", false);
+                SystemSettings::instance().endGroup();
+            }
+        });
+
+        auto reply = msgbox.exec();
+        if (reply == QMessageBox::Yes)
+        {
+            event->accept();
+            m_helpWindow->deleteLater(); // I try this , solved the problem
+            m_df->deleteLater();
+            deleteLater();
+            QApplication::quit();
+        }
+        else
+            event->ignore();
+
+        //    QSettings settings;
+        //    auto parentr = dynamic_cast<KDDockWidgets::DockWidget*>( parent() );
+        //    QRect r = parentr->geometry();
+
+        //    settings.setValue("geometry", r);
+        //    settings.setValue("position", parentr->mapToGlobal(r.topLeft()));
+
+        //    QMainWindow::closeEvent(event);
+        //    deleteLater();
+
+        //    settings.sync();
+        //    QWidget::closeEvent(event);
     }
-    else
-        event->ignore();
-
-//    QSettings settings;
-//    auto parentr = dynamic_cast<KDDockWidgets::DockWidget*>( parent() );
-//    QRect r = parentr->geometry();
-
-//    settings.setValue("geometry", r);
-//    settings.setValue("position", parentr->mapToGlobal(r.topLeft()));
-
-//    QMainWindow::closeEvent(event);
-//    deleteLater();
-
-//    settings.sync();
-//    QWidget::closeEvent(event);
 }
 
 void MainWindow::showEvent(QShowEvent *event)

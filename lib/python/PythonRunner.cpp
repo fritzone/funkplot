@@ -112,16 +112,16 @@ std::string python_runner::pyObjectToString(PyObject *b)
     if(!strcmp(Py_TYPE(b)->tp_name, "Point"))
     {
         std::string result;
-        if(PyObject_HasAttrString(b, "x"))
+        if(PyObject_HasAttrString(b, X))
         {
-            PyObject* ax = PyObject_GetAttrString(b, "x");
+            PyObject* ax = PyObject_GetAttrString(b, X);
             std::string v = pyObjectToString(ax);
             result = "x:" + v;
             Py_DECREF(ax);
         }
-        if(PyObject_HasAttrString(b, "y"))
+        if(PyObject_HasAttrString(b, Y))
         {
-            PyObject* ay = PyObject_GetAttrString(b, "y");
+            PyObject* ay = PyObject_GetAttrString(b, Y);
             std::string v = pyObjectToString(ay);
             result += "&y:" + v;
             Py_DECREF(ay);

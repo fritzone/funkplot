@@ -61,7 +61,7 @@ QVector<QSharedPointer<Statement> > Plot::create(int ln, const QString &codeline
                 tmpCodeline = tmpCodeline.mid(tmpCodeline.indexOf(fnai) + Keywords::KW_FOR.length());
                 consumeSpace(tmpCodeline);
                 QString funVar = getDelimitedId(tmpCodeline);
-                tempFun.get()->add_variable(funVar.toStdString().c_str()); // mostly the plots happen with "x"
+                tempFun.get()->add_variable(funVar.toStdString().c_str()); // mostly the plots happen with X
 
                 // making it consume the rest of the codeline too
                 plot_body = tmpCodeline;

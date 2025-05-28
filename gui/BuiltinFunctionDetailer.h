@@ -22,6 +22,11 @@ public:
 private slots:
     void on_toolButton_clicked();
     void on_toolButton_2_clicked();
+    void on_pushButton_clicked();
+
+signals:
+
+    void onBuiltinUsed(QString);
 
 private:
     Ui::BuiltinFunctionDetailer *ui;

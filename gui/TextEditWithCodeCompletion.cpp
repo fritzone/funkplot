@@ -171,6 +171,11 @@ void TextEditWithCodeCompletion::resetHighlighter()
 void TextEditWithCodeCompletion::keyPressEvent(QKeyEvent *e)
 {
 
+    if(!e)
+    {
+        return;
+    }
+
     if(m_frameForLineNumbers)
     {
         m_frameForLineNumbers->highlightLine(-1, "");

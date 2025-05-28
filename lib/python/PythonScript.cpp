@@ -79,8 +79,8 @@ bool PythonScript::execute(RuntimeProvider *rp)
                 if(at == Types::TYPE_POINT)
                 {
                     // rewriting the current assignment with the values that came in from the X:xxxx,Y:yyy from python
-                    double x = fromString(fromPythonDict(v, "x"));
-                    double y = fromString(fromPythonDict(v, "y"));
+                    double x = fromString(fromPythonDict(v, X));
+                    double y = fromString(fromPythonDict(v, Y));
 
                     auto tas = rp->provideTemporaryPointDefinitionAssignment(lineNumber, this, x, y, a->varName);
                     auto pa = rp->getAssignmentAs<PointDefinitionAssignment>(a->varName);
@@ -106,8 +106,8 @@ bool PythonScript::execute(RuntimeProvider *rp)
                         QVector<QPointF> newPoints;
                         for(const auto& e : els)
                         {
-                            double x = fromString(fromPythonDict(e.toStdString(), "x"));
-                            double y = fromString(fromPythonDict(e.toStdString(), "y"));
+                            double x = fromString(fromPythonDict(e.toStdString(), X));
+                            double y = fromString(fromPythonDict(e.toStdString(), Y));
 
                             newPoints.append(QPointF{x, y});
                         }

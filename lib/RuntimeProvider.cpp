@@ -77,8 +77,8 @@ double RuntimeProvider::value(const std::string &obj, const std::string &attr)
     auto fcp = a->fullCoordProvider(this);
     if( std::get<0>(fcp) && std::get<1>(fcp) )
     {
-        if(attr == "x") return std::get<0>(fcp)->Calculate();
-        if(attr == "y") return std::get<1>(fcp)->Calculate();
+        if(attr == X) return std::get<0>(fcp)->Calculate();
+        if(attr == Y) return std::get<1>(fcp)->Calculate();
     }
 
     return std::numeric_limits<double>::quiet_NaN();

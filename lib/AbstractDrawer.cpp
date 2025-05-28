@@ -201,7 +201,7 @@ int AbstractDrawer::sceneX(double x)
 
 int AbstractDrawer::sceneY(double y)
 {
-    double zeroY = getClipRect().height() / 2;
+    double zeroY = static_cast<double>(getClipRect().height()) / 2.0;
     double res = zeroY +static_cast<double>( getSceneScrollY() ) - y * zoomFactor();
     int resI = static_cast<int>(round(res));
 

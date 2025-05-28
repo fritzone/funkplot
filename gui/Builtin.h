@@ -10,6 +10,7 @@ class QJsonObject;
 
 enum class EquationType
 {
+    UNKNOWN = 0,
     POLAR = 1,
     PARAMETRIC = 2,
     CARTESIAN = 3
@@ -44,7 +45,7 @@ private:
     QSharedPointer<Parametric> m_parForm {nullptr};
     QSharedPointer<Function> m_cartForm {nullptr};
     QString m_key;
-    EquationType m_eqType;
+    EquationType m_eqType {EquationType::UNKNOWN};
     QVector<Parameter> m_parameters;
 
 };

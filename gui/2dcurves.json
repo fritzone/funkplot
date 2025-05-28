@@ -521,7 +521,7 @@
 				}
 			},
 			"parameter": [
-				{"name": "a", "role": "radius", "description": "The radius of the big circle", "default": "5"},
+				{"name": "a", "role": "radius", "description": "The radius of the big circle", "default": "3"},
 				{"name": "b", "role": "radius", "description": "The radius of the small circle", "default": "1"}
 			],
 			"interval": { "start": "0", "end": "6.28"},
@@ -802,7 +802,7 @@
                 {"name": "a", "role": "scale", "description": "The scaling of the figure", "default": "2"},
                 {"name": "k", "role": "former", "description": "The number of petals", "default": "3"}
             ],
-            "interval": { "start": "-6.28", "end": "6.28"},
+            "interval": { "start": "-2pi", "end": "2pi"},
             "key": "rhodonea_curves"
         },
         {
@@ -819,7 +819,7 @@
             "parameter": [
                 {"name": "a", "role": "scale", "description": "The scaling of the figure", "default": "2"}
             ],
-            "interval": { "start": "-6.28", "end": "6.28"},
+            "interval": { "start": "-2pi", "end": "2pi"},
             "key": "right_strophoid"
         },
         {
@@ -839,7 +839,7 @@
                 {"name": "b", "role": "scale", "description": "Vertical scale of the figure", "default": "4"}
 
             ],
-            "interval": { "start": "-3.14", "end": "3.14"},
+            "interval": { "start": "-pi", "end": "pi"},
             "key": "serpentine"
         },
         {
@@ -857,7 +857,7 @@
                 {"name": "a", "role": "scale", "description": "The scaling of the figure", "default": "2"},
                 {"name": "k", "role": "shaper", "description": "The shaper of the figure", "default": "1/2"}
             ],
-            "interval": { "start": "-6.28", "end": "6.28"},
+            "interval": { "start": "-2pi", "end": "2pi"},
             "key": "sinusoidal_spirals"
         },
         {
@@ -877,7 +877,7 @@
                 {"name": "b", "role": "scale", "description": "Vertical scale of the figure", "default": "1"}
 
             ],
-            "interval": { "start": "-3.14", "end": "3.14"},
+            "interval": { "start": "-pi", "end": "pi"},
             "key": "talbots_curve"
         },
         {
@@ -894,50 +894,78 @@
             },
             "parameter": [
             ],
-            "interval": { "start": "-3.14", "end": "3.14"},
+            "interval": { "start": "-pi", "end": "pi"},
             "key": "tractrix"
         },
         {
             "name": "Tricuspoid",
 			"class": "2d",
-            "equation": "",
-			"key": ""
+            "category": "general",
+            "description": "The curve with three cusps, also known as the deltoid curve",
+            "equation": {
+                "type": "parametric",
+                "formula": {
+                    "x": "a * (2 * cos(t) + cos(2 * t))",
+                    "y": "a * (2 * sin(t) - sin(2 * t))"
+                }
+            },
+            "parameter": [
+                {"name": "a", "role": "scale", "description": "Scale of the figure", "default": "1"}
+            ],
+            "interval": { "start": "-pi", "end": "pi"},
+			"key": "tricuspoid"
+
         },
         {
             "name": "Trident of Newton",
 			"class": "2d",
-            "equation": "",
-			"key": ""
+            "category": "general",
+            "description": "The Trident of Newton, also known as the Parabola of Descartes, is a cubic curve that exhibits a characteristic \"trident\" shape.",
+            "equation": {
+                "type":"parametric",
+                "formula": {
+                    "x": "t / (1 + t^2)",
+                    "y": "1 / (1 + t^2)"
+                }                
+            },
+            "interval": { "start": "-pi", "end": "pi"},
+			"key": "trident_of_newton"
         },
         {
             "name": "Trifolium",
 			"class": "2d",
-            "equation": "",
-			"key": ""
-        },
-        {
-            "name": "Trisectrix of Maclaurin",
-			"class": "2d",
-            "equation": "",
-			"key": ""
-        },
-        {
-            "name": "Tschirnhaus's Cubic",
-			"class": "2d",
-            "equation": "",
-			"key": ""
-        },
-        {
-            "name": "Watt's Curve",
-			"class": "2d",
-            "equation": "",
-			"key": ""
+            "category": "general",
+            "description": "The trifolium is the three-lobed folium with also known as the, the 3-petalled rose curve.",
+            "equation": {
+                "type":"parametric",
+                "formula": {
+                    "x": "a*cos(3*t)",
+                    "y": "a*sin(3*t)"
+                }                
+            },
+            "parameter": [
+                {"name": "a", "role": "scale", "description": "Scale of the figure", "default": "1"}
+            ],
+            "interval": { "start": "-pi", "end": "pi"},
+			"key": "trifolium"
         },
         {
             "name": "Witch of Agnesi",
+            "description": "The name \"witch\" derives from a mistranslation of the term averisera (\"versed sine curve\", from the Latin vertere, \"to turn\") found in the original work as avversiera (\"witch\")",
 			"class": "2d",
-            "equation": "",
-			"key": ""
+            "category": "general",
+            "equation": {
+                "type":"parametric",
+                "formula": {
+                    "x": "2*a*cot(t)",
+                    "y": "a*(1-cos(2 *t))"
+                }                
+            },			
+            "key": "witch_of_agnesi",
+            "interval": { "start": "0", "end": "2pi"},
+            "parameter": [
+                {"name": "a", "role": "scale", "description": "Scale of the figure", "default": "1"}
+            ]
         }
     ]
 }

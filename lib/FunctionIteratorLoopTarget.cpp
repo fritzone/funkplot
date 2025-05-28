@@ -52,8 +52,13 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
                     QSharedPointer<Assignment> assignmentData = rp->getAssignments()[fakeVarPos];
                     QString spx = QString::number(p.x(), 'f', 10);
                     QString spy = QString::number(p.y(), 'f', 10);
-                    dynamic_cast<PointDefinitionAssignment*>(assignmentData.get())->x = Function::temporaryFunction(spx, this->theLoop.get());
-                    dynamic_cast<PointDefinitionAssignment*>(assignmentData.get())->y = Function::temporaryFunction(spy, this->theLoop.get());
+                    auto pda = dynamic_cast<PointDefinitionAssignment*>(assignmentData.get());
+                    if(!pda)
+                    {
+                        return;
+                    }
+                    pda->x = Function::temporaryFunction(spx, this->theLoop.get());
+                    pda->y = Function::temporaryFunction(spy, this->theLoop.get());
                     lp();
 
                     xx += 0.01;
@@ -65,8 +70,13 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
                 theLoop->updateLoopVariable(p);
 
                 QSharedPointer<Assignment> assignmentData = rp->getAssignments()[fakeVarPos];
-                dynamic_cast<PointDefinitionAssignment*>(assignmentData.get())->x = Function::temporaryFunction(QString::number(p.x(), 'f', 10), this->theLoop.get());
-                dynamic_cast<PointDefinitionAssignment*>(assignmentData.get())->y = Function::temporaryFunction(QString::number(p.y(), 'f', 10), this->theLoop.get());
+                auto pda = dynamic_cast<PointDefinitionAssignment*>(assignmentData.get());
+                if(!pda)
+                {
+                    return;
+                }
+                pda->x = Function::temporaryFunction(QString::number(p.x(), 'f', 10), this->theLoop.get());
+                pda->y = Function::temporaryFunction(QString::number(p.y(), 'f', 10), this->theLoop.get());
 
                 lp();
             }
@@ -101,9 +111,9 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
 
     double plotStart = -1.0;
     double plotEnd = 1.0;
-    double step = DEFAULT_RANGE_STEP;
+    double range_step = DEFAULT_RANGE_STEP;
     int count = -1;
-    bool counted = false;
+    bool range_counted = false;
 
     if(assignment)
     {
@@ -117,19 +127,19 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
         }
 
         continuous = assignment->continuous;
-        step = assignment->step->Calculate();
-        count = step;
+        range_step = assignment->step->Calculate();
+        count = range_step;
         if(assignment->counted)
         {
-            qDebug() << "counted step:" << step;
-            counted = true;
-            if(step > 1)
+            qDebug() << "counted step:" << range_step;
+            range_counted = true;
+            if(range_step > 1)
             {
-                step = (plotEnd - plotStart) / (step - 1);
+                range_step = (plotEnd - plotStart) / (range_step - 1);
             }
             else
             {
-                step = (plotEnd - plotStart);
+                range_step = (plotEnd - plotStart);
             }
         }
     }
@@ -142,7 +152,7 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
 
         int pointsDrawn = 0;
 
-        for(double x=plotStart; x<=plotEnd; x+= step)
+        for(double x=plotStart; x<=plotEnd; x+= range_step)
         {
 
             funToUse->SetVariable(pars[0].c_str(), x);
@@ -154,7 +164,7 @@ bool FunctionIteratorLoopTarget::loop(LooperCallback lp, RuntimeProvider * rp)
         }
         qDebug() << "drawn:" << pointsDrawn << "points";
 
-        if(!counted || (counted && pointsDrawn == count - 1))
+        if(!range_counted || (range_counted && pointsDrawn == count - 1))
         {
             // the last points always goes to plotEnd
             funToUse->SetVariable(pars[0].c_str(), plotEnd);

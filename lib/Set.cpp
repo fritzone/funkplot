@@ -17,124 +17,123 @@ bool Set::execute(RuntimeProvider *rp)
         setColor(rp);
     }
     else
-        if(what == SetTargets::TARGET_PALETTE)
-        {
-            rp->setPalette(value);
-        }
-        else
-            if(what == SetTargets::TARGET_PIXEL)
-            {
-                // split up value
+    if(what == SetTargets::TARGET_PALETTE)
+    {
+        rp->setPalette(value);
+    }
+    else
+    if(what == SetTargets::TARGET_PIXEL)
+    {
+        // split up value
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-                QStringList vs = value.split(" ", Qt::SkipEmptyParts);
+        QStringList vs = value.split(" ", Qt::SkipEmptyParts);
 #else
-                QStringList vs = value.split(" ", QString::SkipEmptyParts);
+        QStringList vs = value.split(" ", QString::SkipEmptyParts);
 #endif
-                if(vs.size() < 2)
-                {
-                    throw syntax_error_exception(ERRORCODE(31), "Erroneous pixel property: <b>%s</b>", what.toStdString().c_str());
-                }
+        if(vs.size() < 2)
+        {
+            throw syntax_error_exception(ERRORCODE(31), "Erroneous pixel property: <b>%s</b>", what.toStdString().c_str());
+        }
 
-                if(vs[0] == "size")
+        if(vs[0] == "size")
+        {
+            QString size;
+            for(int i=1; i<vs.size(); i++)
+            {
+                size += vs[i];
+            }
+            auto s = Function::temporaryFunction(size.simplified(), this)->Calculate();
+            qDebug() << "Setting pixel size:" << s;
+            rp->setPixelSize(s);
+        }
+    }
+    else
+    if(what == SetTargets::TARGET_COORDINATES)
+    {
+        if(value == "on" || value == "off")
+        {
+            bool on = value == "on";
+            rp->setShowCoordinates(on);
+            return true;
+        }
+
+        QStringList vs = value.split(" ");
+        if(!vs.isEmpty())
+        {
+            if(vs[0] == "start")
+            {
+                if(vs.length() == 3 && vs[1] == X)
                 {
-                    QString size;
-                    for(int i=1; i<vs.size(); i++)
-                    {
-                        size += vs[i];
-                    }
-                    auto s = Function::temporaryFunction(size.simplified(), this)->Calculate();
-                    qDebug() << "Setting pixel size:" << s;
-                    rp->setPixelSize(s);
+                    double dv = vs[2].toDouble();
+                    emit rp->coordStartXChange(dv);
+                }
+                if(vs.length() == 3 && vs[1] == Y)
+                {
+                    double dv = vs[2].toDouble();
+                    emit rp->coordStartYChange(dv);
                 }
             }
             else
-                if(what == SetTargets::TARGET_COORDINATES)
+            if(vs[0] == "end")
+            {
+                if(vs.length() == 3 && vs[1] == X)
                 {
-                    if(value == "on" || value == "off")
+                    double dv = vs[2].toDouble();
+                    emit rp->coordEndXChange(dv);
+                }
+                if(vs.length() == 3 && vs[1] == Y)
+                {
+                    double dv = vs[2].toDouble();
+                    emit rp->coordEndYChange(dv);
+                }
+            }
+            else
+            if(vs[0] == "grid")
+            {
+                if(vs.length() == 2)
+                {
+                    bool bv = (vs[1] == "on");
+                    emit rp->gridChange(bv);
+                }
+            }
+            else
+            if(vs[0] == "zoom")
+            {
+                if(vs.length() == 2)
+                {
+                    double dv = vs[1].toDouble();
+                    emit rp->zoomFactorChange(dv);
+                }
+            }
+            else
+            if(vs[0] == "rotation")
+            {
+                if(vs.length() == 2)
+                {
+                    double dv = vs[1].toDouble();
+                    emit rp->rotationAngleChange(dv);
+                }
+                else
+                if(vs.length() == 3)
+                {
+                    double dv = vs[1].toDouble();
+                    if(vs[2] == "radians")
                     {
-                        bool on = value == "on";
-                        rp->setShowCoordinates(on);
-                        return true;
-                    }
-
-                    QStringList vs = value.split(" ");
-                    if(!vs.isEmpty())
-                    {
-                        if(vs[0] == "start")
-                        {
-                            if(vs.length() == 3 && vs[1] == "x")
-                            {
-                                double dv = vs[2].toDouble();
-                                emit rp->coordStartXChange(dv);
-                            }
-                            if(vs.length() == 3 && vs[1] == "y")
-                            {
-                                double dv = vs[2].toDouble();
-                                emit rp->coordStartYChange(dv);
-                            }
-                        }
-                        else
-                            if(vs[0] == "end")
-                            {
-                                if(vs.length() == 3 && vs[1] == "x")
-                                {
-                                    double dv = vs[2].toDouble();
-                                    emit rp->coordEndXChange(dv);
-                                }
-                                if(vs.length() == 3 && vs[1] == "y")
-                                {
-                                    double dv = vs[2].toDouble();
-                                    emit rp->coordEndYChange(dv);
-                                }
-                            }
-                            else
-                                if(vs[0] == "grid")
-                                {
-                                    if(vs.length() == 2)
-                                    {
-                                        bool bv = (vs[1] == "on");
-                                        emit rp->gridChange(bv);
-                                    }
-                                }
-                                else
-                                    if(vs[0] == "zoom")
-                                    {
-                                        if(vs.length() == 2)
-                                        {
-                                            double dv = vs[1].toDouble();
-                                            emit rp->zoomFactorChange(dv);
-                                        }
-                                    }
-                                    else
-                                        if(vs[0] == "rotation")
-                                        {
-                                            if(vs.length() == 2)
-                                            {
-                                                double dv = vs[1].toDouble();
-                                                emit rp->rotationAngleChange(dv);
-                                            }
-                                            else
-                                                if(vs.length() == 3)
-                                                {
-                                                    double dv = vs[1].toDouble();
-                                                    if(vs[2] == "radians")
-                                                    {
-                                                        emit rp->rotationAngleChange(dv);
-                                                    }
-                                                    else
-                                                    {
-                                                        emit rp->rotationAngleChange(qDegreesToRadians(dv));
-                                                    }
-                                                }
-
-                                        }
+                        emit rp->rotationAngleChange(dv);
                     }
                     else
                     {
-                        rp->setShowCoordinates(true);
-                        return true;
+                        emit rp->rotationAngleChange(qDegreesToRadians(dv));
                     }
                 }
+            }
+        }
+        else
+        {
+            rp->setShowCoordinates(true);
+            return true;
+        }
+    }
 
     return true;
 }

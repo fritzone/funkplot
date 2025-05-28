@@ -300,6 +300,7 @@ std::string extract_proper_expression(const char *&p, std::string &fnai_word, st
             }
             current_par_level ++;
             res += *p;
+            //TODO: this line below is always true, why do we have it
             if(*p != ' ') current_word += *p;
 
             added = true;
@@ -311,6 +312,8 @@ std::string extract_proper_expression(const char *&p, std::string &fnai_word, st
             if(current_par_level >= 1)
             {
                 res += *p;
+
+                //TODO: line below is alwayus true, why do we have it?
                 if(*p != ' ') current_word += *p;
 
                 added = true;
@@ -405,6 +408,11 @@ QString extract_proper_expression(QString &p, QString &sepWord, QSet<QChar> seps
     }
 
     char* ss = (char*)calloc(s.length() + 1, sizeof(char));
+    if(!ss)
+    {
+        return "";
+    }
+
     strncpy(ss, s.c_str(), s.length());
     const char* css = ss;
     std::string fna = "";
@@ -463,17 +471,11 @@ std::string fromPythonDict(const std::string &ps, const std::string &key)
         {
             if(partsS[0] == key)
             {
-                if(partsS.size() > 1)
-                {
-                    return partsS[1];
-                }
-                else
-                {
-                    return "";
-                }
+                return partsS[1];
             }
         }
     }
+
     return "";
 }
 

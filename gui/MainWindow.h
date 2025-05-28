@@ -30,8 +30,8 @@ class MainWindow;
 
 namespace
 {
-const QString UNA_FROG = "The Unauthorized Frog";
-const QString GEODRAW = "fũnkplot";
+static const QString UNA_FROG = "The Unauthorized Frog";
+static const QString GEODRAW = "fũnkplot";
 }
 
 class MainWindow : public QMainWindow
@@ -106,6 +106,7 @@ private:
     QMap<QString, QMenu*> m_classMenus;
     QMap<QString, QMenu*> m_categoryMenus;
     QMap<QString, QSharedPointer<Builtin>> m_builtins;
+    bool m_showExitMsgBox = true;
 };
 
 #endif // MAINWINDOW_H

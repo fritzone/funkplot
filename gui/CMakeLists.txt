@@ -82,7 +82,9 @@ endif()
 if(WIN32)
 	add_executable(funkplot-gui WIN32 ${${PROJECT}_srcs} )
 else()
-	add_executable(funkplot-gui	${${PROJECT}_srcs})
+	add_executable(funkplot-gui	${${PROJECT}_srcs}
+		SystemSettings.h
+		SystemSettings.cpp)
 endif()
 
 if(ENABLE_PYTHON)

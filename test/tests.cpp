@@ -58,8 +58,8 @@ TEST_CASE( "Function handling", "[functions]" )
 
     SECTION("Simple function with 2 variables") {
         std::unique_ptr<Function> f  { new Function("f(x,y) = (x+y)/3", nullptr) };
-        f->SetVariable("x",3);
-        f->SetVariable("y",3);
+        f->SetVariable(X,3);
+        f->SetVariable(Y,3);
         double cc=f->Calculate();
         REQUIRE_THAT(cc, Catch::Matchers::WithinRel(2.0, 0.001) || Catch::Matchers::WithinAbs(0, 0.000001) );
         REQUIRE(f->get_name() == "f");
@@ -68,7 +68,7 @@ TEST_CASE( "Function handling", "[functions]" )
     SECTION( "Simple function with 1 variable")
     {
         std::unique_ptr<Function> f  { new Function("f(x) = x*x + 3*x + 2", nullptr) };
-        f->SetVariable("x", 1);
+        f->SetVariable(X, 1);
 
         double cc=f->Calculate();
         REQUIRE_THAT(cc, Catch::Matchers::WithinRel(6.0, 0.001) || Catch::Matchers::WithinAbs(0, 0.000001) );
@@ -79,7 +79,7 @@ TEST_CASE( "Function handling", "[functions]" )
     SECTION("Function is a number")
     {
         std::unique_ptr<Function> f  { new Function("f(x) = 3", nullptr) };
-        f->SetVariable("x", 1);
+        f->SetVariable(X, 1);
 
         double cc=f->Calculate();
         REQUIRE_THAT(cc, Catch::Matchers::WithinRel(3.0, 0.001) || Catch::Matchers::WithinAbs(0, 0.000001) );
@@ -90,7 +90,7 @@ TEST_CASE( "Function handling", "[functions]" )
     SECTION("Formula has division by zero")
     {
         std::unique_ptr<Function> f  { new Function("f(x) = (x-1)/(x+1)", nullptr) };
-        f->SetVariable("x", -1);
+        f->SetVariable(X, -1);
 
         double cc=f->Calculate();
 
@@ -101,7 +101,7 @@ TEST_CASE( "Function handling", "[functions]" )
     SECTION("Power of sin")
     {
         std::unique_ptr<Function> f  { new Function("f(x) = sin^2(x)", nullptr) };
-        f->SetVariable("x", 1.570795); // PI/2
+        f->SetVariable(X, 1.570795); // PI/2
         double cc=f->Calculate();
         REQUIRE_THAT(cc, Catch::Matchers::WithinRel(1.0, 0.001) || Catch::Matchers::WithinAbs(0, 0.000001) );
         REQUIRE(f->get_name() == "f");
@@ -110,7 +110,7 @@ TEST_CASE( "Function handling", "[functions]" )
     SECTION("Simple power")
     {
         std::unique_ptr<Function> f  { new Function("f(x) = x^2", nullptr) };
-        f->SetVariable("x", 2); // PI/2
+        f->SetVariable(X, 2); // PI/2
         double cc=f->Calculate();
         REQUIRE_THAT(cc, Catch::Matchers::WithinRel(4.0, 0.001) || Catch::Matchers::WithinAbs(0, 0.000001) );
         REQUIRE(f->get_name() == "f");
@@ -150,7 +150,7 @@ TEST_CASE("Power", "[power]")
     SECTION("PowerTest")
     {
         std::unique_ptr<Function> f  { new Function("f(x) = (x)^(-1/2)", nullptr) };
-        f->SetVariable("x", 4); // PI/2
+        f->SetVariable(X, 4); // PI/2
         double cc=f->Calculate();
         REQUIRE(f->get_name() == "f");
         REQUIRE(cc == 0.5);
@@ -250,8 +250,8 @@ TEST_CASE( "Compiler operations", "[compiler]" )
         rp.execute();
 
         REQUIRE(rp.getAllVariables().size() == 3);
-        REQUIRE(rp.value("x") == 1);
-        REQUIRE(rp.value("y") == 2);
+        REQUIRE(rp.value(X) == 1);
+        REQUIRE(rp.value(Y) == 2);
     }
 
     SECTION ("More Complex assignments")
@@ -383,8 +383,8 @@ TEST_CASE( "Compiler operations", "[compiler]" )
         rp.parse(codelines);
         rp.execute();
 
-        REQUIRE(rp.value("p", "x") == 1);
-        REQUIRE(rp.value("p", "y") == 2);
+        REQUIRE(rp.value("p", X) == 1);
+        REQUIRE(rp.value("p", Y) == 2);
 
     }
 
@@ -404,8 +404,8 @@ TEST_CASE( "Compiler operations", "[compiler]" )
         rp.parse(codelines);
         rp.execute();
 
-        REQUIRE(rp.value("p", "x") == 3);
-        REQUIRE(rp.value("p", "y") == 4);
+        REQUIRE(rp.value("p", X) == 3);
+        REQUIRE(rp.value("p", Y) == 4);
     }
 
     SECTION( "list append points")
@@ -422,8 +422,8 @@ TEST_CASE( "Compiler operations", "[compiler]" )
         rp.parse(codelines);
         rp.execute();
 
-        REQUIRE(rp.value("p", "x") == 5);
-        REQUIRE(rp.value("p", "y") == 6);
+        REQUIRE(rp.value("p", X) == 5);
+        REQUIRE(rp.value("p", Y) == 6);
     };
 
 }
@@ -452,8 +452,8 @@ TEST_CASE( "Parametric functions", "[compiler]" )
         rp.parse(codelines);
         rp.execute();
 
-        REQUIRE(rp.value("p", "x") == 1);
-        REQUIRE(rp.value("p", "y") == 2);
+        REQUIRE(rp.value("p", X) == 1);
+        REQUIRE(rp.value("p", Y) == 2);
     };
 
     SECTION( "parametric function simple assignment to sum of functions")
@@ -473,8 +473,8 @@ TEST_CASE( "Parametric functions", "[compiler]" )
         rp.parse(codelines);
         rp.execute();
 
-        REQUIRE(rp.value("p", "x") == 3);
-        REQUIRE(rp.value("p", "y") == 6);
+        REQUIRE(rp.value("p", X) == 3);
+        REQUIRE(rp.value("p", Y) == 6);
     };
 
     SECTION( "parametric function simple assignment to multiplication")
@@ -494,8 +494,8 @@ TEST_CASE( "Parametric functions", "[compiler]" )
         rp.parse(codelines);
         rp.execute();
 
-        REQUIRE(rp.value("p", "x") == 6);
-        REQUIRE(rp.value("p", "y") == 12);
+        REQUIRE(rp.value("p", X) == 6);
+        REQUIRE(rp.value("p", Y) == 12);
     };
 
 }

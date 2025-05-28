@@ -52,12 +52,12 @@ struct fun_desc_solve
 
 static const std::vector<fun_desc_solve> supported_functions
 {
-     {"==", "Equality of elements", [](double v, double v2) -> double { return std::fabs(v - v2) < 0.000001; }, false, false },
-     {"<=", "Equality of elements", [](double v, double v2) -> double { return v >= v2; }, false, false },
-     {">=", "Equality of elements", [](double v, double v2) -> double { return v >= v2; }, false, false },
-     {"<", "Equality of elements", [](double v, double v2) -> double { return v < v2; }, false, false },
-     {">", "Equality of elements", [](double v, double v2) -> double { return v > v2; }, false, false },
-     {">=", "Equality of elements", [](double v, double v2) -> double { return v != v2; }, false, false },
+     {"==", "Equality of elements", [](double v, double v2) -> double { return static_cast<double>(std::fabs(v - v2) < 0.000001); }, false, false },
+     {"<=", "Equality of elements", [](double v, double v2) -> double { return static_cast<double>(v >= v2); }, false, false },
+     {">=", "Equality of elements", [](double v, double v2) -> double { return static_cast<double>(v >= v2); }, false, false },
+     {"<", "Equality of elements", [](double v, double v2) -> double { return static_cast<double>(v < v2); }, false, false },
+     {">", "Equality of elements", [](double v, double v2) -> double { return static_cast<double>(v > v2); }, false, false },
+     {">=", "Equality of elements", [](double v, double v2) -> double { return static_cast<double>(v != v2); }, false, false },
 
      // basic stuff
      {"^", "Power of an element", [](double v, double v2) -> double { return pow(v, v2); }, false, false },
@@ -221,21 +221,6 @@ private:
 };
 
 
-////this is a hash structure. through it are mapped different values to different strings
-//struct hash_struct
-//{
-//	char *name;
-//	void *data;
-//};
-
-////this structure is a list. It contains a void pointer and a next.
-////the void pointer can be anything, for ex a hash_struct
-//struct list
-//{
-//	list *next;
-//	void *inf;
-//};
-
 // this is an enumerator function
 typedef int (*ENUMERATOR)(void *, void *);
 
@@ -336,5 +321,9 @@ std::string fromPythonDict(const std::string& ps, const std::string& key);
 
 // normalizes the string, removes all strange characters and adds only mathematically correct ones
 QString normalize(const QString&);
+
+// some very functiony constants
+static constexpr const char* const X ="x";
+static constexpr const char* const Y ="y";
 
 #endif

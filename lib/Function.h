@@ -19,7 +19,6 @@
 class RuntimeProvider;
 struct Assignment;
 
-
 /*
  * This Class represents one function. A function needs:
  *  1. a name
@@ -133,7 +132,7 @@ private:
 
     //the name of the function. Ex.: f
     std::string m_name;
-    //the variables of the function. Ex: "x" -> 12
+    //the variables of the function. Ex: X -> 12
     std::map<std::string, double> vars;
 
     QString funBody;

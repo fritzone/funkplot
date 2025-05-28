@@ -109,3 +109,14 @@ void BuiltinFunctionDetailer::on_toolButton_clicked()
 
     populateBuiltin(*it);
 }
+
+void BuiltinFunctionDetailer::on_pushButton_clicked()
+{
+    if(!m_builtin)
+    {
+        close();
+        return;
+    }
+    emit onBuiltinUsed(m_builtin->getKey());
+}
+

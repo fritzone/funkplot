@@ -28,10 +28,7 @@ QVector<QSharedPointer<Statement> > Parametric::create(int ln, const QString &co
     QString fun_parname = extract_proper_expression(f_body, sp, {')'}, {}, true);
     result->funParName = fun_parname.simplified();
 
-    // read in the body
-    bool done = false;
-
-    while(!codelines.isEmpty() && !done)
+    while(!codelines.isEmpty())
     {
         QString at0 = codelines.at(0).simplified();
         codelines.pop_front();
@@ -46,12 +43,12 @@ QVector<QSharedPointer<Statement> > Parametric::create(int ln, const QString &co
         if(! (at0.isEmpty() || at0[0] == '#'))
         {
 
-            if(at0.startsWith("x"))
+            if(at0.startsWith(X))
             {
                 result->functions.first = result->extractFunction(at0);
             }
             else
-            if(at0.startsWith("y"))
+            if(at0.startsWith(Y))
             {
                 result->functions.second = result->extractFunction(at0);
             }
