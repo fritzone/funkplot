@@ -41,6 +41,7 @@ public slots:
 
     void on_rotationAngleChange(double);
     void on_zoomFactorChange(double);
+    void on_showCoordinatesChange(bool);
     void on_gridChange(bool);
     void on_coordEndYChange(double);
     void on_coordStartYChange(double);

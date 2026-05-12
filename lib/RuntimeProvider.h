@@ -257,6 +257,7 @@ signals:
 
     void rotationAngleChange(double);
     void zoomFactorChange(double);
+    void showCoordinatesChange(bool);
     void gridChange(bool);
     void coordEndYChange(double);
     void coordStartYChange(double);

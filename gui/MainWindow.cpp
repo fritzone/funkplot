@@ -212,6 +212,9 @@ void MainWindow::runCurrentCode()
 
     connect(&m_runningWatcher, &QFutureWatcher<bool>::finished, this, &MainWindow::runningFinished);
 
+    m_rp->reset();
+    m_df->reset();
+
     m_rp->parse(m_currentProgram->codeLines());
     // see if we have coordinate system modifiers in there
     auto sts = m_rp->getStatements();
@@ -226,8 +229,6 @@ void MainWindow::runCurrentCode()
             }
         }
     }
-
-    m_df->reset();
 
     auto grp = m_ttb["Plot"];
     auto group = dynamic_cast<tt::Group*>(grp);
@@ -384,12 +385,51 @@ void MainWindow::onFunctionsMenuEntryTriggered()
 
         QObject::connect(dlg, &BuiltinFunctionDetailer::onBuiltinUsed, [this,dlg](QString builtinKey){
             qDebug() << "Populating builtin" << builtinKey;
+
+            auto b = m_builtins[builtinKey];
+            QMap<QString, QString> params = dlg->getParameterValues();
+
+            QStringList code;
+            code << "# " + b->getName();
+
+            const auto& bParams = b->getParameters();
+            if(!bParams.isEmpty()) {
+                QString varLine = "var ";
+                for(int i = 0; i < bParams.size(); ++i) {
+                    varLine += bParams[i].name + (i == bParams.size() - 1 ? "" : " ");
+                }
+                varLine += " number";
+                code << varLine;
+
+                for(const auto& p : bParams) {
+                    code << QString("let %1 = %2").arg(p.name, params[p.name]);
+                }
+                code << "";
+            }
+
+            auto formula = b->getFormula();
+            auto interval = b->getInterval();
+
+            if(b->getEquationType() == EquationType::PARAMETRIC) {
+                code << "parametric function f(t)";
+                code << "  x = " + formula["x"];
+                code << "  y = " + formula["y"];
+                code << "end";
+                code << QString("plot f over (%1, %2)").arg(interval.first, interval.second);
+            } else if(b->getEquationType() == EquationType::POLAR) {
+                code << "function f(t) = " + formula["r"];
+                code << QString("polar plot f over (%1, %2)").arg(interval.first, interval.second);
+            }
+
+            on_actionNew_triggered();
+            m_currentProgram->setCodelines(code);
+
             dlg->close();
         });
 
         if(dlg->exec() == QDialog::Accepted)
         {
-
+            // well, do nothing
         }
 
 

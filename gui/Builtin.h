@@ -3,6 +3,9 @@
 
 #include <QSharedPointer>
 #include <QString>
+#include <QMap>
+#include <QPair>
+#include <QVector>
 
 class Function;
 class Parametric;
@@ -24,6 +27,7 @@ public:
     {
         QString name;
         QString description;
+        QString defaultValue;
     };
 
     explicit Builtin(const QJsonObject&);
@@ -36,6 +40,12 @@ public:
 
     const QVector<Parameter>& getParameters() const;
 
+    EquationType getEquationType() const;
+
+    QMap<QString, QString> getFormula() const;
+
+    QPair<QString, QString> getInterval() const;
+
     static QVector<QSharedPointer<Builtin>> m_allBuiltins;
 
 private:
@@ -47,6 +57,8 @@ private:
     QString m_key;
     EquationType m_eqType {EquationType::UNKNOWN};
     QVector<Parameter> m_parameters;
+    QMap<QString, QString> m_formula;
+    QPair<QString, QString> m_interval;
 
 };
 

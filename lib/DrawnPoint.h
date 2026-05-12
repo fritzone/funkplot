@@ -9,6 +9,7 @@ struct DrawnPoint
     QPointF point;
     QPen pen;
     size_t size = 1;
+    bool isCoordinateSystem = false;
 };
 
 #endif // DRAWNPOINT_H

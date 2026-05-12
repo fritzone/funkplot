@@ -16,6 +16,8 @@ static QPointF asItIs(QPointF p)
 
 void AbstractDrawer::drawCoordinateSystem()
 {
+    clearCoordinateSystem();
+
     if(!RuntimeProvider::get()->getShowCoordinates())
     {
         return;
@@ -247,7 +249,7 @@ double AbstractDrawer::zoomFactor() const
 
 void AbstractDrawer::drawText(const QPointF &at, const QString& s, const QPen& p)
 {
-    m_drawnText.push_back({s, p, at});
+    m_drawnText.push_back({s, p, at, {}, m_freeDraw});
 }
 
 double AbstractDrawer::rotationAngle()
@@ -280,6 +282,18 @@ void AbstractDrawer::reset()
     m_coordStartX = -150.0;
     m_drawGrid = true;
 
+}
+
+void AbstractDrawer::clearCoordinateSystem()
+{
+    auto itL = std::remove_if(m_drawnLines.begin(), m_drawnLines.end(), [](const DrawnLine& l) { return l.isCoordinateSystem; });
+    m_drawnLines.erase(itL, m_drawnLines.end());
+
+    auto itP = std::remove_if(m_drawnPoints.begin(), m_drawnPoints.end(), [](const DrawnPoint& p) { return p.isCoordinateSystem; });
+    m_drawnPoints.erase(itP, m_drawnPoints.end());
+
+    auto itT = std::remove_if(m_drawnText.begin(), m_drawnText.end(), [](const DrawnText& t) { return t.isCoordinateSystem; });
+    m_drawnText.erase(itT, m_drawnText.end());
 }
 
 const std::vector<DrawnLine> &AbstractDrawer::getDrawnLines() const
@@ -342,7 +356,7 @@ void AbstractDrawer::addLine(QLineF l, QPen p, int size)
     if( (l.p1().x() >= m_coordStartX && l.p1().y() >= m_coordStartY && l.p1().x() <= m_coordEndX && l.p1().y() <= m_coordEndY &&
          l.p2().x() >= m_coordStartX && l.p2().y() >= m_coordStartY && l.p2().x() <= m_coordEndX && l.p2().y() <= m_coordEndY) || m_freeDraw)
     {
-        m_drawnLines.push_back({l, p, size});
+        m_drawnLines.push_back({l, p, size, m_freeDraw});
     }
 }
 
@@ -350,7 +364,7 @@ void AbstractDrawer::addPoint(QPointF l, QPen p, size_t s)
 {
     if( (l.x() >= m_coordStartX && l.y() >= m_coordStartY && l.x() <= m_coordEndX && l.y() <= m_coordEndY) || m_freeDraw )
     {
-        m_drawnPoints.push_back({l, p, s});
+        m_drawnPoints.push_back({l, p, s, m_freeDraw});
     }
 }
 

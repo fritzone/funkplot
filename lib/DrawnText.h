@@ -4,6 +4,7 @@
 #include <QFont>
 #include <QPen>
 #include <QString>
+#include <QPointF>
 
 struct DrawnText
 {
@@ -11,6 +12,7 @@ struct DrawnText
     QPen pen {Qt::black};
     QPointF point;
     QFont f;
+    bool isCoordinateSystem = false;
 };
 
 #endif // DRAWNTEXT_H

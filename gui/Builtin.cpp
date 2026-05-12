@@ -23,18 +23,26 @@ Builtin::Builtin(const QJsonObject &o) : m_name (o["name"].toString()),
         m_parForm->functions.first.reset(new Function(QString(("f(t)=") + eqO["formula"].toObject()[X].toString()).toLocal8Bit().data(), nullptr));
         m_parForm->functions.second.reset(new Function(QString(("f(t)=") + eqO["formula"].toObject()[Y].toString()).toLocal8Bit().data(), nullptr));
         m_eqType = EquationType::PARAMETRIC;
+
+        m_formula["x"] = eqO["formula"].toObject()["x"].toString();
+        m_formula["y"] = eqO["formula"].toObject()["y"].toString();
     }
     else if(eqO["type"] == "polar")
     {
         m_cartForm.reset( new Function (QString(("f(t)=") + eqO["formula"].toObject()["r"].toString()).toLocal8Bit().data(), nullptr));
         m_eqType = EquationType::POLAR;
+
+        m_formula["r"] = eqO["formula"].toObject()["r"].toString();
     }
+
+    QJsonObject intO = o["interval"].toObject();
+    m_interval = { intO["start"].toString(), intO["end"].toString() };
 
     QJsonArray pars = o["parameter"].toArray();
     for(size_t i = 0; i<pars.size(); i++)
     {
         QString desc = pars[i].toObject()["description"].toString();
-        Parameter p {pars[i].toObject()["name"].toString(), desc};
+        Parameter p {pars[i].toObject()["name"].toString(), desc, pars[i].toObject()["default"].toString()};
         m_parameters.push_back(p);
     }
 }
@@ -57,4 +65,19 @@ QString Builtin::getKey() const
 const QVector<Builtin::Parameter>& Builtin::getParameters() const
 {
     return m_parameters;
+}
+
+EquationType Builtin::getEquationType() const
+{
+    return m_eqType;
+}
+
+QMap<QString, QString> Builtin::getFormula() const
+{
+    return m_formula;
+}
+
+QPair<QString, QString> Builtin::getInterval() const
+{
+    return m_interval;
 }

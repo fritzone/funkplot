@@ -29,7 +29,6 @@ void Program::setCurrentStatement(const QString &newCurrentStatement)
 
 bool Program::run()
 {
-    m_rp->reset();
     QStringList codelines = m_tabPage->getTextEdit()->toPlainText().split("\n");
     if(!m_rp->parse(codelines))
     {

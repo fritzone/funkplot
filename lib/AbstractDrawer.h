@@ -36,6 +36,7 @@ public:
     int getSceneScrollX() const;
     int getSceneScrollY() const;
     void reset();
+    void clearCoordinateSystem();
     int sceneX(double x);
     int sceneY(double y);
     int getWidth() const;

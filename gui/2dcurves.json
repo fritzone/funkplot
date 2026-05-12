@@ -924,10 +924,16 @@
             "equation": {
                 "type":"parametric",
                 "formula": {
-                    "x": "t / (1 + t^2)",
-                    "y": "1 / (1 + t^2)"
+                    "x": "t",
+                    "y": "c * t^3 + d * t^2 + g * t + h"
                 }                
             },
+            "parameter": [
+                {"name": "c", "role": "shaper", "description": "Shape of the figure", "default": "1"},
+                {"name": "d", "role": "shaper", "description": "Shape of the figure", "default": "1"},
+                {"name": "g", "role": "shaper", "description": "Shape of the figure", "default": "1"},
+                {"name": "h", "role": "shaper", "description": "Shape of the figure", "default": "1"}
+            ],
             "interval": { "start": "-pi", "end": "pi"},
 			"key": "trident_of_newton"
         },

@@ -608,12 +608,14 @@ bool RuntimeProvider::getShowCoordinates() const
 void RuntimeProvider::setShowCoordinates(bool newShowCoordinates)
 {
     m_showCoordinates = newShowCoordinates;
+    emit showCoordinatesChange(newShowCoordinates);
 }
 
 void RuntimeProvider::setupConnections(QObject *o)
 {
     QObject::connect(this, SIGNAL(rotationAngleChange(double)), o, SLOT(on_rotationAngleChange(double)));
     QObject::connect(this, SIGNAL(zoomFactorChange(double)), o, SLOT(on_zoomFactorChange(double)));
+    QObject::connect(this, SIGNAL(showCoordinatesChange(bool)), o, SLOT(on_showCoordinatesChange(bool)));
     QObject::connect(this, SIGNAL(gridChange(bool)), o, SLOT(on_gridChange(bool)));
     QObject::connect(this, SIGNAL(coordEndYChange(double)), o, SLOT(on_coordEndYChange(double)));
     QObject::connect(this, SIGNAL(coordStartYChange(double)), o, SLOT(on_coordStartYChange(double)));

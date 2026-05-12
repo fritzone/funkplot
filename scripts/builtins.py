@@ -88,7 +88,12 @@ def render_function(fun_name, lscript, tscript):
 
     print(" ".join(comp))
 
-    subprocess.run(comp)
+    result = subprocess.run(comp, check=True)
+
+    # Check the return code
+    if result.returncode != 0:
+        print(f"Command failed with return code {result.returncode}")
+        sys.exit(1)
 
 #
 # Create a function with cartesian/polar coordinates

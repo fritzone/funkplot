@@ -9,6 +9,7 @@ struct DrawnLine
     QLineF line;
     QPen pen {Qt::black};
     int size = 1;
+    bool isCoordinateSystem = false;
 };
 
 #endif // DRAWNLINE_H

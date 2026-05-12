@@ -300,6 +300,7 @@ void DrawingForm::on_rotationAngleChange(double v)
     for(auto& d : m_drawers)
     {
         d->setRotationAngle(v);
+        d->drawCoordinateSystem();
     }
 }
 void DrawingForm::on_zoomFactorChange(double v)
@@ -307,6 +308,16 @@ void DrawingForm::on_zoomFactorChange(double v)
     for(auto& d : m_drawers)
     {
         d->setZoomFactor(v);
+        d->drawCoordinateSystem();
+    }
+}
+
+void DrawingForm::on_showCoordinatesChange(bool v)
+{
+    Q_UNUSED(v);
+    for(auto& d : m_drawers)
+    {
+        d->drawCoordinateSystem();
     }
 }
 
@@ -315,6 +326,7 @@ void DrawingForm::on_gridChange(bool v)
     for(auto& d : m_drawers)
     {
         d->setShowGrid(v);
+        d->drawCoordinateSystem();
     }
 }
 void DrawingForm::on_coordEndYChange(double v)
@@ -322,6 +334,7 @@ void DrawingForm::on_coordEndYChange(double v)
     for(auto& d : m_drawers)
     {
         d->setCoordEndY(v);
+        d->drawCoordinateSystem();
     }
 }
 void DrawingForm::on_coordStartYChange(double v)
@@ -329,6 +342,7 @@ void DrawingForm::on_coordStartYChange(double v)
     for(auto& d : m_drawers)
     {
         d->setCoordStartY(v);
+        d->drawCoordinateSystem();
     }
 }
 void DrawingForm::on_coordEndXChange(double v)
@@ -336,6 +350,7 @@ void DrawingForm::on_coordEndXChange(double v)
     for(auto& d : m_drawers)
     {
         d->setCoordEndX(v);
+        d->drawCoordinateSystem();
     }
 }
 void DrawingForm::on_coordStartXChange(double v)
@@ -343,6 +358,7 @@ void DrawingForm::on_coordStartXChange(double v)
     for(auto& d : m_drawers)
     {
         d->setCoordStartX(v);
+        d->drawCoordinateSystem();
     }
 }
 

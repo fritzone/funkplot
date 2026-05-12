@@ -19,6 +19,8 @@ public:
 
     void populateBuiltin(QSharedPointer<Builtin> b);
 
+    QMap<QString, QString> getParameterValues() const;
+
 private slots:
     void on_toolButton_clicked();
     void on_toolButton_2_clicked();

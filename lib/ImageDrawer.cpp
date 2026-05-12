@@ -64,7 +64,7 @@ void ImageDrawer::redrawEverything()
 
 void ImageDrawer::drawLine(const QLineF &l, const QPen &p)
 {
-    m_drawnLines.push_back({l, p});
+    AbstractDrawer::addLine(l, p, 1);
 }
 
 void ImageDrawer::save(const QString &s)

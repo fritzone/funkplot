@@ -49,12 +49,29 @@ void BuiltinFunctionDetailer::populateBuiltin(QSharedPointer<Builtin> b)
 
         lbl->setFont(f);
         QLineEdit* te = new QLineEdit(this);
+        te->setText(p.defaultValue);
         m_dynamicWidgets.append(te);
 
         ui->formLayout->addRow(lbl, te);
     }
 
     m_builtin = b;
+}
+
+QMap<QString, QString> BuiltinFunctionDetailer::getParameterValues() const
+{
+    QMap<QString, QString> result;
+    const auto& params = m_builtin->getParameters();
+    for(int i = 0; i < params.size(); ++i)
+    {
+        // LineEdit is at odd index (1, 3, 5...)
+        QLineEdit* te = qobject_cast<QLineEdit*>(m_dynamicWidgets[i * 2 + 1]);
+        if(te)
+        {
+            result[params[i].name] = te->text();
+        }
+    }
+    return result;
 }
 
 void BuiltinFunctionDetailer::on_toolButton_2_clicked()
