@@ -426,6 +426,38 @@ TEST_CASE( "Compiler operations", "[compiler]" )
         REQUIRE(rp.value("p", Y) == 6);
     };
 
+    SECTION( "plot with expressions in over" )
+    {
+        QString s{
+            "function f(x) = x\n"
+            "plot f over (sin(0) + 1, 2 + 2)"
+        };
+        QStringList codelines = s.split("\n");
+        bool ok = rp.parse(codelines);
+        if(!ok) {
+            qDebug() << "Parse failed!";
+        }
+        REQUIRE(ok);
+        auto statements = rp.getStatements();
+
+        bool foundPlot = false;
+        for(auto& stmt : statements)
+        {
+            auto p = qSharedPointerDynamicCast<Plot>(stmt);
+            if(p)
+            {
+                foundPlot = true;
+                REQUIRE(p->start != nullptr);
+                REQUIRE(p->end != nullptr);
+
+                REQUIRE(p->start->Calculate() == 2.0);
+                REQUIRE(p->end->Calculate() == 4.0);
+            }
+        }
+        REQUIRE(foundPlot);
+    }
+
+
 }
 
 TEST_CASE( "Parametric functions", "[compiler]" )
