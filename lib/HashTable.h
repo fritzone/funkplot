@@ -40,7 +40,7 @@ public:
 		else
 		{
 			hs=new hash_struct;
-			hs->name=new char[strlen(key)];
+			hs->name=new char[strlen(key) + 1];
 			strcpy(hs->name,key);
 			hs->data=elm;
 			hashlist->AddElement(hs);

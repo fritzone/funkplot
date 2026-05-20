@@ -25,6 +25,8 @@ set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/constants.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Done.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Done.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Draw.h
+	${CMAKE_CURRENT_SOURCE_DIR}/Draw.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/DrawnLine.h
 	${CMAKE_CURRENT_SOURCE_DIR}/DrawnPoint.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Else.h
@@ -34,6 +36,7 @@ set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/FunctionDefinition.h
 	${CMAKE_CURRENT_SOURCE_DIR}/FunctionDefinition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/IndexedAccess.h
+	${CMAKE_CURRENT_SOURCE_DIR}/LineAssignment.h
 	${CMAKE_CURRENT_SOURCE_DIR}/ImageDrawer.h
 	${CMAKE_CURRENT_SOURCE_DIR}/FunctionIteratorLoopTarget.h
 	${CMAKE_CURRENT_SOURCE_DIR}/FunctionIteratorLoopTarget.cpp
@@ -56,6 +59,7 @@ set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/Stepped.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Set.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Set.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/SegmentAssignment.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Parametric.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Parametric.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PointArrayAssignment.h

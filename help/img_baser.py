@@ -29,7 +29,7 @@ for fn in files:
 
     if len(fn) > 1 and os.path.exists(fn):
         print("Patching: [", fn, "]")
-        with open( fn) as file:
+        with open(fn) as file:
             lines = file.readlines()
             lines = [line.rstrip() for line in lines]
             file_patch = ""
@@ -42,7 +42,7 @@ for fn in files:
                     line.replace(to_remove, "")
 
                 imgsrc_pos = line.find("img src")
-                if imgsrc_pos != -1:
+                if imgsrc_pos != -1 and fn != "functions.html":
                     needs_patching = True
                     before = line[:imgsrc_pos]
                     file_patch += before

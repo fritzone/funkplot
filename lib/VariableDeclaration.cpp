@@ -2,6 +2,8 @@
 #include "Statement.h"
 #include "util.h"
 #include "RuntimeProvider.h"
+#include "LineAssignment.h"
+#include "SegmentAssignment.h"
 
 
 QVector<QSharedPointer<Statement>> VariableDeclaration::create(int ln, const QString &codeline, QStringList &codelines, StatementCallback cb, StatementReaderCallback srcb)
@@ -72,6 +74,16 @@ QVector<QSharedPointer<Statement>> VariableDeclaration::create(int ln, const QSt
                 if(type == Types::TYPE_POINT)
                 {
                     RuntimeProvider::get()->addOrUpdatePointDefinitionAssignment(ln, resultI.get(), 0, 0, vn);
+                }
+
+                if(type == Types::TYPE_LINE)
+                {
+                    RuntimeProvider::get()->addOrUpdateAssignment(QSharedPointer<LineAssignment>(new LineAssignment(ln, codeline)));
+                }
+
+                if(type == Types::TYPE_SEGMENT)
+                {
+                    RuntimeProvider::get()->addOrUpdateAssignment(QSharedPointer<SegmentAssignment>(new SegmentAssignment(ln, codeline)));
                 }
 
             }

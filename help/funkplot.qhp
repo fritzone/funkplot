@@ -23,10 +23,12 @@
                 <section title="set keyword" ref="html/kw_set.html"></section>
                 <section title="var keyword" ref="html/kw_var.html"></section>
             </section>
+            <section title="Geometric objects" ref="html/geometry.html"></section>
             <section title="Miscellaneous" ref="html/misc.html">
-                <section title="Colours in funkplot" ref="html/colors.html"></section>
+        	<section title="Colours in funkplot" ref="html/colors.html"></section>
                 <section title="Palettes in funkplot" ref="html/palettes.html"></section>
-            </section>
+                <section title="Function database" ref="html/functions.html"></section>
+	    </section>
         </toc>
         <keywords>
             <keyword name="for" ref="html/kw_for.html"/>
@@ -45,6 +47,8 @@
             <file>html/colors.html</file>
             <file>html/error_messages.html</file>
             <file>html/first_steps.html</file>
+            <file>html/functions.html</file>
+            <file>html/geometry.html</file>
             <file>html/gui.html</file>
             <file>html/intro.html</file>
             <file>html/keywords.html</file>

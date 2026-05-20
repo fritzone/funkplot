@@ -10,8 +10,9 @@ add_custom_command(	OUTPUT ${CMAKE_BINARY_DIR}/builtins.qrc
 					DEPENDS funkplot-compiler
 					COMMAND python ../scripts/builtins.py
 					WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-					BYPRODUCTS ${CMAKE_BINARY_DIR}/builtins.qrc
 )
+
+add_custom_target(funkplot-builtins DEPENDS ${CMAKE_BINARY_DIR}/builtins.qrc)
 
 set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
@@ -73,6 +74,9 @@ set(${PROJECT}_srcs
 	${APP_ICON_RESOURCE_WINDOWS}
 )
 
+qt5_add_resources(HELP_QRC ${CMAKE_BINARY_DIR}/help/help.qrc)
+list(APPEND ${PROJECT}_srcs ${HELP_QRC})
+
 if(USE_QT6)
 	list(APPEND ${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/ProjectedRenderer.h
@@ -86,6 +90,8 @@ else()
 		SystemSettings.h
 		SystemSettings.cpp)
 endif()
+
+add_dependencies(funkplot-gui funkplot-help)
 
 if(ENABLE_PYTHON)
 	target_compile_definitions(${PROJECT} PRIVATE "ENABLE_PYTHON")

@@ -106,6 +106,12 @@ public:
 
         qDebug() << "Parametric: StepValue:" << stepValue << "PlotStart:" << plotStart << "PlotEnd:" << plotEnd << "Continuous:" << continuous;
 
+        if (stepValue <= 0)
+        {
+            erp(cdl, ERRORCODE(25), "Invalid plotting step value: " + QString::number(stepValue));
+            return {continuous, plotStart, plotEnd, counted, stepValue, count};
+        }
+
         int pointsDrawn = 0;
         for(double t=plotStart; t<=plotEnd; t += stepValue)
         {

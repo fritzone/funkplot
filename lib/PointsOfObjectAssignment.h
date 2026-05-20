@@ -27,6 +27,8 @@ public:
     QString ofWhat;                     // can be a function for now (or a circle, etc... later)
     QSharedPointer<Function> ofWhatFun; // what, the function
 
+    QSharedPointer<Function> x1, y1, x2, y2; // for line
+
 };
 
 

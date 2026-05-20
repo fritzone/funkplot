@@ -157,6 +157,8 @@ public:
     void setPixelSize(size_t);
     void setPalette(QString);
     void drawPlot(QSharedPointer<Plot> plot);
+    void drawLine(double x1, double y1, double x2, double y2);
+    void drawPoint(double x, double y);
     void resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPointer<Assignment> assignment, bool &continuous, double &plotStart, double &plotEnd, bool &counted, double &stepValue, int &count, bool useDefaultValues);
     void addFunction(QSharedPointer<FunctionDefinition> fd);
     void addParametricFunction(QSharedPointer<Parametric> pfd);
@@ -246,12 +248,22 @@ public:
      */
     const QVector<QSharedPointer<FunctionDefinition>>& getFunctions() const;
 
+    double coordStartX() const;
+    double coordEndX() const;
+    double coordStartY() const;
+    double coordEndY() const;
+
     void debugVariables();
     void populateBuiltinFunctions();
     bool getShowCoordinates() const;
     void setShowCoordinates(bool newShowCoordinates);
 
     void setupConnections(QObject* o);
+
+    int recursionDepth() const;
+    void setRecursionDepth(int newRecursionDepth);
+    void incrementRecursionDepth();
+    void decrementRecursionDepth();
 
 signals:
 
@@ -312,6 +324,13 @@ private:
     bool m_running = false;
 
     bool m_showCoordinates = true;
+
+    double m_coordStartX = -150.0;
+    double m_coordEndX = 150.0;
+    double m_coordStartY = -100.0;
+    double m_coordEndY = 100.0;
+
+    int m_recursionDepth = 0;
 };
 
 #endif // RUNTIMEPROVIDER_H

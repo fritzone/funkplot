@@ -5,6 +5,8 @@
 #include "Plot.h"
 #include "CodeEngine.h"
 #include "FunctionDefinition.h"
+#include "LineAssignment.h"
+#include "SegmentAssignment.h"
 
 #ifdef ENABLE_PYTHON
 #include "PythonRunner.h"
@@ -69,7 +71,30 @@ double RuntimeProvider::value(const std::string &s)
 
 double RuntimeProvider::value(const std::string &obj, const std::string &attr)
 {
-    auto a = getAssignment(QString::fromStdString(obj));
+    QString qobj = QString::fromStdString(obj);
+    if(qobj.contains('[') && qobj.contains(']'))
+    {
+        int bracket = qobj.indexOf('[');
+        QString var = qobj.left(bracket);
+        QString idxStr = qobj.mid(bracket + 1, qobj.lastIndexOf(']') - bracket - 1);
+        auto tf = Function::temporaryFunction(idxStr, nullptr);
+        int idx = static_cast<int>(tf->Calculate());
+
+        auto a = getAssignment(var);
+        if(a)
+        {
+            a->resolvePrecalculatedPointsForIndexedAccessWithList(nullptr, this);
+            auto& pcp = a->getPrecalculatedPoints();
+            if(idx >= 0 && idx < pcp.size())
+            {
+                if(attr == X) return pcp[idx].x();
+                if(attr == Y) return pcp[idx].y();
+            }
+        }
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+
+    auto a = getAssignment(qobj);
     if(!a)
     {
         return std::numeric_limits<double>::quiet_NaN();
@@ -520,24 +545,23 @@ double RuntimeProvider::getIndexedVariableValue(const char *n, int index)
         // this
         if(index >= arrayAssignment->m_elements.size())
         {
-            throw funkplot::syntax_error_exception(ERRORCODE(55), "Index out of bounds for <b>%s</b>. Requested <b>%s</b>, available: <b>%s</b>", n, index, arrayAssignment->m_elements.size());
-        }
+            throw funkplot::syntax_error_exception(ERRORCODE(55), "Index out of bounds for <b>%s</b>. Requested <b>%d</b>, available: <b>%zu</b>", n, index, arrayAssignment->m_elements.size());
+            }
 
-        return arrayAssignment->m_elements[index]->Calculate();
-    }
-    else
-    {
+            return arrayAssignment->m_elements[index]->Calculate();
+            }
+            else
+            {
 
-        auto pointsOfObjectAssignment = getAssignmentAs<PointsOfObjectAssignment>(n);
-        if(pointsOfObjectAssignment)
-        {
+            auto pointsOfObjectAssignment = getAssignmentAs<PointsOfObjectAssignment>(n);
+            if(pointsOfObjectAssignment)
+            {
             return std::numeric_limits<double>::quiet_NaN();
-        }
+            }
 
-        throw funkplot::syntax_error_exception(ERRORCODE(34), "Cannot identify the object assigning from: <b>%s</b>", n);
+            throw funkplot::syntax_error_exception(ERRORCODE(34), "Cannot identify the object assigning from: <b>%s</b>", n);
 
-    }
-}
+            }}
 
 bool RuntimeProvider::isRunning() const
 {
@@ -613,14 +637,61 @@ void RuntimeProvider::setShowCoordinates(bool newShowCoordinates)
 
 void RuntimeProvider::setupConnections(QObject *o)
 {
-    QObject::connect(this, SIGNAL(rotationAngleChange(double)), o, SLOT(on_rotationAngleChange(double)));
-    QObject::connect(this, SIGNAL(zoomFactorChange(double)), o, SLOT(on_zoomFactorChange(double)));
-    QObject::connect(this, SIGNAL(showCoordinatesChange(bool)), o, SLOT(on_showCoordinatesChange(bool)));
-    QObject::connect(this, SIGNAL(gridChange(bool)), o, SLOT(on_gridChange(bool)));
-    QObject::connect(this, SIGNAL(coordEndYChange(double)), o, SLOT(on_coordEndYChange(double)));
-    QObject::connect(this, SIGNAL(coordStartYChange(double)), o, SLOT(on_coordStartYChange(double)));
-    QObject::connect(this, SIGNAL(coordEndXChange(double)), o, SLOT(on_coordEndXChange(double)));
-    QObject::connect(this, SIGNAL(coordStartXChange(double)), o, SLOT(on_coordStartXChange(double)));
+    connect(this, &RuntimeProvider::rotationAngleChange, o, [o](double v) {
+        QMetaObject::invokeMethod(o, "on_rotationAngleChange", Q_ARG(double, v));
+    });
+    connect(this, &RuntimeProvider::zoomFactorChange, o, [o](double v) {
+        QMetaObject::invokeMethod(o, "on_zoomFactorChange", Q_ARG(double, v));
+    });
+    connect(this, &RuntimeProvider::showCoordinatesChange, o, [o](bool v) {
+        QMetaObject::invokeMethod(o, "on_showCoordinatesChange", Q_ARG(bool, v));
+    });
+    connect(this, &RuntimeProvider::gridChange, o, [o](bool v) {
+        QMetaObject::invokeMethod(o, "on_gridChange", Q_ARG(bool, v));
+    });
+
+    connect(this, &RuntimeProvider::coordEndYChange, [this](double v){ m_coordEndY = v; });
+    connect(this, &RuntimeProvider::coordStartYChange, [this](double v){ m_coordStartY = v; });
+    connect(this, &RuntimeProvider::coordEndXChange, [this](double v){ m_coordEndX = v; });
+    connect(this, &RuntimeProvider::coordStartXChange, [this](double v){ m_coordStartX = v; });
+
+    connect(this, &RuntimeProvider::coordEndYChange, o, [o](double v) {
+        QMetaObject::invokeMethod(o, "on_coordEndYChange", Q_ARG(double, v));
+    });
+    connect(this, &RuntimeProvider::coordStartYChange, o, [o](double v) {
+        QMetaObject::invokeMethod(o, "on_coordStartYChange", Q_ARG(double, v));
+    });
+    connect(this, &RuntimeProvider::coordEndXChange, o, [o](double v) {
+        QMetaObject::invokeMethod(o, "on_coordEndXChange", Q_ARG(double, v));
+    });
+    connect(this, &RuntimeProvider::coordStartXChange, o, [o](double v) {
+        QMetaObject::invokeMethod(o, "on_coordStartXChange", Q_ARG(double, v));
+    });
+}
+
+double RuntimeProvider::coordStartX() const { return m_coordStartX; }
+double RuntimeProvider::coordEndX() const { return m_coordEndX; }
+double RuntimeProvider::coordStartY() const { return m_coordStartY; }
+double RuntimeProvider::coordEndY() const { return m_coordEndY; }
+
+int RuntimeProvider::recursionDepth() const
+{
+    return m_recursionDepth;
+}
+
+void RuntimeProvider::setRecursionDepth(int newRecursionDepth)
+{
+    m_recursionDepth = newRecursionDepth;
+}
+
+void RuntimeProvider::incrementRecursionDepth()
+{
+    m_recursionDepth++;
+}
+
+void RuntimeProvider::decrementRecursionDepth()
+{
+    m_recursionDepth--;
 }
 
 void RuntimeProvider::execute()
@@ -688,6 +759,16 @@ void RuntimeProvider::setPalette(QString p)
 void RuntimeProvider::drawPlot(QSharedPointer<Plot> plot)
 {
     m_plotDrawer(plot);
+}
+
+void RuntimeProvider::drawLine(double x1, double y1, double x2, double y2)
+{
+    m_lineDrawer(x1, y1, x2, y2);
+}
+
+void RuntimeProvider::drawPoint(double x, double y)
+{
+    m_pointDrawer(x, y);
 }
 
 void RuntimeProvider::resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPointer<Assignment> assignment,
@@ -804,12 +885,48 @@ QSharedPointer<Assignment> RuntimeProvider::getAssignment(const QString &n)
     return nullptr;
 }
 
+static QString getExpr(QSharedPointer<Function> f)
+{
+    if (!f) return "";
+    QString b = f->get_funBody();
+    int eq = b.indexOf('=');
+    if (eq != -1) return b.mid(eq + 1).trimmed();
+    return b;
+}
+
 QSharedPointer<Parametric> RuntimeProvider::getParametricFunction(const QString &n)
 {
     for(const auto& pf : m_parametricFunctions)
     {
         if(pf->funName == n)
         {
+            return pf;
+        }
+    }
+
+    auto a = getAssignment(n);
+    if(a)
+    {
+        auto la = qSharedPointerDynamicCast<LineAssignment>(a);
+        if(la)
+        {
+            QSharedPointer<Parametric> pf(new Parametric(-1, ""));
+            pf->funName = n;
+            pf->funParName = "t";
+            // x = x1 + t * (x2 - x1)
+            // y = y1 + t * (y2 - y1)
+            pf->functions.first = Function::temporaryFunction(QString("%1 + t * (%2 - (%1))").arg(getExpr(la->x1), getExpr(la->x2)), nullptr);
+            pf->functions.second = Function::temporaryFunction(QString("%1 + t * (%2 - (%1))").arg(getExpr(la->y1), getExpr(la->y2)), nullptr);
+            return pf;
+        }
+        auto sa = qSharedPointerDynamicCast<SegmentAssignment>(a);
+        if(sa)
+        {
+            QSharedPointer<Parametric> pf(new Parametric(-1, ""));
+            pf->funName = n;
+            pf->funParName = "t";
+            pf->functions.first = Function::temporaryFunction(QString("%1 + t * (%2 - (%1))").arg(getExpr(sa->x1), getExpr(sa->x2)), nullptr);
+            pf->functions.second = Function::temporaryFunction(QString("%1 + t * (%2 - (%1))").arg(getExpr(sa->y1), getExpr(sa->y2)), nullptr);
             return pf;
         }
     }

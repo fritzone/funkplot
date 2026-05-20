@@ -129,13 +129,16 @@ bool nethelper::ping(const std::string &host)
 
         return false;
     }
-    if (c >= MAXICMPLEN)
+    if (c >= (int)((iphdr*)packet)->ihl << 2)
     {
         iphdr *ip_header = reinterpret_cast<iphdr*>(packet);
-        pkt = reinterpret_cast<icmp*>(packet + (ip_header->ihl << 2));
-        if (pkt->icmp_type == ICMP_ECHOREPLY)
+        if (c >= (ip_header->ihl << 2) + (int)sizeof(icmp))
         {
-            return true;
+            pkt = reinterpret_cast<icmp*>(packet + (ip_header->ihl << 2));
+            if (pkt->icmp_type == ICMP_ECHOREPLY)
+            {
+                return true;
+            }
         }
     }
 

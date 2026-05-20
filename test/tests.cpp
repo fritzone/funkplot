@@ -531,3 +531,154 @@ TEST_CASE( "Parametric functions", "[compiler]" )
     };
 
 }
+
+TEST_CASE("Draw Statement", "[draw]")
+{
+    RuntimeProvider rp{RuntimeProviderParameterProvider()};
+    registerClasses();
+
+    SECTION("draw segment statement")
+    {
+        QStringList lines = {
+            "draw segment from (1, 1) to (2, 2)"
+        };
+
+        rp.parse(lines);
+        rp.execute();
+
+        auto& stmts = rp.getStatements();
+        REQUIRE(stmts.size() == 1);
+        REQUIRE(stmts[0]->keyword() == Keywords::KW_DRAW);
+    }
+
+    SECTION("draw point statement")
+    {
+        QStringList lines = {
+            "draw point at (1, 1)"
+        };
+
+        rp.parse(lines);
+        rp.execute();
+
+        auto& stmts = rp.getStatements();
+        REQUIRE(stmts.size() == 1);
+        REQUIRE(stmts[0]->keyword() == Keywords::KW_DRAW);
+    }
+
+    SECTION("points of segment assignment")
+    {
+        QStringList lines = {
+            "var ps list of points",
+            "let ps = points of segment from (0, 0) to (10, 10) counts 11",
+            "var p1 p2 point",
+            "let p1 = ps[0]",
+            "let p2 = ps[10]"
+        };
+
+        rp.parse(lines);
+        rp.execute();
+
+        REQUIRE(rp.typeOfVariable("ps") == Types::TYPE_LIST);
+        
+        // Use rp.value with X and Y constants to check point coordinates
+        REQUIRE(rp.value("p1", X) == 0);
+        REQUIRE(rp.value("p1", Y) == 0);
+        REQUIRE(rp.value("p2", X) == 10);
+        REQUIRE(rp.value("p2", Y) == 10);
+
+        // Check a middle point
+        QStringList lines2 = { "let p1 = ps[5]" };
+        rp.parse(lines2);
+        rp.execute();
+        REQUIRE(rp.value("p1", X) == 5);
+        REQUIRE(rp.value("p1", Y) == 5);
+    }
+
+    SECTION("point expressions as segment endpoints")
+    {
+        QStringList lines = {
+            "var p1 p2 point",
+            "let p1 = point at (0, 0)",
+            "let p2 = point at (10, 10)",
+            "draw segment from p1 to p2",
+            "var ps list of points",
+            "let ps = points of segment from p1 to p2 counts 11",
+            "var p3 point",
+            "let p3 = ps[5]",
+            "draw segment from ps[0] to ps[10]"
+        };
+
+        rp.parse(lines);
+        rp.execute();
+
+        REQUIRE(rp.value("p3", X) == 5);
+        REQUIRE(rp.value("p3", Y) == 5);
+
+        // Test indexed access on list as endpoint
+        QStringList lines2 = {
+            "let ps = points of segment from ps[0] to ps[5] counts 6"
+        };
+        rp.parse(lines2);
+        rp.execute();
+        REQUIRE(rp.value("ps[5]", X) == 5);
+    }
+
+    SECTION("draw segment with counts")
+    {
+        QStringList lines = {
+            "draw segment from (0, 0) to (10, 10) counts 11"
+        };
+
+        rp.parse(lines);
+        // Execute to ensure no crashes
+        rp.execute();
+
+        auto& stmts = rp.getStatements();
+        REQUIRE(stmts.size() == 1);
+        REQUIRE(stmts[0]->keyword() == Keywords::KW_DRAW);
+    }
+
+    SECTION("infinite line support")
+    {
+        QStringList lines = {
+            "var ps list of points",
+            // Visible area is default -150 to 150 X, -100 to 100 Y
+            // For line y=x, it will be clipped at y=-100 and y=100
+            "let ps = points of line from (0, 0) to (1, 1) counts 3"
+        };
+
+        rp.parse(lines);
+        rp.execute();
+
+        // Points should be at edges of visible area
+        // Line y=x is limited by y-bounds [-100, 100]
+        REQUIRE(rp.value("ps[0]", X) == -100);
+        REQUIRE(rp.value("ps[2]", X) == 100);
+    }
+
+    SECTION("line and segment variables")
+    {
+        QStringList lines = {
+            "var l line",
+            "var s segment",
+            "let l = line through (0, 0) and (10, 10)",
+            "let s = segment from (0, 0) to (10, 10)",
+            "draw line l",
+            "draw segment s",
+            "var ps1 ps2 list of points",
+            "let ps1 = points of l over (0, 1) counts 11",
+            "let ps2 = points of s over (0, 1) counts 3"
+        };
+
+        rp.parse(lines);
+        rp.execute();
+
+        REQUIRE(rp.value("ps1[0]", X) == 0);
+        REQUIRE(rp.value("ps1[5]", X) == 5);
+        REQUIRE(rp.value("ps1[10]", X) == 10);
+
+        REQUIRE(rp.value("ps2[0]", X) == 0);
+        REQUIRE(rp.value("ps2[1]", X) == 5);
+        REQUIRE(rp.value("ps2[2]", X) == 10);
+    }
+}

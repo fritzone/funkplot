@@ -64,7 +64,7 @@ static const std::vector<fun_desc_solve> supported_functions
      {"+", "Simple addition", [](double v, double v2) -> double { return v + v2; }, false, false },
      {"-", "Simple substraction", [](double v, double v2) -> double { return v - v2; }, false, false },
      {"*", "Simple multiplication", [](double v, double v2) -> double { return v * v2; }, false, false },
-     {"%", "Simple modulo operator", [](double v, double v2) -> double { return  v2 == 0 ? std::numeric_limits<double>::quiet_NaN() : (static_cast<int>(v) % static_cast<int>(v2)); }, false, false },
+     {"%", "Simple modulo operator", [](double v, double v2) -> double { return  static_cast<int>(v2) == 0 ? std::numeric_limits<double>::quiet_NaN() : (static_cast<int>(v) % static_cast<int>(v2)); }, false, false },
      {"/", "Simple division", [](double v, double v2) -> double { return  v2 == 0 ? std::numeric_limits<double>::quiet_NaN() : v / v2; }, false, false },
 
      //trygonometry, simple

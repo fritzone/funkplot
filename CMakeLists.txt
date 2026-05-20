@@ -165,10 +165,6 @@ endif()
 
 if(NOT WIN32)
 
-  if(BUILD_GUI)
-    add_subdirectory(help)
-  endif()
-
   if(BUILD_COMPILER)
     add_subdirectory(compiler)
   endif()
@@ -177,6 +173,7 @@ endif()
 
 if(BUILD_GUI)
   add_subdirectory(gui)
+  add_subdirectory(help)
 endif()
 
 if(BUILD_WEB)

@@ -41,8 +41,6 @@
     </qresource>
     <qresource prefix="/">
         <file>icons/palette.png</file>
-        <file>../help/funkplot.qch</file>
-        <file>../help/funkplot.qhc</file>
     </qresource>
     <qresource prefix="/palettes">
         <file>../upals/django_unchained.map</file>

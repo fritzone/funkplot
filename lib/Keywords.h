@@ -55,6 +55,13 @@ const QString KW_PARAMETRIC = KEYWORD("parametric");// parametric function f(t) 
 const QString KW_APPEND = KEYWORD("append");        // append to l values 1,2,3,4
 const QString KW_SCRIPT = KEYWORD("script");        // python script begin ... end
 const QString KW_POLAR = KEYWORD("polar");          // polar plot ...
+const QString KW_DRAW = KEYWORD("draw");            // draw line from (1,1) to (2,2)
+const QString KW_LINE = KEYWORD("line");
+const QString KW_SEGMENT = KEYWORD("segment");
+const QString KW_FROM = KEYWORD("from");
+const QString KW_THROUGH = KEYWORD("through");
+const QString KW_AND = KEYWORD("and");
+const QString KW_AT = KEYWORD("at");
 
 static const QVector<QString> all()
 {
@@ -78,6 +85,8 @@ static QString add_type(QString nt)
 const QString TYPE_NUMBER = TYPE("number");
 const QString TYPE_LIST = TYPE("list");
 const QString TYPE_POINT = TYPE("point");
+const QString TYPE_LINE = TYPE("line");
+const QString TYPE_SEGMENT = TYPE("segment");
 const QString TYPE_UNKNOWN = TYPE("unknown");
 
 static const QVector<QString> all()

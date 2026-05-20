@@ -4,6 +4,7 @@
 #include "VariableDeclaration.h"
 #include "Assignment.h"
 #include "Plot.h"
+#include "Draw.h"
 #include "Set.h"
 #include "Loop.h"
 #include "If.h"
@@ -31,6 +32,7 @@ void registerClasses()
         nsVariableDeclaration::HhVariableDeclaration::create();
         nsAssignment::HhAssignment::create();
         nsPlot::HhPlot::create();
+        nsDraw::HhDraw::create();
         nsSet::HhSet::create();
         nsLoop::HhLoop::create();
         nsIf::HhIf::create();

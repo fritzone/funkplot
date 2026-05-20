@@ -10,6 +10,8 @@
 #include "PointArrayAssignment.h"
 #include "PointDefinitionAssignmentToOtherPoint.h"
 #include "PointsOfObjectAssignment.h"
+#include "LineAssignment.h"
+#include "SegmentAssignment.h"
 #include "constants.h"
 
 #include <QVector>
@@ -305,6 +307,24 @@ QString Assignment::kw()
     return Keywords::KW_LET;
 }
 
+static void parseEndpoint(QString& body, QSharedPointer<Function>& x, QSharedPointer<Function>& y, Statement* s)
+{
+    consumeSpace(body);
+    if (body.startsWith("(")) {
+        body = body.mid(1);
+        QString fnai;
+        QString sx = extract_proper_expression(body, fnai, {','});
+        QString sy = extract_proper_expression(body, fnai, {')'});
+        x = Function::temporaryFunction(sx, s);
+        y = Function::temporaryFunction(sy, s);
+    } else {
+        QString fnai;
+        QString pointExpr = extract_proper_expression(body, fnai, QSet<QChar>{' '}, QSet<QString>{Keywords::KW_TO, Keywords::KW_COUNTS, Keywords::KW_OVER, Keywords::KW_AND}, false);
+        x = Function::temporaryFunction(pointExpr + ".x", s);
+        y = Function::temporaryFunction(pointExpr + ".y", s);
+    }
+}
+
 QVector<QSharedPointer<Statement> > Assignment::create(int ln, const QString &codeline, QStringList &codelines, StatementCallback cb, StatementReaderCallback srcb)
 {
     // let keyword
@@ -393,6 +413,48 @@ QVector<QSharedPointer<Statement> > Assignment::create(int ln, const QString &co
                 result->varName = varName;
                 RuntimeProvider::get()->addOrUpdateAssignment(result);
 
+                return handleStatementCallback(vectorize(result), cb);
+            }
+        }
+        if(targetProperties == Keywords::KW_LINE || targetProperties == Keywords::KW_SEGMENT)
+        {
+            QString type = RuntimeProvider::get()->typeOfVariable(varName);
+            if(targetProperties == Keywords::KW_LINE && type != Types::TYPE_LINE)
+            {
+                throw funkplot::syntax_error_exception(ERRORCODE(10), "Conflicting type assignment: <b>line</b> assigned to a non line type variable: <b>%s (%s)</b>", varName.toStdString().c_str(), type.toStdString().c_str());
+            }
+            if(targetProperties == Keywords::KW_SEGMENT && type != Types::TYPE_SEGMENT)
+            {
+                throw funkplot::syntax_error_exception(ERRORCODE(10), "Conflicting type assignment: <b>segment</b> assigned to a non segment type variable: <b>%s (%s)</b>", varName.toStdString().c_str(), type.toStdString().c_str());
+            }
+
+            QString nextWord = getDelimitedId(assignment_body);
+            if(targetProperties == Keywords::KW_LINE && nextWord == Keywords::KW_THROUGH)
+            {
+                QSharedPointer<LineAssignment> result(new LineAssignment(ln, codeline));
+                parseEndpoint(assignment_body, result->x1, result->y1, result.get());
+                QString andWord = getDelimitedId(assignment_body);
+                if(andWord != Keywords::KW_AND)
+                {
+                    throw funkplot::syntax_error_exception(ERRORCODE(53), "Missing keyword <b>and</b> in line assignment: %s", codeline.toStdString().c_str());
+                }
+                parseEndpoint(assignment_body, result->x2, result->y2, result.get());
+                result->varName = varName;
+                RuntimeProvider::get()->addOrUpdateAssignment(result);
+                return handleStatementCallback(vectorize(result), cb);
+            }
+            if(targetProperties == Keywords::KW_SEGMENT && nextWord == Keywords::KW_FROM)
+            {
+                QSharedPointer<SegmentAssignment> result(new SegmentAssignment(ln, codeline));
+                parseEndpoint(assignment_body, result->x1, result->y1, result.get());
+                QString toWord = getDelimitedId(assignment_body);
+                if(toWord != Keywords::KW_TO)
+                {
+                    throw funkplot::syntax_error_exception(ERRORCODE(54), "Missing keyword <b>to</b> in segment assignment: %s", codeline.toStdString().c_str());
+                }
+                parseEndpoint(assignment_body, result->x2, result->y2, result.get());
+                result->varName = varName;
+                RuntimeProvider::get()->addOrUpdateAssignment(result);
                 return handleStatementCallback(vectorize(result), cb);
             }
         }
@@ -536,10 +598,10 @@ QVector<QSharedPointer<Statement> > Assignment::create(int ln, const QString &co
     QSharedPointer<Assignment> result = providePointsOfDefinition(ln, codeline, assignment_body, varName, targetProperties);
     RuntimeProvider::get()->addOrUpdateAssignment(result);
     return handleStatementCallback(vectorize(result), cb);
-}
+    }
 
-QSharedPointer<Assignment> Assignment::providePointsOfDefinition(int ln, const QString &codeline, QString assignment_body, const QString &varName, const QString &targetProperties)
-{
+    QSharedPointer<Assignment> Assignment::providePointsOfDefinition(int ln, const QString &codeline, QString assignment_body, const QString &varName, const QString &targetProperties)
+    {
     if(!assignment_body.startsWith(Keywords::KW_OF))
     {
         throw funkplot::syntax_error_exception(ERRORCODE(51), "Invalid assignment: <b>%s</b> (missing of keyword)", codeline.toStdString().c_str());
@@ -557,11 +619,32 @@ QSharedPointer<Assignment> Assignment::providePointsOfDefinition(int ln, const Q
 
     // what object do we want the points of
     result->ofWhat = getDelimitedId(assignment_body);
-    QSharedPointer<Assignment> assignment;
 
-    if(!RuntimeProvider::get()->getNameFunctionOrAssignment(result->ofWhat, assignment) && !RuntimeProvider::get()->getParametricFunction(result->ofWhat))
-    {
-        throw funkplot::syntax_error_exception(ERRORCODE(52), "Invalid assignment: %s. No such function: %s", codeline.toStdString().c_str(), result->ofWhat.toStdString().c_str());
+    if (result->ofWhat == Keywords::KW_LINE || result->ofWhat == Keywords::KW_SEGMENT) {
+        bool isLine = result->ofWhat == Keywords::KW_LINE;
+        consumeSpace(assignment_body);
+        if (assignment_body.startsWith(Keywords::KW_FROM)) {
+            assignment_body = assignment_body.mid(Keywords::KW_FROM.length());
+            consumeSpace(assignment_body);
+        }
+        
+        parseEndpoint(assignment_body, result->x1, result->y1, result.get());
+
+        consumeSpace(assignment_body);
+        if (assignment_body.startsWith(Keywords::KW_TO)) {
+            assignment_body = assignment_body.mid(Keywords::KW_TO.length());
+            consumeSpace(assignment_body);
+        }
+        
+        parseEndpoint(assignment_body, result->x2, result->y2, result.get());
+
+    } else {
+        QSharedPointer<Assignment> assignment;
+
+        if(!RuntimeProvider::get()->getNameFunctionOrAssignment(result->ofWhat, assignment) && !RuntimeProvider::get()->getParametricFunction(result->ofWhat))
+        {
+            throw funkplot::syntax_error_exception(ERRORCODE(52), "Invalid assignment: %s. No such function: %s", codeline.toStdString().c_str(), result->ofWhat.toStdString().c_str());
+        }
     }
 
     // over keyword

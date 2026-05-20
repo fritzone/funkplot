@@ -7,4 +7,6 @@ const int DEFAULT_FOR_STEP = 1;
 // the default stepping of a range
 const float DEFAULT_RANGE_STEP = 0.01f;
 
+const int MAX_RECURSION_DEPTH = 500;
+
 #endif // CONSTANTS_H

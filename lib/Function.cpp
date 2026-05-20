@@ -2,6 +2,7 @@
 #include "Parametric.h"
 #include "util.h"
 #include "RuntimeProvider.h"
+#include "constants.h"
 #include <QDebug>
 #include <math.h>
 #include <string.h>
@@ -204,6 +205,17 @@ std::string Function::preverify_formula(char* expr)
 
 void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
 {
+    if(rp->recursionDepth() > MAX_RECURSION_DEPTH)
+    {
+        throw funkplot::syntax_error_exception(ERRORCODE(31), "Maximum recursion depth exceeded during parsing.");
+    }
+    rp->incrementRecursionDepth();
+
+    struct DepthGuard {
+        RuntimeProvider* rp;
+        DepthGuard(RuntimeProvider* r) : rp(r) {}
+        ~DepthGuard() { rp->decrementRecursionDepth(); }
+    } guard(rp);
 
     // or check comes before "and" check, because and has higher priority
     if(breakUpAsLogicOps(expr, node, "or", rp))
@@ -228,6 +240,7 @@ void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
         node->left->parent = node;
 
         interpret(beforOp, node->left, rp);
+        delete[] beforOp;
 
         node->right = new tree;
         node->right->parent = node;
@@ -397,7 +410,7 @@ void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
 //                throw funkplot::syntax_error_exception(ERRORCODE(27), "Possible error in formula: <b>%s</b>. This does not look like a valid expression.", expr);
 //            }
             else
-                if(strchr(expr, '[') && strchr (expr, ']')) // is this an indexed expression=, like a[2]
+                if(strchr(expr, '[') && strchr (expr, ']') && (*(strrchr(expr, ']') + 1) != '.')) // is this an indexed expression=, like a[2]
                 {
                     [[maybe_unused]] std::string fnai;
                     auto indxd = extract_proper_expression(expr, fnai, {'['}); // consumes the [ too
@@ -562,6 +575,18 @@ int Function::l0mlt(const char* expr)
 
 std::optional<double> Function::calc(tree* node, RuntimeProvider* rp, IndexedAccess*& ia, Assignment*& a, int parFIdx)
 {
+    if(rp->recursionDepth() > MAX_RECURSION_DEPTH)
+    {
+        throw funkplot::syntax_error_exception(ERRORCODE(31), "Maximum recursion depth exceeded during execution.");
+    }
+    rp->incrementRecursionDepth();
+
+    struct DepthGuard {
+        RuntimeProvider* rp;
+        DepthGuard(RuntimeProvider* r) : rp(r) {}
+        ~DepthGuard() { rp->decrementRecursionDepth(); }
+    } guard(rp);
+
     if (node->left)
     {
         // if this is a function on a power, node->right contains the power of it, but we don't want to go in there
@@ -777,6 +802,7 @@ bool Function::breakUpAsLogicOps(const char*expr, tree*node, const char *o, Runt
         node->left->parent = node;
 
         interpret(beforOp, node->left, rp);
+        delete[] beforOp;
 
         node->right = new tree;
         node->right->parent = node;
