@@ -1,0 +1,123 @@
+# Demonstration of all point-on-segment syntaxes
+#
+# Two segments are used:
+#   s1 : from named points p1(-8,-4) to p2(8,4)  — holds most demos
+#   s2 : from (-3,-7) to (3,7)                   — used for at-x and at-y
+#
+# q  : an external point used for the "nearest to" demo
+#
+# Colour key
+#   white        — s1 endpoints p1, p2
+#   orange       — query point q
+#   red          — 25% from start
+#   royalblue    — 25% from end
+#   lime         — 25% from p1  (named endpoint; same location as red, smaller dot)
+#   deepskyblue  — 25% from p2  (named endpoint; same location as royalblue, smaller dot)
+#   yellow       — midpoint
+#   magenta      — distance 7 from start
+#   deeppink     — distance 7 from end
+#   coral        — at t 0.15
+#   hotpink      — nearest to q
+#   gold         — at x 2  (on s2)
+#   springgreen  — at y -3 (on s2)
+
+# ── variable declarations ────────────────────────────────────────────────────
+var p1 p2 q point
+var s1 s2 segment
+var pa pb pc pd pm pe pf pg ph pi pj point
+
+# ── define the named endpoints and segments ──────────────────────────────────
+let p1 = point at (-8, -4) as "P1"
+let p2 = point at (8, 4)
+let s1 = segment from p1 to p2
+
+let s2 = segment from (-3, -7) to (3, 7)
+
+# external point for the nearest-to demo
+let q = point at (5, -5) as "Q"
+
+# ── draw the two segments ────────────────────────────────────────────────────
+set color slategray
+draw segment s1
+draw segment s2
+
+# draw s1 endpoints so start/end are visible
+set color slategray
+set pixel size 8
+plot p1
+plot p2
+
+# draw the query point
+set color orange
+set pixel size 8
+plot q
+
+# ── syntax 1 : at 25% from start ─────────────────────────────────────────────
+let pa = point on s1 at 25% from start as "A"
+set color red
+set pixel size 10
+plot pa
+
+# ── syntax 2 : at 25% from end ───────────────────────────────────────────────
+let pb = point on s1 at 25% from end as "B"
+set color royalblue
+set pixel size 10
+plot pb
+
+# ── syntax 3 : at 25% from named start-point (same location as pa) ───────────
+let pc = point on s1 at 25% from p1 as "C"
+set color lime
+set pixel size 5
+plot pc
+
+# ── syntax 4 : at 25% from named end-point (same location as pb) ─────────────
+let pd = point on s1 at 25% from p2 as "D"
+set color deepskyblue
+set pixel size 5
+plot pd
+
+# ── syntax 5 : midpoint ───────────────────────────────────────────────────────
+let pm = midpoint of s1
+set color yellow
+set pixel size 14
+plot pm
+
+# ── syntax 6 : at distance from start ────────────────────────────────────────
+# s1 length ≈ 17.89 ; distance 7 gives t ≈ 0.39
+let pe = point on s1 at distance 7 from start as "E"
+set color magenta
+set pixel size 10
+plot pe
+
+# ── syntax 7 : at distance from end ──────────────────────────────────────────
+let pf = point on s1 at distance 7 from end as "F"
+set color deeppink
+set pixel size 10
+plot pf
+
+# ── syntax 8 : at parametric t ───────────────────────────────────────────────
+let pg = point on s1 at t 0.15 as "G"
+set color coral
+set pixel size 10
+plot pg
+
+# ── syntax 9 : nearest to an external point ───────────────────────────────────
+# q = (5,-5); projection onto s1 gives t ≈ 0.625
+let ph = point on s1 nearest to q as "H"
+set color hotpink
+set pixel size 10
+plot ph
+
+# ── syntax 10 : at x value ────────────────────────────────────────────────────
+# s2 runs from (-3,-7) to (3,7); at x=2 gives y ≈ 4.67
+let pi = point on s2 at x 2 as "I"
+set color gold
+set pixel size 10
+plot pi
+
+# ── syntax 11 : at y value ────────────────────────────────────────────────────
+# s2 at y=-3 gives x ≈ -1.29
+let pj = point on s2 at y -3 as "J"
+set color springgreen
+set pixel size 10
+plot pj

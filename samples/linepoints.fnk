@@ -1,0 +1,18 @@
+
+var p point
+var ps list of points
+var s segment
+
+let s = segment from (0,0) to (5,5)
+
+let ps = points of s counts 10
+
+set pixel size 10
+
+for p in ps do
+
+  plot p
+
+done
+
+

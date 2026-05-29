@@ -5,14 +5,18 @@ find_package(OpenGL REQUIRED)
 
 set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/ggui.rc")
 
-# Generate the builtin qrc
-add_custom_command(	OUTPUT ${CMAKE_BINARY_DIR}/builtins.qrc
-					DEPENDS funkplot-compiler
-					COMMAND python ../scripts/builtins.py
-					WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+# Generate the builtin qrc only when its inputs change, not on every compiler rebuild
+add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/builtins.qrc
+    DEPENDS
+        ${CMAKE_SOURCE_DIR}/gui/2dcurves.json
+        ${CMAKE_SOURCE_DIR}/scripts/builtins.py
+    COMMAND python ../scripts/builtins.py
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
 add_custom_target(funkplot-builtins DEPENDS ${CMAKE_BINARY_DIR}/builtins.qrc)
+# Compiler must exist before the script runs, but rebuilding it doesn't retrigger generation
+add_dependencies(funkplot-builtins funkplot-compiler)
 
 set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp

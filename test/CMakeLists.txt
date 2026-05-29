@@ -26,7 +26,6 @@ target_link_libraries(${PROJECT}
     PRIVATE
       Catch2::Catch2WithMain
       funkplot
-    PUBLIC
       Qt${QT_VERSION_MAJOR}::Core
       Qt${QT_VERSION_MAJOR}::Widgets
       Qt${QT_VERSION_MAJOR}::Gui

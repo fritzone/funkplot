@@ -1,0 +1,62 @@
+var s1 s2 s3 s4 s5 s6 s7 s8 segment
+var pA pB pC pD pE pF point
+
+# ── Reference segment ─────────────────────────────────────────────────────────
+let s1 = segment from (-8, 4) to (-2, 4) as "AB"
+
+set pixel size 2
+draw segment s1 ticks 1
+
+# ── Congruent: from a point, same angle as s1 ─────────────────────────────────
+let s2 = segment congruent to s1 from (-8, 1) parallel to s1 as "CD"
+draw segment s2 ticks 1         # same class as s1
+
+# ── Congruent: from a point, perpendicular to s1 ──────────────────────────────
+let s3 = segment congruent to s1 from (-1, -1) perpendicular to s1 as "EF"
+draw segment s3 ticks 2         # different congruency class
+
+# ── Congruent: centered at a point, explicit angle ────────────────────────────
+let s4 = segment congruent to s1 centered at (5, 3) at angle 60 as "GH"
+draw segment s4 ticks 2         # same class as s3
+
+# ── Congruent: centered at a point, parallel to another segment ───────────────
+let s5 = segment congruent to s3 centered at (5, 0) parallel to s3 as "IJ"
+draw segment s5 ticks 3         # third class (same length as s3)
+
+# ── Congruent: centered, perpendicular ────────────────────────────────────────
+let s6 = segment congruent to s1 centered at (5, -4) perpendicular to s1 as "KL"
+draw segment s6 ticks 3
+
+# ── Angles with congruency arcs ───────────────────────────────────────────────
+let pA = point at (-5, -3)
+let pB = point at (-3, -6)
+let pC = point at (-7, -6)
+
+set color slategray
+set pixel size 2
+draw segment from pA to pB
+draw segment from pA to pC
+
+set color steelblue
+draw angle at pA between pB and pC arcs 1
+
+# Second angle in the same congruency class (arcs 1)
+let pD = point at (2, -3)
+let pE = point at (4, -6)
+let pF = point at (0, -6)
+
+set color slategray
+draw segment from pD to pE
+draw segment from pD to pF
+
+set color steelblue
+draw angle at pD between pE and pF arcs 1
+
+# Third angle in a different class (arcs 2)
+let s8 = segment from (6, -2) to (9, -2)
+let s7 = segment from (6, -2) to (8, -5)
+set color red
+draw segment s7
+draw segment s8
+set color tomato
+draw angle at (6, -2) between (9, -2) and (8, -5) arcs 2

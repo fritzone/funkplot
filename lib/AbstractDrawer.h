@@ -8,6 +8,7 @@
 #include "DrawnText.h"
 
 class AbstractExporter;
+class QPainter;
 
 /**
  * @brief The AbstractDrawer class is a base class for the drawing components of the application
@@ -59,6 +60,8 @@ public:
     void setHeight(int newHeight);
 
 protected:
+    static void drawLabelText(QPainter& painter, const QPoint& pos, const QString& text);
+
     int m_sceneScrollX = 0;
     int m_sceneScrollY = 0;
     std::vector<DrawnLine> m_drawnLines;

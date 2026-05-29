@@ -60,6 +60,9 @@ MainWindow::MainWindow(RuntimeProvider *rp, DrawingForm* df, QWidget *parent) :
 
     createDefaultProgram();
 
+    m_recentFilesMenu->setObjectName("menuRecentFiles");
+    rebuildRecentFilesMenu();
+
     m_ttb.SetCustomWidgetCreator("textEdit", []() { return new QTextEdit(); });
     m_ttb.SetCustomWidgetCreator("checkBox", []() { return new QCheckBox(); });
     m_ttb.SetCustomWidgetCreator("pushButton", []() { return new QPushButton(); });
@@ -199,6 +202,8 @@ void MainWindow::reportError(int l, int c, QString err)
 
 void MainWindow::runCurrentCode()
 {
+    m_currentProgram->m_tabPage->saveTextEditState();
+
     ui->splitter->setEnabled(false);
     ui->splitter_2->setEnabled(false);
 
@@ -272,6 +277,9 @@ void MainWindow::runCurrentCode()
         ui->actionExport->setEnabled(true);
         ui->splitter->setEnabled(true);
         ui->splitter_2->setEnabled(true);
+
+        m_currentProgram->m_tabPage->restoreTextEditState();
+        m_currentProgram->m_tabPage->getTextEdit()->setFocus();
     }
 }
 
@@ -682,6 +690,7 @@ void MainWindow::on_actionSave_triggered()
         {
             QFileInfo fi(fileName);
             ui->tabWidget->setTabText(m_currentProgram->index(), fi.fileName());
+            addToRecentFiles(fileName);
         }
     }
 }
@@ -693,50 +702,70 @@ void MainWindow::on_actionSaveAs_triggered()
 }
 
 
+void MainWindow::openFile(const QString& fileName)
+{
+    QFileInfo fi(fileName);
+    QStringList l2;
+    QFile fIn(fileName);
+    if (fIn.open(QFile::ReadOnly | QFile::Text))
+    {
+        QTextStream sIn(&fIn);
+        while (!sIn.atEnd())
+            l2 += sIn.readLine();
+
+        int cps = m_programs.size();
+        m_currentProgram = new Program(fi.fileName(), ui->tabWidget->currentWidget(), RuntimeProvider::get(), cps);
+        connect(m_currentProgram, &Program::textChanged, this, [this]() { updateCurrentTabTextToReflectSavestate(); });
+        m_programs.append(m_currentProgram);
+        int c = ui->tabWidget->addTab(m_currentProgram->m_tabPage.get(), fi.fileName());
+        m_currentProgram->setCodelines(l2);
+        m_currentProgram->m_saveName = fileName;
+        ui->tabWidget->setCurrentIndex(c);
+        addToRecentFiles(fileName);
+    }
+    else
+    {
+        QMessageBox::critical(ui->tabWidget, tr("Cannot open file"), tr("Cannot open file: ") + fIn.errorString(), QMessageBox::Ok);
+    }
+}
+
+void MainWindow::addToRecentFiles(const QString& path)
+{
+    QStringList recents = SystemSettings::instance().value("RecentFiles/files").toStringList();
+    recents.removeAll(path);
+    recents.prepend(path);
+    while (recents.size() > 10)
+        recents.removeLast();
+    SystemSettings::instance().setValue("RecentFiles/files", recents);
+    rebuildRecentFilesMenu();
+}
+
+void MainWindow::rebuildRecentFilesMenu()
+{
+    m_recentFilesMenu->clear();
+    const QStringList recents = SystemSettings::instance().value("RecentFiles/files").toStringList();
+    if (recents.isEmpty())
+    {
+        QAction* empty = m_recentFilesMenu->addAction(tr("(no recent files)"));
+        empty->setEnabled(false);
+        return;
+    }
+    for (const QString& path : qAsConst(recents))
+    {
+        QFileInfo fi(path);
+        QAction* a = m_recentFilesMenu->addAction(fi.fileName());
+        a->setToolTip(path);
+        a->setData(path);
+        connect(a, &QAction::triggered, this, [this, path]() { openFile(path); });
+    }
+}
+
 void MainWindow::on_actionOpen_triggered()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Save program"),  QDir::homePath(),
-                                            tr("fũnkplot programs (*.fnk);;All files (*.*)"));
-
-    if(!fileName.isEmpty()&& !fileName.isNull())
-    {
-        QFileInfo fi(fileName);
-
-        QStringList l2;
-        QFile fIn(fileName);
-        if (fIn.open(QFile::ReadOnly | QFile::Text))
-        {
-            QTextStream sIn(&fIn);
-            while (!sIn.atEnd())
-            {
-                l2 += sIn.readLine();
-            }
-            int cps = m_programs.size();
-            m_currentProgram = new Program(fi.fileName(),
-                                               ui->tabWidget->currentWidget(),
-                                               RuntimeProvider::get(),
-                                               cps
-                                   );
-
-            connect(m_currentProgram, &Program::textChanged, this, [this]()
-                    {
-                        updateCurrentTabTextToReflectSavestate();
-                    }
-                    );
-
-            m_programs.append(m_currentProgram);
-            int c = ui->tabWidget->addTab(m_currentProgram->m_tabPage.get(), fi.fileName());
-            m_currentProgram->setCodelines(l2);
-            m_currentProgram->m_saveName = fileName;
-            qDebug() << m_currentProgram;
-
-            ui->tabWidget->setCurrentIndex(c);
-        }
-        else
-        {
-            QMessageBox::critical(ui->tabWidget, tr("Cannot open file"), tr("Cannot open file: ") + fIn.errorString(), QMessageBox::Ok);
-        }
-    }
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open program"), QDir::homePath(),
+                                                    tr("fũnkplot programs (*.fnk);;All files (*.*)"));
+    if (!fileName.isEmpty() && !fileName.isNull())
+        openFile(fileName);
 }
 
 

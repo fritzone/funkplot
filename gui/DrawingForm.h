@@ -29,8 +29,9 @@ public:
 
     void setView(ViewType);
     QVector<QPointF> drawPlot(QSharedPointer<Plot> plot);
-    void drawPoint(double x, double y);
-    void drawLine(double x1, double y1, double x2, double y2);
+    void drawPoint(double x, double y, int size);
+    void drawLine(double x1, double y1, double x2, double y2, int size);
+    void drawText(double x, double y, const QString& text);
     void setDrawingPen(int r, int g, int b, int a, int s);
     void setPixelSize(size_t s);
     void reset();
@@ -59,8 +60,9 @@ private:
 
     void createQtSceneGraphicsView();
     void createWidgetDrawing();
-    void addLine(qreal x1, qreal y1, qreal x2, qreal y2);
-    void addPoint(qreal x, qreal y);
+    void addLine(qreal x1, qreal y1, qreal x2, qreal y2, int size);
+    void addPoint(qreal x, qreal y, int size);
+    void addText(qreal x, qreal y, const QString& text);
     void setFlexibleStyle();
     void setFixedStyle();
 

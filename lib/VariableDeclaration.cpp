@@ -86,6 +86,8 @@ QVector<QSharedPointer<Statement>> VariableDeclaration::create(int ln, const QSt
                     RuntimeProvider::get()->addOrUpdateAssignment(QSharedPointer<SegmentAssignment>(new SegmentAssignment(ln, codeline)));
                 }
 
+                // angle: no default assignment — value is populated when a let-binding executes
+
             }
         }
         else

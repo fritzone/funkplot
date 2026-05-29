@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
     QPen p;
     int size = 1;
 
-    auto executor = [&cx, &cy, &first, &points, imgDrawer, &p, &size](QSharedPointer<Plot> plot, double x, double y, bool continuous)
+    auto executor = [&cx, &cy, &first, &points, imgDrawer, &p, &size](QSharedPointer<Plot> plot, double x, double y, bool continuous, int size_param)
     {
         if(plot->polarPlot)
         {
@@ -113,14 +113,14 @@ int main(int argc, char* argv[])
             }
             else
             {
-                imgDrawer->addLine( QLineF{static_cast<qreal>(cx), static_cast<qreal>(cy), static_cast<qreal>(x), static_cast<qreal>(y)}, p, size);
+                imgDrawer->addLine( QLineF{static_cast<qreal>(cx), static_cast<qreal>(cy), static_cast<qreal>(x), static_cast<qreal>(y)}, p, size_param);
                 cx = x;
                 cy = y;
             }
         }
         else
         {
-            imgDrawer->addPoint({x, y}, p, size);
+            imgDrawer->addPoint({x, y}, p, size_param);
         }
     };
 
@@ -128,14 +128,15 @@ int main(int argc, char* argv[])
     rp = new RuntimeProvider{
         [](int l, int c, QString e) { qWarning() << "ERROR" << c << "AT" << l << e;},
         [](QString s) {},
-        [imgDrawer, &p, &size](double x, double y) { imgDrawer->addPoint({x, y}, p, size); },
-        [imgDrawer, &p, &size](double x1, double y1, double x2, double y2) { imgDrawer->addLine(QLineF{x1, y1, x2, y2}, p, size); },
+        [imgDrawer, &p, &size](double x, double y, int s) { imgDrawer->addPoint({x, y}, p, s); },
+        [imgDrawer, &p, &size](double x1, double y1, double x2, double y2, int s) { imgDrawer->addLine(QLineF{x1, y1, x2, y2}, p, s); },
         [](QString s) {},
         [&p, &size](int r, int g, int b, int a, int s) {
             qDebug() << "Setting pixel size:" << s;
             p = QPen{QColor {r , g , b , a}}; size = s;
         },
-        [&rp, &executor](QSharedPointer<Plot> p) {  rp->genericPlotIterator(p, executor); }
+        [&rp, &executor](QSharedPointer<Plot> p) {  rp->genericPlotIterator(p, executor); },
+        [imgDrawer, &p](double x, double y, const QString& s) { imgDrawer->drawText(QPointF{x, y}, s, p); }
     };
 
     registerClasses();

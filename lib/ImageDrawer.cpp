@@ -60,6 +60,27 @@ void ImageDrawer::redrawEverything()
         }
     }
 
+    for(const auto& dt : qAsConst(m_drawnText))
+    {
+        if (dt.isCoordinateSystem)
+            continue;
+        painter.setPen(dt.pen);
+        painter.setFont(dt.f);
+        QPoint p = toScene(dt.point);
+        if (dt.labelDir.x() != 0.0 || dt.labelDir.y() != 0.0)
+        {
+            double sx = dt.labelDir.x();
+            double sy = -dt.labelDir.y();
+            double L = dt.labelDistance + dt.stackIndex * 14.0;
+            p += QPoint(qRound(sx * L), qRound(sy * L));
+        }
+        else
+        {
+            p += QPoint(8, -8 - dt.stackIndex * 14);
+        }
+        drawLabelText(painter, p, dt.text);
+    }
+
 }
 
 void ImageDrawer::drawLine(const QLineF &l, const QPen &p)

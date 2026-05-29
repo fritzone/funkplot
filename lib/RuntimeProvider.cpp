@@ -13,25 +13,38 @@
 #endif
 
 #include "PointDefinitionAssignmentToOtherPoint.h"
+#include "PointIntersectionAssignment.h"
+#include "PointOnSegmentAssignment.h"
 #include "PointsOfObjectAssignment.h"
+#include "AngleAssignment.h"
+#include "ExtendedSegmentAssignment.h"
+#include "ExtendedLineAssignment.h"
+#include "PointReflectionAssignment.h"
+#include "MeasurementAssignment.h"
 #include "constants.h"
 #include "util.h"
 
 #include <QString>
+#define _USE_MATH_DEFINES
+#include <cmath>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 const QString STR_DEFAULT_FOR_STEP = QString::number(DEFAULT_FOR_STEP);
 const QString DTR_DEFAULT_RANGE_STEP = QString::number(DEFAULT_RANGE_STEP, 'f', 2 );
 RuntimeProvider* RuntimeProvider::m_instance = nullptr;
 
-RuntimeProvider::RuntimeProvider(CB_ErrorReporter erp, CB_StringPrinter sp, CB_PointDrawer pd, CB_LineDrawer ld, CB_StatementTracker str, CB_PenSetter ps, CB_PlotDrawer pld) :
-    m_numericVariables(), m_errorReporter(erp), m_pointDrawer(pd), m_lineDrawer(ld), m_statementTracker(str), m_penSetter(ps), m_plotDrawer(pld), m_stringPrinter(sp)
+RuntimeProvider::RuntimeProvider(CB_ErrorReporter erp, CB_StringPrinter sp, CB_PointDrawer pd, CB_LineDrawer ld, CB_StatementTracker str, CB_PenSetter ps, CB_PlotDrawer pld, CB_TextDrawer td) :
+    m_numericVariables(), m_errorReporter(erp), m_pointDrawer(pd), m_lineDrawer(ld), m_statementTracker(str), m_penSetter(ps), m_plotDrawer(pld), m_stringPrinter(sp), m_textDrawer(td)
 {
     m_instance = this;
     populateBuiltinFunctions();
 }
 
-RuntimeProvider::RuntimeProvider(std::tuple<CB_ErrorReporter, CB_StringPrinter, CB_PointDrawer, CB_LineDrawer, CB_StatementTracker, CB_PenSetter, CB_PlotDrawer> p) :
-    RuntimeProvider(std::get<0>(p), std::get<1>(p), std::get<2>(p), std::get<3>(p), std::get<4>(p), std::get<5>(p), std::get<6>(p))
+RuntimeProvider::RuntimeProvider(std::tuple<CB_ErrorReporter, CB_StringPrinter, CB_PointDrawer, CB_LineDrawer, CB_StatementTracker, CB_PenSetter, CB_PlotDrawer, CB_TextDrawer> p) :
+    RuntimeProvider(std::get<0>(p), std::get<1>(p), std::get<2>(p), std::get<3>(p), std::get<4>(p), std::get<5>(p), std::get<6>(p), std::get<7>(p))
 {
     m_instance = this;
     populateBuiltinFunctions();
@@ -229,9 +242,14 @@ bool RuntimeProvider::resolveAsPoint(QSharedPointer<Plot> plot)
                     y = carY;
                 }
 
-                m_pointDrawer(x, y);
+                m_pointDrawer(x, y, m_ps);
 
-                // qDebug() << "Plotting:" << QPointF(x,y);
+                if (!adef->label.isEmpty()) {
+                    setPendingLabelDir(m_labelDir);
+                    setPendingLabelDistance(m_labelDistance);
+                    drawText(x, y, adef->label);
+                }
+
                 return true;
             }
         }
@@ -283,7 +301,7 @@ bool RuntimeProvider::resolveAsIndexedPlotDrawing(QSharedPointer<Plot> plot, QSh
                         y = carY;
                     }
 
-                    m_pointDrawer(x, y);
+                    m_pointDrawer(x, y, m_ps);
                 }
                 else
                 {
@@ -313,7 +331,7 @@ bool RuntimeProvider::resolveAsIndexedPlotDrawing(QSharedPointer<Plot> plot, QSh
                         y = carY;
                     }
 
-                    m_pointDrawer(x, y);
+                    m_pointDrawer(x, y, m_ps);
                 }
                 else
                 {
@@ -372,14 +390,14 @@ bool RuntimeProvider::resolveAsPrecalculatedDrawing(QSharedPointer<Plot> plot, Q
             }
             else
             {
-                m_lineDrawer(px, py, x, y);
+                m_lineDrawer(px, py, x, y, m_ps);
                 px = x;
                 py = y;
             }
         }
         else
         {
-            m_pointDrawer(x, y);
+            m_pointDrawer(x, y, m_ps);
         }
     }
 
@@ -402,6 +420,13 @@ void RuntimeProvider::reset()
     m_penSetter(0, 0, 0, 255, 1);
     m_currentPalette = "";
     m_showCoordinates = true;
+    m_showLabels = true;
+    m_usedLabels.clear();
+    m_labelDir          = {M_SQRT1_2, M_SQRT1_2};
+    m_labelDistance     = 12.0;
+    m_segLabelFirstDir  = {0.0, 0.0};
+    m_segLabelSecondDir = {0.0, 0.0};
+    m_pendingLabelDistance = 12.0;
     m_ps = 1;
     m_r = 0; m_g = 0; m_b = 0; m_a = 255;
 
@@ -420,7 +445,12 @@ void RuntimeProvider::addOrUpdateAssignment(QSharedPointer<Assignment> a)
     auto pa = getAssignment(a->varName);
     if(pa)
     {
-        if(a.dynamicCast<PointDefinitionAssignment>())
+        if(a.dynamicCast<PointIntersectionAssignment>() || a.dynamicCast<PointOnSegmentAssignment>() || a.dynamicCast<AngleAssignment>() || a.dynamicCast<ExtendedSegmentAssignment>() || a.dynamicCast<ExtendedLineAssignment>() || a.dynamicCast<PointReflectionAssignment>() || a.dynamicCast<MeasurementAssignment>())
+        {
+            m_assignments.removeAll(pa);
+            m_assignments.append(a);
+        }
+        else if(a.dynamicCast<PointDefinitionAssignment>())
         {
             auto pda = getAssignmentAs<PointDefinitionAssignment>(pa->varName);
 
@@ -635,6 +665,16 @@ void RuntimeProvider::setShowCoordinates(bool newShowCoordinates)
     emit showCoordinatesChange(newShowCoordinates);
 }
 
+bool RuntimeProvider::getShowLabels() const
+{
+    return m_showLabels;
+}
+
+void RuntimeProvider::setShowLabels(bool newShowLabels)
+{
+    m_showLabels = newShowLabels;
+}
+
 void RuntimeProvider::setupConnections(QObject *o)
 {
     connect(this, &RuntimeProvider::rotationAngleChange, o, [o](double v) {
@@ -763,12 +803,77 @@ void RuntimeProvider::drawPlot(QSharedPointer<Plot> plot)
 
 void RuntimeProvider::drawLine(double x1, double y1, double x2, double y2)
 {
-    m_lineDrawer(x1, y1, x2, y2);
+    m_lineDrawer(x1, y1, x2, y2, m_ps);
 }
 
 void RuntimeProvider::drawPoint(double x, double y)
 {
-    m_pointDrawer(x, y);
+    m_pointDrawer(x, y, m_ps);
+}
+
+void RuntimeProvider::drawPoint(double x, double y, int size)
+{
+    m_pointDrawer(x, y, size);
+}
+
+void RuntimeProvider::drawText(double x, double y, const QString& rawLabel)
+{
+    if (!m_textDrawer || !m_showLabels)
+        return;
+
+    QString label = rawLabel;
+    if (m_usedLabels.contains(label)) {
+        int n = 1;
+        while (m_usedLabels.contains(label + QString::number(n)))
+            ++n;
+        label = rawLabel + QString::number(n);
+    }
+    m_usedLabels.insert(label);
+
+    m_textDrawer(x, y, label);
+}
+
+void RuntimeProvider::setPendingLabelDir(QPointF dir)
+{
+    m_pendingLabelDir = dir;
+}
+
+QPointF RuntimeProvider::takePendingLabelDir()
+{
+    QPointF dir = m_pendingLabelDir;
+    m_pendingLabelDir = {0.0, 0.0};
+    return dir;
+}
+
+void RuntimeProvider::setPendingLabelDistance(double d)
+{
+    m_pendingLabelDistance = d;
+}
+
+double RuntimeProvider::takePendingLabelDistance()
+{
+    double d = m_pendingLabelDistance;
+    m_pendingLabelDistance = 12.0;
+    return d;
+}
+
+void    RuntimeProvider::setLabelDir(QPointF dir)       { m_labelDir = dir; }
+QPointF RuntimeProvider::labelDir() const               { return m_labelDir; }
+void    RuntimeProvider::setLabelDistance(double d)     { m_labelDistance = d; }
+double  RuntimeProvider::labelDistance() const          { return m_labelDistance; }
+void    RuntimeProvider::setSegLabelFirstDir(QPointF d) { m_segLabelFirstDir = d; }
+QPointF RuntimeProvider::segLabelFirstDir() const       { return m_segLabelFirstDir; }
+void    RuntimeProvider::setSegLabelSecondDir(QPointF d){ m_segLabelSecondDir = d; }
+QPointF RuntimeProvider::segLabelSecondDir() const      { return m_segLabelSecondDir; }
+
+int RuntimeProvider::getPixelSize() const
+{
+    return m_ps;
+}
+
+QColor RuntimeProvider::currentPenColor() const
+{
+    return QColor(m_r, m_g, m_b, m_a);
 }
 
 void RuntimeProvider::resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPointer<Assignment> assignment,
@@ -1040,6 +1145,12 @@ QString RuntimeProvider::valueOfVariable(const QString &vn)
         {
             if(typeOfVariable(vn) == Types::TYPE_NUMBER)
             {
+                // angle variables are stored as radians but displayed in degrees
+                if(m_allVariables.value(vn) == Types::TYPE_ANGLE)
+                {
+                    double rad = value(vn.toStdString());
+                    return QString::number(rad * 180.0 / M_PI, 'f', 4) + QString::fromUtf8("°");
+                }
                 QString r = QString::number(value(vn.toStdString()), 'f', 6);
                 return r;
             }
@@ -1050,6 +1161,18 @@ QString RuntimeProvider::valueOfVariable(const QString &vn)
                 if(adef)
                 {
                     return adef->toString();
+                }
+
+                auto piadef = getAssignmentAs<PointIntersectionAssignment>(vn);
+                if(piadef)
+                {
+                    return piadef->toString();
+                }
+
+                auto posadef = getAssignmentAs<PointOnSegmentAssignment>(vn);
+                if(posadef)
+                {
+                    return posadef->toString();
                 }
             }
 

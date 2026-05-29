@@ -73,8 +73,6 @@ void PlotRenderer::paintEvent(QPaintEvent* event)
 
     painter.drawRect(rect());
 
-    painter.scale(m_scale, m_scale);
-
     QBrush brush;
     painter.setBrush(brush);
 
@@ -123,7 +121,26 @@ void PlotRenderer::paintEvent(QPaintEvent* event)
         painter.setFont(dt.f);
 
         QPoint p = toScene(dt.point);
-        painter.drawText(p, dt.text);
+        if (dt.isCoordinateSystem)
+        {
+            painter.drawText(p, dt.text);
+        }
+        else
+        {
+            if (dt.labelDir.x() != 0.0 || dt.labelDir.y() != 0.0)
+            {
+                // world-space direction → screen: flip y, keep x
+                double sx = dt.labelDir.x();
+                double sy = -dt.labelDir.y();
+                double L = dt.labelDistance + dt.stackIndex * 14.0;
+                p += QPoint(qRound(sx * L), qRound(sy * L));
+            }
+            else
+            {
+                p += QPoint(8, -8 - dt.stackIndex * 14);
+            }
+            drawLabelText(painter, p, dt.text);
+        }
     }
 }
 

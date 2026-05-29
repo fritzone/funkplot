@@ -6,6 +6,7 @@
 #include <math.h>
 
 #include <QMouseEvent>
+#include <QPainter>
 #include <QPen>
 #include <cmath>
 
@@ -247,9 +248,65 @@ double AbstractDrawer::zoomFactor() const
     return m_zoomFactor;
 }
 
+void AbstractDrawer::drawLabelText(QPainter& painter, const QPoint& pos, const QString& text)
+{
+    // Switch to italic serif for the mathematical look, remember original to restore later
+    QFont savedFont = painter.font();
+    QFont mathFont(savedFont);
+    mathFont.setStyleHint(QFont::Serif);
+    mathFont.setFamily("Times New Roman");
+    mathFont.setItalic(true);
+    painter.setFont(mathFont);
+
+    // Split into alphabetic prefix + trailing digit subscript (e.g. "P1" -> "P" + "1")
+    int splitAt = text.length();
+    while (splitAt > 0 && text[splitAt - 1].isDigit())
+        --splitAt;
+
+    // Only subscript when there's a non-empty all-letter prefix before the digits
+    bool doSubscript = splitAt > 0 && splitAt < text.length();
+    if (doSubscript)
+    {
+        for (int i = 0; i < splitAt; ++i)
+            if (!text[i].isLetter()) { doSubscript = false; break; }
+    }
+
+    if (!doSubscript)
+    {
+        painter.drawText(pos, text);
+        painter.setFont(savedFont);
+        return;
+    }
+
+    QString prefix = text.left(splitAt);
+    QString sub    = text.mid(splitAt);
+
+    QFont normalFont = painter.font();
+    QFontMetrics fm(normalFont);
+    int prefixWidth = fm.horizontalAdvance(prefix);
+
+    painter.drawText(pos, prefix);
+
+    QFont subFont = normalFont;
+    subFont.setPointSizeF(normalFont.pointSizeF() * 0.7);
+    painter.setFont(subFont);
+    painter.drawText(QPoint(pos.x() + prefixWidth, pos.y() + qRound(fm.ascent() * 0.35)), sub);
+    painter.setFont(savedFont);
+}
+
 void AbstractDrawer::drawText(const QPointF &at, const QString& s, const QPen& p)
 {
-    m_drawnText.push_back({s, p, at, {}, m_freeDraw});
+    int stackIdx = 0;
+    for (const auto& dt : m_drawnText)
+    {
+        if (!dt.isCoordinateSystem &&
+            qAbs(dt.point.x() - at.x()) < 1e-9 &&
+            qAbs(dt.point.y() - at.y()) < 1e-9)
+            ++stackIdx;
+    }
+    QPointF dir      = RuntimeProvider::get()->takePendingLabelDir();
+    double  distance = RuntimeProvider::get()->takePendingLabelDistance();
+    m_drawnText.push_back({s, p, at, {}, m_freeDraw, stackIdx, dir, distance});
 }
 
 double AbstractDrawer::rotationAngle()

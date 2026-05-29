@@ -1,0 +1,174 @@
+# label_placement.fnk ────────────────────────────────────────────────────────
+#
+# Full demonstration of label-placement commands:
+#
+#   set label position  before | after | above | below | under | angle XX [degrees|radians]
+#   set label distance  close | far
+#   set label first <dir> second <dir>     (segment endpoint labels)
+#   set labels off / set labels on         (suppress / restore all labels)
+#   duplicate-label auto-renaming          (three "P" points → P  P1  P2)
+#
+# Layout
+#   y ≈  6        Section 1 – default placement
+#   y ≈  3        Section 2 – position directions (above/below/before/after)
+#   y ≈  1        Section 2 – position directions (angle in degrees / radians)
+#   y ≈ -2        Section 3 – label distance (close vs far)
+#   y ≈ -4 … -7   Section 4 – segment endpoint labels (first / second)
+#   x ≈  7 …  9   Section 5 – duplicate auto-rename  (y = 5, 3, 1)
+#   x ≈  7 …  9   Section 6 – labels on / off         (y = -2, -3)
+# ─────────────────────────────────────────────────────────────────────────────
+
+var pA pB pC point
+var pAbove pBelow pBefore pAfter point
+var pAng135 pAng1r point
+var pClose pFar point
+var pDup1 pDup2 pDup3 point
+var pVis pHidden point
+var sGH sIJ sKL segment
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Section 1 – DEFAULT placement
+# No "set label" needed; defaults are upper-right (45°), distance 12 px.
+# ═══════════════════════════════════════════════════════════════════════════
+
+let pA = point at (-6, 6) as "A"
+let pB = point at (-2, 6) as "B"
+let pC = point at ( 2, 6) as "C"
+
+set color steelblue
+set pixel size 10
+plot pA
+plot pB
+plot pC
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Section 2 – POSITION DIRECTIONS
+# Each point is plotted immediately after a different "set label position"
+# so the label appears in the requested direction relative to the dot.
+# ═══════════════════════════════════════════════════════════════════════════
+
+let pAbove  = point at (-8,  3) as "above"
+let pBelow  = point at (-4,  3) as "below"
+let pBefore = point at ( 0,  3) as "before"
+let pAfter  = point at ( 4,  3) as "after"
+let pAng135 = point at (-6,  1) as "135deg"
+let pAng1r  = point at ( 1,  1) as "1.0rad"
+
+set color tomato
+set pixel size 10
+
+set label position above
+plot pAbove
+
+set label position below
+plot pBelow
+
+set label position before
+plot pBefore
+
+set label position after
+plot pAfter
+
+# angle in degrees: upper-left direction
+set label position angle 135
+plot pAng135
+
+# angle in radians: ~57°, upper-right leaning
+set label position angle 1.0 radians
+plot pAng1r
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Section 3 – LABEL DISTANCE
+# Both points have the label placed above (same direction) so the size of
+# the gap between dot and text is the only visible difference.
+# ═══════════════════════════════════════════════════════════════════════════
+
+let pClose = point at (-3, -2) as "close"
+let pFar   = point at ( 3, -2) as "far"
+
+set color darkslateblue
+set pixel size 10
+set label position above
+
+set label distance close
+plot pClose
+
+set label distance far
+plot pFar
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Section 4 – SEGMENT ENDPOINT LABELS
+#
+# sGH – geometry-driven placement (no first/second override set yet)
+# sIJ – first above, second below
+# sKL – first before, second after
+#
+# The distance is reset to "close" so labels sit tight against the endpoints.
+# ═══════════════════════════════════════════════════════════════════════════
+
+let sGH = segment from (-7, -4) to (-1, -4) as "GH"
+let sIJ = segment from ( 1, -4) to ( 7, -5) as "IJ"
+let sKL = segment from (-5, -7) to ( 5, -7) as "KL"
+
+set label distance close
+
+# 4a: default geometry places labels perpendicular to the segment, outward
+set color slategray
+set pixel size 2
+draw segment sGH
+
+# 4b: force both labels above/below
+set label first above second below
+set color seagreen
+draw segment sIJ
+
+# 4c: force labels to flank the endpoints horizontally
+set label first before second after
+set color chocolate
+draw segment sKL
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Section 5 – DUPLICATE-LABEL AUTO-RENAME
+# All three points carry the label "P".  The engine assigns them unique
+# display names in draw order:  P  →  P1  →  P2
+# ═══════════════════════════════════════════════════════════════════════════
+
+let pDup1 = point at (7,  5) as "P"
+let pDup2 = point at (9,  3) as "P"
+let pDup3 = point at (7,  1) as "P"
+
+set color mediumvioletred
+set pixel size 10
+set label position angle 45
+set label distance close
+plot pDup1
+plot pDup2
+plot pDup3
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Section 6 – LABELS ON / OFF
+# pVis  is plotted while labels are on  → label text appears.
+# pHidden is plotted while labels are off → dot appears, text suppressed.
+# ═══════════════════════════════════════════════════════════════════════════
+
+let pVis    = point at (7, -2) as "visible"
+let pHidden = point at (9, -3) as "hidden"
+
+set color teal
+set pixel size 10
+set label position after
+set label distance close
+
+set labels on
+plot pVis
+
+set labels off
+plot pHidden
+
+set labels on

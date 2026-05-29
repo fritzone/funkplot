@@ -8,7 +8,9 @@
 #include "Plot.h"
 #include "util.h"
 
+#include <QColor>
 #include <QMap>
+#include <QSet>
 #include <QString>
 #include <QPointF>
 #include <QDebug>
@@ -32,14 +34,15 @@ public:
 
     using CB_ErrorReporter = std::function<void(int, int, QString)>;
     using CB_StringPrinter = std::function<void(QString)>;
-    using CB_PointDrawer = std::function<void(double,double)>;
-    using CB_LineDrawer = std::function<void(double,double,double,double)>;
+    using CB_PointDrawer = std::function<void(double,double,int)>;
+    using CB_LineDrawer = std::function<void(double,double,double,double,int)>;
     using CB_StatementTracker = std::function<void(QString)>;
     using CB_PenSetter = std::function<void(int r, int g, int b, int a, int s)>;
     using CB_PlotDrawer = std::function<void(QSharedPointer<Plot>)>;
+    using CB_TextDrawer = std::function<void(double, double, const QString&)>;
 
-    explicit RuntimeProvider(CB_ErrorReporter, CB_StringPrinter, CB_PointDrawer, CB_LineDrawer, CB_StatementTracker, CB_PenSetter, CB_PlotDrawer);
-    explicit RuntimeProvider(std::tuple<CB_ErrorReporter, CB_StringPrinter, CB_PointDrawer, CB_LineDrawer, CB_StatementTracker, CB_PenSetter, CB_PlotDrawer>);
+    explicit RuntimeProvider(CB_ErrorReporter, CB_StringPrinter, CB_PointDrawer, CB_LineDrawer, CB_StatementTracker, CB_PenSetter, CB_PlotDrawer, CB_TextDrawer = {});
+    explicit RuntimeProvider(std::tuple<CB_ErrorReporter, CB_StringPrinter, CB_PointDrawer, CB_LineDrawer, CB_StatementTracker, CB_PenSetter, CB_PlotDrawer, CB_TextDrawer>);
     virtual ~RuntimeProvider() = default;
 
     static RuntimeProvider* get();
@@ -79,7 +82,8 @@ public:
                 m_errorReporter,
                 m_codelinesSize - m_codelines.size(),
                 this,
-                plot->plotTarget
+                plot->plotTarget,
+                m_ps
                 );
 
             return;
@@ -134,7 +138,8 @@ public:
                 m_errorReporter,
                 m_codelinesSize - m_codelines.size(),
                 this,
-                plot->plotTarget
+                plot->plotTarget,
+                m_ps
             );
 
             return;
@@ -159,6 +164,23 @@ public:
     void drawPlot(QSharedPointer<Plot> plot);
     void drawLine(double x1, double y1, double x2, double y2);
     void drawPoint(double x, double y);
+    void drawPoint(double x, double y, int size);
+    void drawText(double x, double y, const QString& label);
+    void setPendingLabelDir(QPointF dir);
+    QPointF takePendingLabelDir();
+    void setPendingLabelDistance(double d);
+    double takePendingLabelDistance();
+
+    void setLabelDir(QPointF dir);
+    QPointF labelDir() const;
+    void setLabelDistance(double d);
+    double labelDistance() const;
+    void setSegLabelFirstDir(QPointF dir);
+    QPointF segLabelFirstDir() const;
+    void setSegLabelSecondDir(QPointF dir);
+    QPointF segLabelSecondDir() const;
+    int getPixelSize() const;
+    QColor currentPenColor() const;
     void resolvePlotInterval(QSharedPointer<Plot> plot, QSharedPointer<Assignment> assignment, bool &continuous, double &plotStart, double &plotEnd, bool &counted, double &stepValue, int &count, bool useDefaultValues);
     void addFunction(QSharedPointer<FunctionDefinition> fd);
     void addParametricFunction(QSharedPointer<Parametric> pfd);
@@ -257,6 +279,8 @@ public:
     void populateBuiltinFunctions();
     bool getShowCoordinates() const;
     void setShowCoordinates(bool newShowCoordinates);
+    bool getShowLabels() const;
+    void setShowLabels(bool newShowLabels);
 
     void setupConnections(QObject* o);
 
@@ -297,6 +321,7 @@ private:
     CB_PenSetter m_penSetter;
     CB_PlotDrawer m_plotDrawer;
     CB_StringPrinter m_stringPrinter;
+    CB_TextDrawer m_textDrawer;
 
     bool m_shouldReport = true;
 
@@ -324,6 +349,17 @@ private:
     bool m_running = false;
 
     bool m_showCoordinates = true;
+    bool m_showLabels = true;
+    QSet<QString> m_usedLabels;
+
+    QPointF m_pendingLabelDir {0.0, 0.0};
+    double  m_pendingLabelDistance = 12.0;
+
+    // persistent label placement settings (reset each run)
+    QPointF m_labelDir {0.0, 0.0};          // default point-label direction; set in reset()
+    double  m_labelDistance = 12.0;
+    QPointF m_segLabelFirstDir  {0.0, 0.0}; // {0,0} = use geometry
+    QPointF m_segLabelSecondDir {0.0, 0.0};
 
     double m_coordStartX = -150.0;
     double m_coordEndX = 150.0;

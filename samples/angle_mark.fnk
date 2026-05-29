@@ -1,0 +1,63 @@
+var pA pB pC pD pE pF pG pH point
+var sAB sBC sDE sEF sGH sHI segment
+
+# ── Acute angle (from named points) ──────────────────────────────────────────
+let pA = point at (0, 0) as "A"
+let pB = point at (4, 0) as "B"
+let pC = point at (2, 3) as "C"
+
+set color steelblue
+set pixel size 2
+draw segment from pA to pB
+draw segment from pA to pC
+set pixel size 8
+set label position angle 225
+plot pA
+set label position after
+plot pB
+set label position above
+plot pC
+
+set color tomato
+draw angle at pA between pB and pC
+
+
+# ── Right angle (square marker) ───────────────────────────────────────────────
+let pD = point at (-7, 0) as "D"
+let pE = point at (-3, 0) as "E"
+let pF = point at (-3, 3) as "F"
+
+set color slategray
+set pixel size 2
+draw segment from pD to pE
+draw segment from pE to pF
+set pixel size 8
+set label position before
+plot pD
+set label position below
+plot pE
+set label position above
+plot pF
+
+set color seagreen
+draw angle at pE between pD and pF
+
+
+# ── Obtuse angle (coordinate literals) ───────────────────────────────────────
+let pG = point at (-2, -5) as "G"
+let pH = point at ( 3, -5) as "H"
+
+set color darkslateblue
+set pixel size 2
+draw segment from (-5, -5) to pG
+draw segment from (-5, -5) to pH
+set pixel size 8
+set label position before
+plot (-5 -5)
+set label position above
+plot pG
+set label position above
+plot pH
+
+set color chocolate
+draw angle at (-5, -5) between pG and pH

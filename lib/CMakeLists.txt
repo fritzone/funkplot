@@ -6,6 +6,18 @@ project(${PROJECT})
 set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/AbstractDrawer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/AbstractDrawer.h
+	${CMAKE_CURRENT_SOURCE_DIR}/AngleAssignment.h
+	${CMAKE_CURRENT_SOURCE_DIR}/AngleAssignment.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/ExtendedSegmentAssignment.h
+	${CMAKE_CURRENT_SOURCE_DIR}/ExtendedSegmentAssignment.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/ExtendedLineAssignment.h
+	${CMAKE_CURRENT_SOURCE_DIR}/ExtendedLineAssignment.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/GeomUtils.h
+	${CMAKE_CURRENT_SOURCE_DIR}/GeomUtils.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/MeasurementAssignment.h
+	${CMAKE_CURRENT_SOURCE_DIR}/MeasurementAssignment.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/PointReflectionAssignment.h
+	${CMAKE_CURRENT_SOURCE_DIR}/PointReflectionAssignment.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Append.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Append.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Assignment.h
@@ -68,6 +80,10 @@ set(${PROJECT}_srcs
 	${CMAKE_CURRENT_SOURCE_DIR}/PointsOfObjectAssignment.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PointDefinitionAssignment.h
 	${CMAKE_CURRENT_SOURCE_DIR}/PointDefinitionAssignment.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/PointIntersectionAssignment.h
+	${CMAKE_CURRENT_SOURCE_DIR}/PointIntersectionAssignment.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/PointOnSegmentAssignment.h
+	${CMAKE_CURRENT_SOURCE_DIR}/PointOnSegmentAssignment.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PointDefinitionAssignmentToOtherPoint.h
 	${CMAKE_CURRENT_SOURCE_DIR}/PointDefinitionAssignmentToOtherPoint.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Rotation.h

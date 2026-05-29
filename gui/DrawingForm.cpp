@@ -69,20 +69,33 @@ void DrawingForm::createWidgetDrawing()
     ui->verticalLayout->addWidget(m_pr);
 }
 
-void DrawingForm::addLine(qreal x1, qreal y1, qreal x2, qreal y2)
+void DrawingForm::addLine(qreal x1, qreal y1, qreal x2, qreal y2, int size)
 {
     for(auto& d : m_drawers)
     {
-        d->addLine({x1, y1, x2, y2}, m_drawingPen, m_pixelSize);
+        d->addLine({x1, y1, x2, y2}, m_drawingPen, size);
     }
 }
 
-void DrawingForm::addPoint(qreal x, qreal y)
+void DrawingForm::addPoint(qreal x, qreal y, int size)
 {
     for(auto& d : m_drawers)
     {
-        d->addPoint({x, y}, m_drawingPen, m_pixelSize);
+        d->addPoint({x, y}, m_drawingPen, size);
     }
+}
+
+void DrawingForm::addText(qreal x, qreal y, const QString& text)
+{
+    for(auto& d : m_drawers)
+    {
+        d->drawText({x, y}, text, m_drawingPen);
+    }
+}
+
+void DrawingForm::drawText(double x, double y, const QString& text)
+{
+    addText(x, y, text);
 }
 
 void DrawingForm::setFlexibleStyle()
@@ -206,7 +219,7 @@ QVector<QPointF> DrawingForm::drawPlot(QSharedPointer<Plot> plot)
 
     QVector<QPointF> points;
 
-    auto executor = [this, &cx, &cy, &first, &points](QSharedPointer<Plot> plot, double x, double y, bool continuous)
+    auto executor = [this, &cx, &cy, &first, &points](QSharedPointer<Plot> plot, double x, double y, bool continuous, int size)
     {
         if(plot->polarPlot)
         {
@@ -232,7 +245,7 @@ QVector<QPointF> DrawingForm::drawPlot(QSharedPointer<Plot> plot)
             {
                 //if(std::abs(cx - x) < 0.1 && std::abs(cy - y))
                 {
-                    addLine(static_cast<qreal>(cx), static_cast<qreal>(cy), static_cast<qreal>(x), static_cast<qreal>(y));
+                    addLine(static_cast<qreal>(cx), static_cast<qreal>(cy), static_cast<qreal>(x), static_cast<qreal>(y), size);
                 }
                 cx = x;
                 cy = y;
@@ -240,7 +253,7 @@ QVector<QPointF> DrawingForm::drawPlot(QSharedPointer<Plot> plot)
         }
         else
         {
-            addPoint(x, y);
+            addPoint(x, y, size);
         }
     };
 
@@ -284,14 +297,14 @@ QPixmap DrawingForm::screenshot()
     return m_pr->grab();
 }
 
-void DrawingForm::drawPoint(double x, double y)
+void DrawingForm::drawPoint(double x, double y, int size)
 {
-    addPoint(x, y);
+    addPoint(x, y, size);
 }
 
-void DrawingForm::drawLine(double x1, double y1, double x2, double y2)
+void DrawingForm::drawLine(double x1, double y1, double x2, double y2, int size)
 {
-    addLine(x1, y1, x2, y2);
+    addLine(x1, y1, x2, y2, size);
 }
 
 void DrawingForm::on_rotationAngleChange(double v)

@@ -10,8 +10,83 @@
 #include <QFile>
 #include <QtMath>
 
+// Parse a label-placement direction from tokens starting at index idx.
+// Recognised tokens: before | after | above | below | under | angle <num> [degrees|radians]
+// Returns the normalised direction and advances idx past the consumed tokens.
+static QPointF parseLabelDir(const QStringList& tokens, int& idx)
+{
+    if (idx >= tokens.size())
+        return {M_SQRT1_2, M_SQRT1_2};
+
+    const QString tok = tokens[idx].toLower();
+
+    if (tok == "before") { ++idx; return {-1.0,  0.0}; }
+    if (tok == "after")  { ++idx; return { 1.0,  0.0}; }
+    if (tok == "above")  { ++idx; return { 0.0,  1.0}; }
+    if (tok == "below" || tok == "under") { ++idx; return {0.0, -1.0}; }
+
+    if (tok == "angle") {
+        ++idx;
+        if (idx >= tokens.size()) return {M_SQRT1_2, M_SQRT1_2};
+        bool ok;
+        double val = tokens[idx].toDouble(&ok);
+        if (!ok) return {M_SQRT1_2, M_SQRT1_2};
+        ++idx;
+        // optional unit word
+        bool isRadians = false;
+        if (idx < tokens.size()) {
+            const QString unit = tokens[idx].toLower();
+            if (unit == Keywords::KW_RADIANS) { isRadians = true;  ++idx; }
+            else if (unit == Keywords::KW_DEGREES)              { ++idx; }
+        }
+        double rad = isRadians ? val : qDegreesToRadians(val);
+        return {qCos(rad), qSin(rad)};
+    }
+
+    return {M_SQRT1_2, M_SQRT1_2};
+}
+
 bool Set::execute(RuntimeProvider *rp)
 {
+    if(what == SetTargets::TARGET_LABELS)
+    {
+        rp->setShowLabels(value == SetTargets::TARGET_ON);
+        return true;
+    }
+    else
+    if(what == SetTargets::TARGET_LABEL)
+    {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        QStringList tokens = value.split(' ', Qt::SkipEmptyParts);
+#else
+        QStringList tokens = value.split(' ', QString::SkipEmptyParts);
+#endif
+        if (tokens.isEmpty()) return true;
+        const QString sub = tokens[0].toLower();
+
+        if (sub == "position") {
+            int idx = 1;
+            rp->setLabelDir(parseLabelDir(tokens, idx));
+        }
+        else if (sub == "distance") {
+            if (tokens.size() > 1) {
+                const QString dist = tokens[1].toLower();
+                if      (dist == "close") rp->setLabelDistance(6.0);
+                else if (dist == "far")   rp->setLabelDistance(22.0);
+            }
+        }
+        else if (sub == "first") {
+            int idx = 1;
+            QPointF d1 = parseLabelDir(tokens, idx);
+            rp->setSegLabelFirstDir(d1);
+            if (idx < tokens.size() && tokens[idx].toLower() == "second") {
+                ++idx;
+                rp->setSegLabelSecondDir(parseLabelDir(tokens, idx));
+            }
+        }
+        return true;
+    }
+    else
     if(what == SetTargets::TARGET_COLOR || what == SetTargets::TARGET_COLOUR)
     {
         setColor(rp);

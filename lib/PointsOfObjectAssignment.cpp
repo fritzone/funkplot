@@ -19,7 +19,14 @@ bool PointsOfObjectAssignment::execute(RuntimeProvider *rp)
 
         double draw_x1 = vx1, draw_y1 = vy1, draw_x2 = vx2, draw_y2 = vy2;
 
-        if (ofWhat == Keywords::KW_LINE) {
+        if (start && end) {
+            double s = start->Calculate();
+            double e = end->Calculate();
+            draw_x1 = vx1 + s * (vx2 - vx1);
+            draw_y1 = vy1 + s * (vy2 - vy1);
+            draw_x2 = vx1 + e * (vx2 - vx1);
+            draw_y2 = vy1 + e * (vy2 - vy1);
+        } else if (ofWhat == Keywords::KW_LINE) {
             double x_min = rp->coordStartX();
             double x_max = rp->coordEndX();
             double y_min = rp->coordStartY();

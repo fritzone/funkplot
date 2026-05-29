@@ -86,6 +86,9 @@ private:
     void closeEvent(QCloseEvent* event) override;
     void showEvent( QShowEvent* event ) override;
     void buildFunctionDatabase();
+    void openFile(const QString& fileName);
+    void addToRecentFiles(const QString& path);
+    void rebuildRecentFilesMenu();
 
 private:
 
@@ -103,6 +106,7 @@ private:
     QVector<std::tuple<int, int, QString>> m_sessionErrors;
     tt::Builder m_ttb {this};
     QMenu* m_functionsMenu = new QMenu(this);
+    QMenu* m_recentFilesMenu = new QMenu(this);
     QMap<QString, QMenu*> m_classMenus;
     QMap<QString, QMenu*> m_categoryMenus;
     QMap<QString, QSharedPointer<Builtin>> m_builtins;

@@ -12,6 +12,13 @@
 #include "PointsOfObjectAssignment.h"
 #include "LineAssignment.h"
 #include "SegmentAssignment.h"
+#include "PointIntersectionAssignment.h"
+#include "PointOnSegmentAssignment.h"
+#include "AngleAssignment.h"
+#include "ExtendedSegmentAssignment.h"
+#include "ExtendedLineAssignment.h"
+#include "PointReflectionAssignment.h"
+#include "MeasurementAssignment.h"
 #include "constants.h"
 
 #include <QVector>
@@ -50,7 +57,7 @@ std::tuple<QSharedPointer<Function>, QSharedPointer<Function> > Assignment::full
 void Assignment::resolvePrecalculatedPointsForIndexedAccessWithFunction(QSharedPointer<Plot> plot, QSharedPointer<Function> funToUse, RuntimeProvider* rp)
 {
     QVector<QPointF> allPoints;
-    auto pointGatherer = [&allPoints](QSharedPointer<Plot> p, double x, double y, bool c)
+    auto pointGatherer = [&allPoints](QSharedPointer<Plot> p, double x, double y, bool c, int s)
     {
         if(p->polarPlot)
         {
@@ -102,8 +109,10 @@ void Assignment::resolvePrecalculatedPointsForIndexedAccessWithFunction(QSharedP
                         [&rp, this](int l, int c, QString s) {rp->reportError(lineNumber, c, s); },
                         -1,
                         rp,
-                        plot->plotTarget
-            );
+                        plot->plotTarget,
+                        rp->getPixelSize()
+                        );
+
         }
         else
         {
@@ -129,8 +138,10 @@ void Assignment::resolvePrecalculatedPointsForIndexedAccessWithFunction(QSharedP
                     [&rp, this](int l, int c, QString s) {rp->reportError(lineNumber, c, s); },
                     -1,
                     rp,
-                    plot->plotTarget
+                    plot->plotTarget,
+                    rp->getPixelSize()
                     );
+
             }
 
         }
@@ -307,7 +318,84 @@ QString Assignment::kw()
     return Keywords::KW_LET;
 }
 
-static void parseEndpoint(QString& body, QSharedPointer<Function>& x, QSharedPointer<Function>& y, Statement* s)
+// Parses the angle after the "at" keyword into an ExtendedSegmentAssignment.
+// Accepts: a named angle variable, or a numeric expression with optional degrees/radians unit.
+static void parseAngle(QString& body, ExtendedSegmentAssignment* a)
+{
+    consumeSpace(body);
+    QString token = getDelimitedId(body);
+    // consume optional literal keyword "angle" (e.g. "at angle 45" → "at 45")
+    if (token.toLower() == "angle")
+        token = getDelimitedId(body);
+    if (RuntimeProvider::get()->typeOfVariable(token) == Types::TYPE_ANGLE)
+    {
+        a->angleVarName   = token;
+        a->angleInDegrees = false;  // angle variables are stored in radians
+    }
+    else
+    {
+        // literal expression; peek at the next token for optional unit
+        a->angleLiteral   = Function::temporaryFunction(token, a);
+        consumeSpace(body);
+        QString unit = getDelimitedId(body);
+        a->angleInDegrees = (unit != Keywords::KW_RADIANS);
+        // if unit wasn't degrees/radians put it back (it belongs to the next clause)
+        if (unit != Keywords::KW_DEGREES && unit != Keywords::KW_RADIANS && !unit.isEmpty())
+            body = unit + (body.isEmpty() ? "" : " " + body);
+    }
+}
+
+static void parseAsLabel(QString& body, Assignment* a)
+{
+    consumeSpace(body);
+    if (!body.startsWith(Keywords::KW_AS + " ") && !body.startsWith(Keywords::KW_AS + "\""))
+        return;
+    body = body.mid(Keywords::KW_AS.length());
+    consumeSpace(body);
+    if (body.isEmpty() || body[0] != '"')
+        return;
+    body = body.mid(1);
+    int closeQuote = body.indexOf('"');
+    if (closeQuote < 0)
+        return;
+    a->label = body.left(closeQuote);
+    body = body.mid(closeQuote + 1);
+}
+
+// Split a combined segment label like "P1Q2" into two endpoint names ("P1","Q2").
+// Each name is [A-Za-z][0-9]*.
+static bool splitTwoLabels(const QString& s, QString& l1, QString& l2)
+{
+    if (s.isEmpty() || !s[0].isLetter()) return false;
+    int i = 1;
+    while (i < s.length() && s[i].isDigit()) ++i;
+    if (i >= s.length() || !s[i].isLetter()) return false;
+    l1 = s.left(i);
+    l2 = s.mid(i);
+    return true;
+}
+
+static void parseSegmentEndpointLabels(QString& body, SegmentAssignment* sa)
+{
+    consumeSpace(body);
+    if (!body.startsWith(Keywords::KW_AS + " ") && !body.startsWith(Keywords::KW_AS + "\""))
+        return;
+    body = body.mid(Keywords::KW_AS.length());
+    consumeSpace(body);
+    if (body.isEmpty() || body[0] != '"') return;
+    body = body.mid(1);
+    int closeQuote = body.indexOf('"');
+    if (closeQuote < 0) return;
+    QString combined = body.left(closeQuote);
+    body = body.mid(closeQuote + 1);
+    QString l1, l2;
+    if (splitTwoLabels(combined, l1, l2)) {
+        sa->ep1Label = l1;
+        sa->ep2Label = l2;
+    }
+}
+
+static void parseEndpoint(QString& body, QSharedPointer<Function>& x, QSharedPointer<Function>& y, Statement* s, QString* pointVarName = nullptr)
 {
     consumeSpace(body);
     if (body.startsWith("(")) {
@@ -318,8 +406,10 @@ static void parseEndpoint(QString& body, QSharedPointer<Function>& x, QSharedPoi
         x = Function::temporaryFunction(sx, s);
         y = Function::temporaryFunction(sy, s);
     } else {
-        QString fnai;
-        QString pointExpr = extract_proper_expression(body, fnai, QSet<QChar>{' '}, QSet<QString>{Keywords::KW_TO, Keywords::KW_COUNTS, Keywords::KW_OVER, Keywords::KW_AND}, false);
+        // Point names are single identifiers; getDelimitedId stops at the first space
+        // without being confused by stop-words appearing later in the string.
+        QString pointExpr = getDelimitedId(body);
+        if (pointVarName) *pointVarName = pointExpr;
         x = Function::temporaryFunction(pointExpr + ".x", s);
         y = Function::temporaryFunction(pointExpr + ".y", s);
     }
@@ -372,6 +462,28 @@ QVector<QSharedPointer<Statement> > Assignment::create(int ln, const QString &co
     // if it's not points, for the moment it is an arythmetic calculation
     if(targetProperties != "points")
     {
+        if(targetProperties == Keywords::KW_MIDPOINT)
+        {
+            if(RuntimeProvider::get()->typeOfVariable(varName) != Types::TYPE_POINT)
+            {
+                throw funkplot::syntax_error_exception(ERRORCODE(10), "Conflicting type assignment: <b>midpoint</b> assigned to a non point type variable: <b>%s (%s)</b>", varName.toStdString().c_str(), RuntimeProvider::get()->typeOfVariable(varName).toStdString().c_str());
+            }
+            consumeSpace(assignment_body);
+            QString ofWord = getDelimitedId(assignment_body);
+            if (ofWord != Keywords::KW_OF)
+                throw funkplot::syntax_error_exception(ERRORCODE(76), "Missing keyword <b>of</b> in midpoint assignment: %s", codeline.toStdString().c_str());
+            QString segName = getDelimitedId(assignment_body);
+
+            QSharedPointer<PointOnSegmentAssignment> result(new PointOnSegmentAssignment(ln, codeline));
+            result->segmentName = segName;
+            result->varName = varName;
+            result->mode = PointOnSegmentMode::Midpoint;
+
+            parseAsLabel(assignment_body, result.get());
+            RuntimeProvider::get()->addOrUpdateAssignment(result);
+            return handleStatementCallback(vectorize(result), cb);
+        }
+        else
         if(targetProperties == "point") // or just a simple point
         {
             if(RuntimeProvider::get()->typeOfVariable(varName) != Types::TYPE_POINT)
@@ -380,21 +492,165 @@ QVector<QSharedPointer<Statement> > Assignment::create(int ln, const QString &co
             }
 
             QString nextWord = getDelimitedId(assignment_body);
-            if(nextWord != "at")
+            if(nextWord == Keywords::KW_ON)
             {
+                // point on [segment] <segname|AB> at <spec>
+                consumeSpace(assignment_body);
+                QString segmentName = getDelimitedId(assignment_body);
+                // Consume optional "segment" keyword so both forms work:
+                //   point on AB at ...
+                //   point on segment AB at ...
+                if (segmentName == Keywords::KW_SEGMENT) {
+                    consumeSpace(assignment_body);
+                    segmentName = getDelimitedId(assignment_body);
+                }
+                consumeSpace(assignment_body);
+                QString atOrNearest = getDelimitedId(assignment_body);
+                consumeSpace(assignment_body);
+
+                QSharedPointer<PointOnSegmentAssignment> result(new PointOnSegmentAssignment(ln, codeline));
+                result->segmentName = segmentName;
+                result->varName = varName;
+
+                if (atOrNearest == Keywords::KW_NEAREST)
+                {
+                    // nearest to <point>
+                    QString toWord = getDelimitedId(assignment_body);
+                    if (toWord != Keywords::KW_TO)
+                        throw funkplot::syntax_error_exception(ERRORCODE(72), "Missing keyword <b>to</b> in point-on-segment nearest assignment: %s", codeline.toStdString().c_str());
+                    result->nearestToPoint = getDelimitedId(assignment_body);
+                    result->mode = PointOnSegmentMode::Nearest;
+                }
+                else if (atOrNearest == Keywords::KW_AT)
+                {
+                    QString specToken = getDelimitedId(assignment_body);
+                    consumeSpace(assignment_body);
+
+                    if (specToken == Keywords::KW_DISTANCE)
+                    {
+                        // at distance <expr> from <ref>
+                        QString fnai;
+                        QString distExpr = extract_proper_expression(assignment_body, fnai, {' '}, {Keywords::KW_FROM}, false);
+                        QString fromWord = getDelimitedId(assignment_body);
+                        if (fromWord != Keywords::KW_FROM)
+                            throw funkplot::syntax_error_exception(ERRORCODE(73), "Missing keyword <b>from</b> in point-on-segment distance assignment: %s", codeline.toStdString().c_str());
+                        result->fromRef = getDelimitedId(assignment_body);
+                        result->param = Function::temporaryFunction(distExpr, result.get());
+                        result->mode = PointOnSegmentMode::Distance;
+                    }
+                    else if (specToken == "t")
+                    {
+                        // at t <expr>
+                        QString fnai;
+                        QString tExpr = extract_proper_expression(assignment_body, fnai, {' '}, {Keywords::KW_AS}, false);
+                        result->param = Function::temporaryFunction(tExpr, result.get());
+                        result->mode = PointOnSegmentMode::ParametricT;
+                    }
+                    else if (specToken == "x")
+                    {
+                        // at x <expr>
+                        QString fnai;
+                        QString xExpr = extract_proper_expression(assignment_body, fnai, {' '}, {Keywords::KW_AS}, false);
+                        result->param = Function::temporaryFunction(xExpr, result.get());
+                        result->mode = PointOnSegmentMode::AtX;
+                    }
+                    else if (specToken == "y")
+                    {
+                        // at y <expr>
+                        QString fnai;
+                        QString yExpr = extract_proper_expression(assignment_body, fnai, {' '}, {Keywords::KW_AS}, false);
+                        result->param = Function::temporaryFunction(yExpr, result.get());
+                        result->mode = PointOnSegmentMode::AtY;
+                    }
+                    else
+                    {
+                        // at <expr>% from <ref>
+                        // specToken already consumed the first space-delimited word; it may contain '%'
+                        // Reconstruct the full percentage string: specToken is e.g. "25%"
+                        QString percentStr = specToken;
+                        if (!percentStr.endsWith('%'))
+                            throw funkplot::syntax_error_exception(ERRORCODE(74), "Expected percentage (e.g. <b>25%%</b>) in point-on-segment assignment: %s", codeline.toStdString().c_str());
+                        percentStr.chop(1);  // remove '%'
+                        QString fromWord = getDelimitedId(assignment_body);
+                        if (fromWord != Keywords::KW_FROM)
+                            throw funkplot::syntax_error_exception(ERRORCODE(73), "Missing keyword <b>from</b> in point-on-segment percentage assignment: %s", codeline.toStdString().c_str());
+                        result->fromRef = getDelimitedId(assignment_body);
+                        result->param = Function::temporaryFunction(percentStr, result.get());
+                        result->mode = PointOnSegmentMode::Percentage;
+                    }
+                }
+                else
+                {
+                    throw funkplot::syntax_error_exception(ERRORCODE(75), "Expected <b>at</b> or <b>nearest</b> in point-on-segment assignment: %s", codeline.toStdString().c_str());
+                }
+
+                parseAsLabel(assignment_body, result.get());
+                RuntimeProvider::get()->addOrUpdateAssignment(result);
+                return handleStatementCallback(vectorize(result), cb);
+            }
+            else if(nextWord != "at")
+            {
+                // Peek at the next word to detect "point A reflected across ..."
+                consumeSpace(assignment_body);
+                QString peekWord = getDelimitedId(assignment_body);
+                if(peekWord == Keywords::KW_REFLECTED)
+                {
+                    QString acrossKw = getDelimitedId(assignment_body);
+                    if(acrossKw != Keywords::KW_ACROSS)
+                        throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>across</b> after <b>reflected</b>: %s", codeline.toStdString().c_str());
+                    // Consume optional "line" / "segment" type keyword before the name
+                    QString refTok = getDelimitedId(assignment_body);
+                    if(refTok == Keywords::KW_LINE || refTok == Keywords::KW_SEGMENT)
+                        refTok = getDelimitedId(assignment_body);
+                    QSharedPointer<PointReflectionAssignment> result(new PointReflectionAssignment(ln, codeline));
+                    result->sourceName = nextWord;
+                    result->refName    = refTok;
+                    result->varName    = varName;
+                    parseAsLabel(assignment_body, result.get());
+                    RuntimeProvider::get()->addOrUpdateAssignment(result);
+                    return handleStatementCallback(vectorize(result), cb);
+                }
+                // Restore the peeked word if not "reflected"
+                if(!peekWord.isEmpty())
+                    assignment_body = peekWord + (assignment_body.isEmpty() ? "" : " " + assignment_body);
+
                 QSharedPointer<PointDefinitionAssignmentToOtherPoint> result;
                 result.reset(new PointDefinitionAssignmentToOtherPoint(ln, codeline));
                 result->otherPoint = nextWord;
                 result->varName = varName;
 
+                parseAsLabel(assignment_body, result.get());
                 RuntimeProvider::get()->addOrUpdateAssignment(result);
 
                 return handleStatementCallback(vectorize(result), cb);
             }
             else
             {
-
                 consumeSpace(assignment_body);
+                if (assignment_body.startsWith(Keywords::KW_INTERSECTION)) {
+                    assignment_body = assignment_body.mid(Keywords::KW_INTERSECTION.length());
+                    consumeSpace(assignment_body);
+                    if (!assignment_body.startsWith(Keywords::KW_OF)) {
+                         throw funkplot::syntax_error_exception(ERRORCODE(51), "Invalid assignment: <b>%s</b> (missing of keyword)", codeline.toStdString().c_str());
+                    }
+                    assignment_body = assignment_body.mid(Keywords::KW_OF.length());
+                    consumeSpace(assignment_body);
+                    
+                    QString obj1 = getDelimitedId(assignment_body);
+                    QString andWord = getDelimitedId(assignment_body);
+                    if (andWord != Keywords::KW_AND) {
+                        throw funkplot::syntax_error_exception(ERRORCODE(53), "Missing keyword <b>and</b> in intersection assignment: %s", codeline.toStdString().c_str());
+                    }
+                    QString obj2 = getDelimitedId(assignment_body);
+                    
+                    QSharedPointer<PointIntersectionAssignment> result(new PointIntersectionAssignment(ln, codeline));
+                    result->obj1 = obj1;
+                    result->obj2 = obj2;
+                    result->varName = varName;
+                    parseAsLabel(assignment_body, result.get());
+                    RuntimeProvider::get()->addOrUpdateAssignment(result);
+                    return handleStatementCallback(vectorize(result), cb);
+                }
 
                 if(!assignment_body.isEmpty() && assignment_body[0] == '(')
                 {
@@ -411,6 +667,7 @@ QVector<QSharedPointer<Statement> > Assignment::create(int ln, const QString &co
                 result->x = Function::temporaryFunction(px, result.get());
                 result->y = Function::temporaryFunction(py, result.get());
                 result->varName = varName;
+                parseAsLabel(assignment_body, result.get());
                 RuntimeProvider::get()->addOrUpdateAssignment(result);
 
                 return handleStatementCallback(vectorize(result), cb);
@@ -431,33 +688,388 @@ QVector<QSharedPointer<Statement> > Assignment::create(int ln, const QString &co
             QString nextWord = getDelimitedId(assignment_body);
             if(targetProperties == Keywords::KW_LINE && nextWord == Keywords::KW_THROUGH)
             {
-                QSharedPointer<LineAssignment> result(new LineAssignment(ln, codeline));
-                parseEndpoint(assignment_body, result->x1, result->y1, result.get());
-                QString andWord = getDelimitedId(assignment_body);
-                if(andWord != Keywords::KW_AND)
+                // Parse the first point, then decide based on the connector word
+                QSharedPointer<ExtendedLineAssignment> ext(new ExtendedLineAssignment(ln, codeline));
+                parseEndpoint(assignment_body, ext->x1, ext->y1, ext.get(), &ext->refPointName);
+                QString connector = getDelimitedId(assignment_body);
+                if(connector == Keywords::KW_AND)
                 {
-                    throw funkplot::syntax_error_exception(ERRORCODE(53), "Missing keyword <b>and</b> in line assignment: %s", codeline.toStdString().c_str());
+                    // Classic two-point line: line through P and Q
+                    QSharedPointer<LineAssignment> result(new LineAssignment(ln, codeline));
+                    result->x1 = ext->x1; result->y1 = ext->y1;
+                    parseEndpoint(assignment_body, result->x2, result->y2, result.get());
+                    result->varName = varName;
+                    RuntimeProvider::get()->addOrUpdateAssignment(result);
+                    return handleStatementCallback(vectorize(result), cb);
                 }
-                parseEndpoint(assignment_body, result->x2, result->y2, result.get());
-                result->varName = varName;
-                RuntimeProvider::get()->addOrUpdateAssignment(result);
-                return handleStatementCallback(vectorize(result), cb);
+                else if(connector == Keywords::KW_PARALLEL || connector == Keywords::KW_PERPENDICULAR)
+                {
+                    // line through P parallel/perpendicular to <ref>
+                    QString toKw = getDelimitedId(assignment_body);
+                    if(toKw != Keywords::KW_TO)
+                        throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>to</b> after parallel/perpendicular: %s", codeline.toStdString().c_str());
+                    ext->refName = getDelimitedId(assignment_body);
+                    ext->form = (connector == Keywords::KW_PARALLEL) ? ExtendedLineForm::ThroughParallel : ExtendedLineForm::ThroughPerpendicular;
+                    ext->varName = varName;
+                    RuntimeProvider::get()->addOrUpdateAssignment(ext);
+                    return handleStatementCallback(vectorize(ext), cb);
+                }
+                else
+                {
+                    throw funkplot::syntax_error_exception(ERRORCODE(53), "Expected <b>and</b>, <b>parallel</b>, or <b>perpendicular</b> after point in line definition: %s", codeline.toStdString().c_str());
+                }
             }
             if(targetProperties == Keywords::KW_SEGMENT && nextWord == Keywords::KW_FROM)
             {
-                QSharedPointer<SegmentAssignment> result(new SegmentAssignment(ln, codeline));
-                parseEndpoint(assignment_body, result->x1, result->y1, result.get());
-                QString toWord = getDelimitedId(assignment_body);
-                if(toWord != Keywords::KW_TO)
+                // Use ExtendedSegmentAssignment as a temporary owner for the parsed functions;
+                // if it turns out to be the classic "from p to q" form we repackage it.
+                QSharedPointer<ExtendedSegmentAssignment> ext(new ExtendedSegmentAssignment(ln, codeline));
+                parseEndpoint(assignment_body, ext->refPx, ext->refPy, ext.get(), &ext->refPointName);
+
+                QString kw2 = getDelimitedId(assignment_body);
+                if(kw2 == Keywords::KW_TO)
                 {
-                    throw funkplot::syntax_error_exception(ERRORCODE(54), "Missing keyword <b>to</b> in segment assignment: %s", codeline.toStdString().c_str());
+                    // Classic form: segment from p1 to p2
+                    QSharedPointer<SegmentAssignment> result(new SegmentAssignment(ln, codeline));
+                    result->x1 = ext->refPx;  result->y1 = ext->refPy;  result->p1Name = ext->refPointName;
+                    parseEndpoint(assignment_body, result->x2, result->y2, result.get(), &result->p2Name);
+                    result->varName = varName;
+                    parseSegmentEndpointLabels(assignment_body, result.get());
+                    RuntimeProvider::get()->addOrUpdateAssignment(result);
+                    return handleStatementCallback(vectorize(result), cb);
                 }
-                parseEndpoint(assignment_body, result->x2, result->y2, result.get());
+                else if(kw2 == Keywords::KW_LENGTH)
+                {
+                    // Extended form: segment from p length L at <angle>
+                    ext->form     = ExtendedSegmentForm::FromPointLengthAngle;
+                    ext->lengthFn = Function::temporaryFunction(getDelimitedId(assignment_body), ext.get());
+                    QString atKw  = getDelimitedId(assignment_body);
+                    if(atKw != Keywords::KW_AT)
+                        throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>at</b> after length in segment definition: %s", codeline.toStdString().c_str());
+                    parseAngle(assignment_body, ext.get());
+                    ext->varName = varName;
+                    parseSegmentEndpointLabels(assignment_body, ext.get());
+                    RuntimeProvider::get()->addOrUpdateAssignment(ext);
+                    return handleStatementCallback(vectorize(ext), cb);
+                }
+                else if(kw2 == Keywords::KW_PERPENDICULAR)
+                {
+                    // segment from P perpendicular to S  (foot of altitude from P onto S)
+                    QString toKw = getDelimitedId(assignment_body);
+                    if(toKw != Keywords::KW_TO)
+                        throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>to</b> after <b>perpendicular</b> in segment definition: %s", codeline.toStdString().c_str());
+                    QString segName = getDelimitedId(assignment_body);
+                    ext->form = ExtendedSegmentForm::PerpendicularFromPoint;
+                    ext->refSegmentName = segName;
+                    ext->varName = varName;
+                    parseSegmentEndpointLabels(assignment_body, ext.get());
+                    RuntimeProvider::get()->addOrUpdateAssignment(ext);
+                    return handleStatementCallback(vectorize(ext), cb);
+                }
+                else if(kw2 == Keywords::KW_THROUGH)
+                {
+                    // segment from A through B length L  (from A, direction A→B, length L)
+                    ext->throughPointName = getDelimitedId(assignment_body);
+                    QString lenKw = getDelimitedId(assignment_body);
+                    if(lenKw != Keywords::KW_LENGTH)
+                        throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>length</b> after through-point in segment definition: %s", codeline.toStdString().c_str());
+                    ext->lengthFn = Function::temporaryFunction(getDelimitedId(assignment_body), ext.get());
+                    ext->form = ExtendedSegmentForm::FromThroughLength;
+                    ext->varName = varName;
+                    parseSegmentEndpointLabels(assignment_body, ext.get());
+                    RuntimeProvider::get()->addOrUpdateAssignment(ext);
+                    return handleStatementCallback(vectorize(ext), cb);
+                }
+                else
+                {
+                    throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>to</b>, <b>length</b>, <b>perpendicular to</b>, or <b>through</b> in segment definition: %s", codeline.toStdString().c_str());
+                }
+            }
+            if(targetProperties == Keywords::KW_SEGMENT && nextWord == Keywords::KW_CENTERED)
+            {
+                // segment centered at p length L at <angle>
+                QString atKw = getDelimitedId(assignment_body);
+                if(atKw != Keywords::KW_AT)
+                    throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>at</b> after <b>centered</b>: %s", codeline.toStdString().c_str());
+
+                QSharedPointer<ExtendedSegmentAssignment> result(new ExtendedSegmentAssignment(ln, codeline));
+                result->form = ExtendedSegmentForm::CenteredLengthAngle;
+                parseEndpoint(assignment_body, result->refPx, result->refPy, result.get(), &result->refPointName);
+
+                QString lenKw = getDelimitedId(assignment_body);
+                if(lenKw != Keywords::KW_LENGTH)
+                    throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>length</b> after center point: %s", codeline.toStdString().c_str());
+                result->lengthFn = Function::temporaryFunction(getDelimitedId(assignment_body), result.get());
+
+                QString atKw2 = getDelimitedId(assignment_body);
+                if(atKw2 != Keywords::KW_AT)
+                    throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>at</b> after length: %s", codeline.toStdString().c_str());
+                parseAngle(assignment_body, result.get());
+
                 result->varName = varName;
+                parseSegmentEndpointLabels(assignment_body, result.get());
+                RuntimeProvider::get()->addOrUpdateAssignment(result);
+                return handleStatementCallback(vectorize(result), cb);
+            }
+            if(targetProperties == Keywords::KW_SEGMENT && nextWord == Keywords::KW_THROUGH)
+            {
+                // segment through p parallel/perpendicular to s length L
+                // parseEndpoint cannot be used here because "to" appears later in the line
+                // ("parallel to s1"), which makes extract_proper_expression read past the point
+                // name. Use getDelimitedId directly — the point is always a single identifier
+                // or a coordinate literal in this context.
+                QSharedPointer<ExtendedSegmentAssignment> result(new ExtendedSegmentAssignment(ln, codeline));
+                consumeSpace(assignment_body);
+                if(assignment_body.startsWith("("))
+                {
+                    assignment_body = assignment_body.mid(1);
+                    QString fnai;
+                    QString sx = extract_proper_expression(assignment_body, fnai, {','});
+                    QString sy = extract_proper_expression(assignment_body, fnai, {')'});
+                    result->refPx = Function::temporaryFunction(sx, result.get());
+                    result->refPy = Function::temporaryFunction(sy, result.get());
+                }
+                else
+                {
+                    result->refPointName = getDelimitedId(assignment_body);
+                    result->refPx = Function::temporaryFunction(result->refPointName + ".x", result.get());
+                    result->refPy = Function::temporaryFunction(result->refPointName + ".y", result.get());
+                }
+
+                QString dirKw = getDelimitedId(assignment_body);
+                if(dirKw == Keywords::KW_PARALLEL)
+                    result->form = ExtendedSegmentForm::ThroughParallel;
+                else if(dirKw == Keywords::KW_PERPENDICULAR)
+                    result->form = ExtendedSegmentForm::ThroughPerpendicular;
+                else
+                    throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>parallel</b> or <b>perpendicular</b> after point: %s", codeline.toStdString().c_str());
+
+                QString toKw = getDelimitedId(assignment_body);
+                if(toKw != Keywords::KW_TO)
+                    throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>to</b> after parallel/perpendicular: %s", codeline.toStdString().c_str());
+                result->refSegmentName = getDelimitedId(assignment_body);
+
+                QString lenKw = getDelimitedId(assignment_body);
+                if(lenKw != Keywords::KW_LENGTH)
+                    throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>length</b> after segment name: %s", codeline.toStdString().c_str());
+                result->lengthFn = Function::temporaryFunction(getDelimitedId(assignment_body), result.get());
+
+                result->varName = varName;
+                parseSegmentEndpointLabels(assignment_body, result.get());
+                RuntimeProvider::get()->addOrUpdateAssignment(result);
+                return handleStatementCallback(vectorize(result), cb);
+            }
+            if(targetProperties == Keywords::KW_SEGMENT && nextWord == Keywords::KW_CONGRUENT)
+            {
+                // segment congruent to <src> from <P> at angle <X>
+                // segment congruent to <src> from <P> parallel to <ref>
+                // segment congruent to <src> from <P> perpendicular to <ref>
+                // segment congruent to <src> centered at <P> at angle <X>
+                // segment congruent to <src> centered at <P> parallel to <ref>
+                // segment congruent to <src> centered at <P> perpendicular to <ref>
+
+                QString toKw = getDelimitedId(assignment_body);
+                if(toKw != Keywords::KW_TO)
+                    throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>to</b> after <b>congruent</b>: %s", codeline.toStdString().c_str());
+
+                QString srcSeg = getDelimitedId(assignment_body);
+                QString posKw  = getDelimitedId(assignment_body); // "from" or "centered"
+
+                QSharedPointer<ExtendedSegmentAssignment> result(new ExtendedSegmentAssignment(ln, codeline));
+                result->lengthFromSegmentName = srcSeg;
+
+                if(posKw == Keywords::KW_FROM)
+                {
+                    parseEndpoint(assignment_body, result->refPx, result->refPy, result.get(), &result->refPointName);
+                    QString dirKw = getDelimitedId(assignment_body);
+                    if(dirKw == Keywords::KW_AT)
+                    {
+                        // "at angle <X>"
+                        parseAngle(assignment_body, result.get());
+                        result->form = ExtendedSegmentForm::FromPointLengthAngle;
+                    }
+                    else if(dirKw == Keywords::KW_PARALLEL)
+                    {
+                        QString toKw2 = getDelimitedId(assignment_body); // "to"
+                        result->refSegmentName = getDelimitedId(assignment_body);
+                        result->form = ExtendedSegmentForm::CongruentFromParallel;
+                    }
+                    else if(dirKw == Keywords::KW_PERPENDICULAR)
+                    {
+                        QString toKw2 = getDelimitedId(assignment_body); // "to"
+                        result->refSegmentName = getDelimitedId(assignment_body);
+                        result->form = ExtendedSegmentForm::CongruentFromPerpendicular;
+                    }
+                    else
+                        throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>at angle</b>, <b>parallel to</b>, or <b>perpendicular to</b> after point: %s", codeline.toStdString().c_str());
+                }
+                else if(posKw == Keywords::KW_CENTERED)
+                {
+                    QString atKw = getDelimitedId(assignment_body); // "at"
+                    if(atKw != Keywords::KW_AT)
+                        throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>at</b> after <b>centered</b>: %s", codeline.toStdString().c_str());
+                    parseEndpoint(assignment_body, result->refPx, result->refPy, result.get(), &result->refPointName);
+                    QString dirKw = getDelimitedId(assignment_body);
+                    if(dirKw == Keywords::KW_AT)
+                    {
+                        parseAngle(assignment_body, result.get());
+                        result->form = ExtendedSegmentForm::CenteredLengthAngle;
+                    }
+                    else if(dirKw == Keywords::KW_PARALLEL)
+                    {
+                        QString toKw2 = getDelimitedId(assignment_body); // "to"
+                        result->refSegmentName = getDelimitedId(assignment_body);
+                        result->form = ExtendedSegmentForm::ThroughParallel;
+                    }
+                    else if(dirKw == Keywords::KW_PERPENDICULAR)
+                    {
+                        QString toKw2 = getDelimitedId(assignment_body); // "to"
+                        result->refSegmentName = getDelimitedId(assignment_body);
+                        result->form = ExtendedSegmentForm::ThroughPerpendicular;
+                    }
+                    else
+                        throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>at angle</b>, <b>parallel to</b>, or <b>perpendicular to</b> after center point: %s", codeline.toStdString().c_str());
+                }
+                else
+                    throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>from</b> or <b>centered at</b> after congruent source segment: %s", codeline.toStdString().c_str());
+
+                result->varName = varName;
+                parseSegmentEndpointLabels(assignment_body, result.get());
                 RuntimeProvider::get()->addOrUpdateAssignment(result);
                 return handleStatementCallback(vectorize(result), cb);
             }
         }
+        // Measurement: distance from A to B  |  length of segment AB
+        if(targetProperties == Keywords::KW_DISTANCE || targetProperties == Keywords::KW_LENGTH)
+        {
+            QSharedPointer<MeasurementAssignment> result(new MeasurementAssignment(ln, codeline));
+            result->varName = varName;
+            if(targetProperties == Keywords::KW_DISTANCE)
+            {
+                // distance from <p1> to <p2>
+                QString fromKw = getDelimitedId(assignment_body);
+                if(fromKw != Keywords::KW_FROM)
+                    throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>from</b> after <b>distance</b>: %s", codeline.toStdString().c_str());
+                result->p1Name = getDelimitedId(assignment_body);
+                QString toKw = getDelimitedId(assignment_body);
+                if(toKw != Keywords::KW_TO)
+                    throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>to</b> in distance expression: %s", codeline.toStdString().c_str());
+                result->p2Name = getDelimitedId(assignment_body);
+                result->form = MeasurementForm::DistanceFromTo;
+            }
+            else
+            {
+                // length of [segment] <name>
+                QString ofKw = getDelimitedId(assignment_body);
+                if(ofKw != Keywords::KW_OF)
+                    throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>of</b> after <b>length</b>: %s", codeline.toStdString().c_str());
+                QString nextTok = getDelimitedId(assignment_body);
+                if(nextTok == Keywords::KW_SEGMENT)
+                    nextTok = getDelimitedId(assignment_body);
+                result->segName = nextTok;
+                result->form = MeasurementForm::LengthOfSegment;
+            }
+            RuntimeProvider::get()->addOrUpdateAssignment(result);
+            return handleStatementCallback(vectorize(result), cb);
+        }
+        // Perpendicular bisector: perpendicular bisector of <segment>
+        if(targetProperties == Keywords::KW_PERPENDICULAR)
+        {
+            QString nextW = getDelimitedId(assignment_body);
+            if(nextW == Keywords::KW_BISECTOR)
+            {
+                if(RuntimeProvider::get()->typeOfVariable(varName) != Types::TYPE_LINE)
+                    throw funkplot::syntax_error_exception(ERRORCODE(10), "Conflicting type: <b>perpendicular bisector</b> must be assigned to a <b>line</b> variable: %s", codeline.toStdString().c_str());
+                QString ofKw = getDelimitedId(assignment_body);
+                if(ofKw != Keywords::KW_OF)
+                    throw funkplot::syntax_error_exception(ERRORCODE(54), "Expected <b>of</b> after <b>perpendicular bisector</b>: %s", codeline.toStdString().c_str());
+                QString segName = getDelimitedId(assignment_body);
+                QSharedPointer<ExtendedLineAssignment> result(new ExtendedLineAssignment(ln, codeline));
+                result->form = ExtendedLineForm::PerpendicularBisector;
+                result->refName = segName;
+                result->varName = varName;
+                RuntimeProvider::get()->addOrUpdateAssignment(result);
+                return handleStatementCallback(vectorize(result), cb);
+            }
+            // not a bisector — fall through to arithmetic
+            assignment_body = nextW + (assignment_body.isEmpty() ? "" : " " + assignment_body);
+        }
+        // Angle assignment: three forms:
+        //   let alpha = angle of s           (angle segment makes with x-axis)
+        //   let alpha = angle p1 vertex p3   (interior angle at vertex)
+        //   let alpha = <expr> [degrees|radians]  (literal, default degrees)
+        {
+            bool isAngleVar = RuntimeProvider::get()->typeOfVariable(varName) == Types::TYPE_ANGLE;
+            bool startsWithAngleKw = (targetProperties == Types::TYPE_ANGLE);
+
+            if(startsWithAngleKw || isAngleVar)
+            {
+                // Angle bisector: let l = angle bisector A B C  (l must be a line variable)
+                if(startsWithAngleKw && RuntimeProvider::get()->typeOfVariable(varName) == Types::TYPE_LINE)
+                {
+                    QString nextW = getDelimitedId(assignment_body);
+                    if(nextW == Keywords::KW_BISECTOR)
+                    {
+                        QString p1n   = getDelimitedId(assignment_body);
+                        QString vn    = getDelimitedId(assignment_body);
+                        QString p3n   = getDelimitedId(assignment_body);
+                        QSharedPointer<ExtendedLineAssignment> result(new ExtendedLineAssignment(ln, codeline));
+                        result->form       = ExtendedLineForm::AngleBisector;
+                        result->p1Name     = p1n;
+                        result->vertexName = vn;
+                        result->p3Name     = p3n;
+                        result->varName    = varName;
+                        RuntimeProvider::get()->addOrUpdateAssignment(result);
+                        return handleStatementCallback(vectorize(result), cb);
+                    }
+                    // Not a bisector; put back the token and fall through to the throw below
+                    assignment_body = nextW + (assignment_body.isEmpty() ? "" : " " + assignment_body);
+                }
+                if(!isAngleVar)
+                {
+                    throw funkplot::syntax_error_exception(ERRORCODE(10),
+                        "Conflicting type assignment: <b>angle</b> assigned to a non angle type variable: <b>%s (%s)</b>",
+                        varName.toStdString().c_str(),
+                        RuntimeProvider::get()->typeOfVariable(varName).toStdString().c_str());
+                }
+
+                QSharedPointer<AngleAssignment> result(new AngleAssignment(ln, codeline));
+                result->varName = varName;
+
+                if(startsWithAngleKw)
+                {
+                    // "angle of segname"  or  "angle p1 vertex p3"
+                    QString nextWord = getDelimitedId(assignment_body);
+                    if(nextWord == Keywords::KW_OF)
+                    {
+                        result->source = AngleSource::OfSegment;
+                        result->segmentName = getDelimitedId(assignment_body);
+                    }
+                    else
+                    {
+                        result->source = AngleSource::ThreePoints;
+                        result->p1Name     = nextWord;
+                        result->vertexName = getDelimitedId(assignment_body);
+                        result->p3Name     = getDelimitedId(assignment_body);
+                    }
+                }
+                else
+                {
+                    // "<expr> [degrees|radians]"  — targetProperties is already the expression
+                    // (it was the first space-delimited token). The optional unit keyword is
+                    // the very next token; anything after that (comments etc.) is ignored.
+                    result->source = AngleSource::Literal;
+                    result->expr = Function::temporaryFunction(targetProperties, result.get());
+                    consumeSpace(assignment_body);
+                    QString unitWord = getDelimitedId(assignment_body);
+                    result->inDegrees = (unitWord != Keywords::KW_RADIANS);
+                }
+
+                RuntimeProvider::get()->addOrUpdateAssignment(result);
+                return handleStatementCallback(vectorize(result), cb);
+            }
+        }
+
         if(targetProperties == Types::TYPE_LIST) // or maybe we create a list
         {
             if(RuntimeProvider::get()->typeOfVariable(varName) != Types::TYPE_LIST)

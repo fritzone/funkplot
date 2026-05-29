@@ -62,6 +62,25 @@ const QString KW_FROM = KEYWORD("from");
 const QString KW_THROUGH = KEYWORD("through");
 const QString KW_AND = KEYWORD("and");
 const QString KW_AT = KEYWORD("at");
+const QString KW_INTERSECTION = KEYWORD("intersection");
+const QString KW_AS = KEYWORD("as");
+const QString KW_ON = KEYWORD("on");
+const QString KW_NEAREST = KEYWORD("nearest");
+const QString KW_MIDPOINT = KEYWORD("midpoint");
+const QString KW_DISTANCE = KEYWORD("distance");
+const QString KW_DEGREES = KEYWORD("degrees");
+const QString KW_RADIANS = KEYWORD("radians");
+const QString KW_LENGTH = KEYWORD("length");
+const QString KW_CENTERED = KEYWORD("centered");
+const QString KW_PARALLEL = KEYWORD("parallel");
+const QString KW_PERPENDICULAR = KEYWORD("perpendicular");
+const QString KW_BETWEEN = KEYWORD("between");
+const QString KW_CONGRUENT = KEYWORD("congruent");
+const QString KW_TICKS = KEYWORD("ticks");
+const QString KW_ARCS = KEYWORD("arcs");
+const QString KW_BISECTOR  = KEYWORD("bisector");
+const QString KW_REFLECTED = KEYWORD("reflected");
+const QString KW_ACROSS    = KEYWORD("across");
 
 static const QVector<QString> all()
 {
@@ -87,6 +106,7 @@ const QString TYPE_LIST = TYPE("list");
 const QString TYPE_POINT = TYPE("point");
 const QString TYPE_LINE = TYPE("line");
 const QString TYPE_SEGMENT = TYPE("segment");
+const QString TYPE_ANGLE = TYPE("angle");
 const QString TYPE_UNKNOWN = TYPE("unknown");
 
 static const QVector<QString> all()
@@ -135,6 +155,8 @@ const QString TARGET_PIXEL = SETTARGET("pixel");
 
 const QString TARGET_ON = SETTARGET("on");
 const QString TARGET_OFF = SETTARGET("off");
+const QString TARGET_LABELS = SETTARGET("labels");
+const QString TARGET_LABEL  = SETTARGET("label");
 
 static const QVector<QString> all()
 {

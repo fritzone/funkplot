@@ -21,8 +21,9 @@
             },
             {
               "itemType":"action",
-              "type":"delayedPopup",
-              "name":"actionOpen"
+              "type":"menuButtonPopup",
+              "name":"actionOpen",
+              "menu":"menuRecentFiles"
             },
             { "itemType":"separator" },
             {

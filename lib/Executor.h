@@ -34,7 +34,8 @@ public:
                          std::function<void(int, int, QString)> erp,
                          int cdl,
                          RuntimeProvider* rp,
-                         QString plotTarget)
+                         QString plotTarget,
+                         int pixelSize)
     {
         bool continuous = true;
         double plotStart = -1.0;
@@ -59,7 +60,7 @@ public:
                 if(!std::isnan(y))
                 {
                     qDebug() << "X=" << x << "Y=" << y;
-                    executor(plot, x, y, continuous);
+                    executor(plot, x, y, continuous, pixelSize);
                 }
                 pointsDrawn ++;
 
@@ -73,7 +74,7 @@ public:
 
                 if(!std::isnan(y))
                 {
-                    executor(plot, plotEnd, y, continuous);
+                    executor(plot, plotEnd, y, continuous, pixelSize);
                 }
             }
         }
@@ -94,7 +95,8 @@ public:
                          std::function<void(int, int, QString)> erp,
                          int cdl,
                          RuntimeProvider* rp,
-                         QString plotTarget)
+                         QString plotTarget,
+                         int pixelSize)
     {
         bool continuous = true;
         double plotStart = -1.0;
@@ -124,7 +126,7 @@ public:
             double y = funToUse->functions.second->Calculate();
 
             qDebug() << "t=" << t << "X=" << x << "Y=" << y;
-            if(!std::isnan(y) && ! std::isnan(x)) executor(plot, x, y, continuous);
+            if(!std::isnan(y) && ! std::isnan(x)) executor(plot, x, y, continuous, pixelSize);
 
             pointsDrawn ++;
 
@@ -145,7 +147,7 @@ public:
             qDebug() << "plotEnd:" << plotEnd << "X=" << x << "Y=" << y;
             if(!std::isnan(y) && ! std::isnan(x))
             {
-                executor(plot, x, y, continuous);
+                executor(plot, x, y, continuous, pixelSize);
             }
 
 

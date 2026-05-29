@@ -65,12 +65,6 @@ void CodeEditorTabPage::highlightLine(int l, const QString &a)
         m_textEdit->setTextCursor(cursor);
         m_textEdit->setFocus(Qt::OtherFocusReason);
     }
-    else
-    {
-        QTextCursor cursor(m_textEdit->document()->findBlockByLineNumber(0)); // ln-1 because line number starts from 0
-        m_textEdit->setTextCursor(cursor);
-        m_textEdit->setFocus(Qt::OtherFocusReason);
-    }
 }
 
 void CodeEditorTabPage::appendText(const QString &s)

@@ -1,0 +1,15 @@
+var A B C point
+
+let A = point at (5, 1)
+let B = point at (1, 2)
+let C = point at (4, 3)
+
+# Space-separated: B is vertex (middle letter)
+set color steelblue
+draw angle A B C
+
+# Compact form: B is vertex (middle letter)
+draw angle ABC
+
+# Color + double thickness + multiple arcs — all inline
+draw angle BAC arcs 3 red double

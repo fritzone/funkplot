@@ -29,11 +29,8 @@ void ScreenDrawer::mouseReleaseEvent(QMouseEvent *event)
 
 void ScreenDrawer::wheelEvent ( QWheelEvent * event )
 {
-    qreal oldScale = m_scale;
-    qreal scf = (event->angleDelta().y() / 120.0);
-    m_scale += scf / zoomFactor();
-    if(m_scale <= 0.001)
-    {
-        m_scale = oldScale;
-    }
+    qreal scf = event->angleDelta().y() / 120.0;
+    double newZoom = m_zoomFactor * (1.0 + scf * 0.02);
+    if (newZoom > 0.1)
+        m_zoomFactor = newZoom;
 }

@@ -159,7 +159,8 @@ void TTToolButtonStyle::drawComplexControl(ComplexControl cc, const QStyleOption
                 if (mflags & (State_Sunken | State_On | State_Raised))
                     proxy()->drawPrimitive(PE_IndicatorButtonDropDown, &tool, p, widget);
                 proxy()->drawPrimitive(PE_IndicatorArrowDown, &tool, p, widget);
-            } else if (toolbutton->features & QStyleOptionToolButton::HasMenu) {
+            } else if ((toolbutton->features & QStyleOptionToolButton::HasMenu) &&
+                       toolbutton->toolButtonStyle != Qt::ToolButtonTextOnly) {
                 int mbi = proxy()->pixelMetric(PM_MenuButtonIndicator, toolbutton, widget);
                 QRect ir = toolbutton->rect;
                 QStyleOptionToolButton newBtn = *toolbutton;

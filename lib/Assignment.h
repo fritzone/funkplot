@@ -96,6 +96,7 @@ struct Assignment : public Stepped, public Statement, public QEnableSharedFromTh
     /***********************************************************************************************/
 
     QString varName;                     // the name of the object we will refer to in later code (such as: plot assignedStuff)
+    QString label;                       // optional display name drawn next to the point (set via as "NAME")
     QString targetProperties;            // the name of the properties of the assigned objects, such as: points. If targetProperties is "arythmetic" then a new function is created and evaluated at run time
     bool precalculatedSetForce = false;
     std::tuple<bool, double, double, bool, double, int> lastPrecalculatedIntervalData {false, std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), false,std::numeric_limits<double>::quiet_NaN(), 0};

@@ -4,6 +4,9 @@
 
 #include "PointArrayAssignment.h"
 #include "PointsOfObjectAssignment.h"
+#include "PointDefinitionAssignment.h"
+#include "PointIntersectionAssignment.h"
+#include "PointOnSegmentAssignment.h"
 #include "RuntimeProvider.h"
 
 bool Rotation::execute(RuntimeProvider *rp)
@@ -12,7 +15,7 @@ bool Rotation::execute(RuntimeProvider *rp)
     {
         if(what == adef->varName || what + ":" == adef->varName)
         {
-            auto pointDefinitionAssignment = rp->getAssignmentAs<PointArrayAssignment>(adef->varName);
+            auto pointDefinitionAssignment = rp->getAssignmentAs<PointDefinitionAssignment>(adef->varName);
 
             // first implemented rotation: a point of object
             if(pointDefinitionAssignment)
@@ -21,19 +24,35 @@ bool Rotation::execute(RuntimeProvider *rp)
             }
             else
             {
-                // second rotation: list of points
-                auto pointArrayAssignment = rp->getAssignmentAs<PointArrayAssignment>(adef->varName);
-                if(pointArrayAssignment)
+                auto pointIntersectionAssignment = rp->getAssignmentAs<PointIntersectionAssignment>(adef->varName);
+                if (pointIntersectionAssignment)
                 {
-                    pointArrayAssignment->rotate(getRotationPoint(), getAngle());
+                    pointIntersectionAssignment->rotate(getRotationPoint(), getAngle());
                 }
                 else
                 {
-                    // third option list of points of object
-                    auto pointsOfObjectAssignment = rp->getAssignmentAs<PointsOfObjectAssignment>(adef->varName);
-                    if(pointsOfObjectAssignment)
+                    auto pointOnSegmentAssignment = rp->getAssignmentAs<PointOnSegmentAssignment>(adef->varName);
+                    if (pointOnSegmentAssignment)
                     {
-                        pointsOfObjectAssignment->rotate(getRotationPoint(), getAngle());
+                        pointOnSegmentAssignment->rotate(getRotationPoint(), getAngle());
+                    }
+                    else
+                    {
+                        // second rotation: list of points
+                        auto pointArrayAssignment = rp->getAssignmentAs<PointArrayAssignment>(adef->varName);
+                        if(pointArrayAssignment)
+                        {
+                            pointArrayAssignment->rotate(getRotationPoint(), getAngle());
+                        }
+                        else
+                        {
+                            // third option list of points of object
+                            auto pointsOfObjectAssignment = rp->getAssignmentAs<PointsOfObjectAssignment>(adef->varName);
+                            if(pointsOfObjectAssignment)
+                            {
+                                pointsOfObjectAssignment->rotate(getRotationPoint(), getAngle());
+                            }
+                        }
                     }
                 }
             }

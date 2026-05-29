@@ -12,6 +12,9 @@ The following variable types are recognized in **fũnkplot**.
 
 - `number`
 - `point`
+- `segment`
+- `line`
+- `angle`
 - `list of numbers`. Please note the plural form of `number`.
 - `list of points`. Please note the plural form of `point`.
 
@@ -20,6 +23,8 @@ For easier readability it is recommended that you organize your variables by typ
 ```
 var a b c d i number
 var p1 p2 p3 point
+var s1 s2 segment
+var alpha beta angle
 var l1 l2 list of numbers
 var ps1 ps2 list of points
 ```

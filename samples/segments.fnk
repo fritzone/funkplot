@@ -1,0 +1,37 @@
+var s1 s2 s3 s4 s5 segment                                                                                                                                                  
+var p q point                                                                                                                                                                
+let p = point at (1,1) as "P"
+let q = point at (3,2) as "Q"
+var alpha angle                                                                                                                                                             
+                                                                                                                                                                              
+let alpha = 45 degrees                                                                                                                                                      
+                                                                                                                                                                              
+# 1. From a point in a direction for a length (p is the start)                                                                                                              
+let s1 = segment from p length 10 at alpha as "AB"
+let s2 = segment from p length 10 at 30 degrees as "CD"   # inline angle                                                                                                           
+                                                                                                                                                                              
+# 2. Centered at a point (p is the midpoint)                                                                                                                                
+let s3 = segment centered at p length 10 at alpha                                                                                                                           
+let s4 = segment centered at p length 8 at 90 degrees                                                                                                                       
+                                                                                                                                                                              
+# 3. Through a point, parallel to another segment                                                                                                                           
+let s5 = segment through q parallel to s1 length 6 as "PJ"
+
+set pixel size 2
+plot p
+plot q
+
+set labels off
+
+set color orange
+draw segment s1
+set labels on
+
+set color coral
+draw segment s2
+
+set color aquamarine
+draw segment s4
+set color darkred
+draw segment s5
+
