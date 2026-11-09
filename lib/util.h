@@ -196,7 +196,7 @@ class syntax_error_exception : public std::exception
 public:
 #ifndef _MSC_VER
     template<class ... Args>
-    syntax_error_exception(int en, const char* fmt, Args& ...args) : errst(format(fmt, std::forward<Args>(args)...)), error_number(en)
+    syntax_error_exception(int en, const char* fmt, Args& ...args) : errst(funkplot::format(fmt, std::forward<Args>(args)...)), error_number(en)
     {
         //doPrint(std::cout, std::forward<Args>(args)...);
     }
