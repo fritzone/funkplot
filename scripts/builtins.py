@@ -70,30 +70,42 @@ def unlatexize(s):
 # Renders the function, with the script code and template script
 #
 def render_function(fun_name, lscript, tscript):
-
     dir_path = os.getcwd()
 
+    # Use os.path.join to handle path separators safely on both Linux and Windows
+    fnk_path = os.path.join(dir_path, f"{fun_name}.fnk")
+    t_fnk_path = os.path.join(dir_path, f"{fun_name}.t.fnk")
+    png_path = os.path.join(dir_path, f"{fun_name}.g.png")
 
-    with open(dir_path + "/" + fun_name + ".fnk", "w") as fq:
+    with open(fnk_path, "w") as fq:
         fq.write(lscript)
-    with open(dir_path + "/" + fun_name + ".t.fnk", "w") as fq:
+    with open(t_fnk_path, "w") as fq:
         fq.write(tscript)
 
+    # Determine the correct compiler binary name based on the OS
+    compiler_binary = "Debug\\funkplot-compiler.exe" if os.name == 'nt' else "funkplot-compiler"
+    compiler_path = os.path.join(dir_path, "compiler", compiler_binary)
 
-    comp = [dir_path + "/compiler/funkplot-compiler", 
-                "--width", str(genwidth), 
-                "--height", str(genheight), 
-                dir_path + "/" + fun_name + ".fnk", 
-                dir_path + "/" + fun_name + ".g.png"]
+    comp = [
+        compiler_path, 
+        "--width", str(genwidth), 
+        "--height", str(genheight), 
+        fnk_path, 
+        png_path
+    ]
 
     print(" ".join(comp))
 
-    result = subprocess.run(comp, check=True)
-
-    # Check the return code
-    if result.returncode != 0:
-        print(f"Command failed with return code {result.returncode}")
+    try:
+        # subprocess.run with check=True automatically raises an exception if the return code is non-zero
+        result = subprocess.run(comp, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed with return code {e.returncode}")
         sys.exit(1)
+    except FileNotFoundError:
+        print(f"Error: Could not find the compiler executable at {compiler_path}")
+        sys.exit(1)
+
 
 #
 # Create a function with cartesian/polar coordinates

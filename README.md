@@ -10,7 +10,7 @@ After generation these plots and surfaces can be exported into various formats f
 
 ## About
 
-**funkplot** is © 2022 - 2023 [The Unauthorized Frog Project](https://www.facebook.com/TheUnauthorizedFrog/) 
+**funkplot** is © 2022 - 2026 [The Unauthorized Frog Project](https://www.facebook.com/TheUnauthorizedFrog/) 
 
 ### License
 

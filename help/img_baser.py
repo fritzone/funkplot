@@ -38,8 +38,9 @@ for fn in files:
             for line in lines:
 
                 # remove the offending font loader
-                if line.find(to_remove):
-                    line.replace(to_remove, "")
+                if to_remove in line:
+                    line = line.replace(to_remove, "")
+                    needs_patching = True
 
                 imgsrc_pos = line.find("img src")
                 if imgsrc_pos != -1 and fn != "functions.html":
@@ -50,14 +51,19 @@ for fn in files:
                     # get all img srcs from the file
                     while imgsrc_pos != -1:
                         
+                        # the src can be quoted with either " or ', read until the matching one
                         s_idx = imgsrc_pos
-                        while s_idx < len(line) and line[s_idx] != '"':
+                        while s_idx < len(line) and line[s_idx] not in '"\'':
                             s_idx = s_idx + 1
+                        quote = line[s_idx] if s_idx < len(line) else '"'
                         s_idx = s_idx + 1
                         img_name = ""
-                        while s_idx < len(line) and line[s_idx] != '"':
+                        while s_idx < len(line) and line[s_idx] != quote:
                             img_name = img_name + line[s_idx]
                             s_idx = s_idx + 1
+                        if quote != '"':
+                            # the src is written back with a ", so the closing quote must match
+                            line = line[:s_idx] + '"' + line[s_idx + 1:]
                         command = "/usr/bin/base64 -w 0 " + img_name
 
                         if img_name.startswith("/"):
@@ -71,7 +77,7 @@ for fn in files:
 
                         if imgsrc_pos == -1:
                             # ending the line, no more images after this, contains the closing " for the img src
-                            file_patch += line[s_idx:]
+                            file_patch += line[s_idx:] + "\n"
                         else:
                             # file_patch += '"'  # closing quote
                             # pull in everything from s_idx to imgsrc_pos

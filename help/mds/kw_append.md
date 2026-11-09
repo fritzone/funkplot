@@ -53,4 +53,4 @@ plot l
 
 Will generate the following plot:
 
-<img src="/home/fld/work/p/funkplot/help/mds/imgs/append_1.png" alt="image-20230105112755505" style="zoom: 33%;" />
+<img src="imgs/append_1.png" alt="image-20230105112755505" style="zoom: 33%;" />

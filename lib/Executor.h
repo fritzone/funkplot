@@ -9,8 +9,8 @@
 #include <functional>
 
 class RuntimeProvider;
-class Assignment;
-class Plot;
+struct Assignment;
+struct Plot;
 
 using LastPlotData = std::tuple<bool, double, double, bool, double, int>;
 

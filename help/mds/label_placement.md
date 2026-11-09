@@ -2,7 +2,7 @@
 
 By default **fũnkplot** draws every point label at 45° (upper-right), 12 px away from the dot. Four families of `set label` / `set labels` commands let you override every aspect of that placement, either globally or on a per-point basis.
 
-<img src="/home/fld/work/p/funkplot/help/mds/imgs/label_placement.png" alt="Label placement demo" style="zoom:50%;" />
+<img src="imgs/label_placement.png" alt="Label placement demo" style="zoom:50%;" />
 
 ---
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>
 
-<link href='https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext' rel='stylesheet' type='text/css' /><style type='text/css'>html {overflow-x: initial !important;}:root { --bg-color:#ffffff; --text-color:#333333; --select-text-bg-color:#B5D6FC; --select-text-font-color:auto; --monospace:"Lucida Console",Consolas,"Courier",monospace; --title-bar-height:20px; }
+<style type='text/css'>html {overflow-x: initial !important;}:root { --bg-color:#ffffff; --text-color:#333333; --select-text-bg-color:#B5D6FC; --select-text-font-color:auto; --monospace:"Lucida Console",Consolas,"Courier",monospace; --title-bar-height:20px; }
 .mac-os-11 { --title-bar-height:28px; }
 html { font-size: 14px; background-color: var(--bg-color); color: var(--text-color); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
 body { margin: 0px; padding: 0px; height: auto; inset: 0px; font-size: 1rem; line-height: 1.42857; overflow-x: hidden; background: inherit; tab-size: 4; }
@@ -288,7 +288,7 @@ span.cm-strikethrough { text-decoration: line-through; }
     --control-text-color: #777;
 }
 
-@include-when-export url(https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext);
+
 
 /* open-sans-regular - latin-ext_latin */
   /* open-sans-italic - latin-ext_latin */
@@ -668,10 +668,190 @@ header, .context-menu, .megamenu-content, footer{
 }
 
 
- .typora-export li, .typora-export p, .typora-export,  .footnote-line {white-space: normal;}
+
+mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+  min-height: 1px;
+  min-width: 1px;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-assistive-mml {
+  position: absolute !important;
+  top: 0px;
+  left: 0px;
+  clip: rect(1px, 1px, 1px, 1px);
+  padding: 1px 0px 0px 0px !important;
+  border: 0px !important;
+  display: block !important;
+  width: auto !important;
+  overflow: hidden !important;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+mjx-assistive-mml[display="block"] {
+  width: 100% !important;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][display="true"][width="full"] {
+  display: flex;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line], svg[data-table] > g > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame], svg[data-table] > g > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed, svg[data-table] > g > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted, svg[data-table] > g > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > g > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] path[data-c], mjx-container[jax="SVG"] use[data-c] {
+  stroke-width: 3;
+}
+
+g[data-mml-node="xypic"] path {
+  stroke-width: inherit;
+}
+
+.MathJax g[data-mml-node="xypic"] path {
+  stroke-width: inherit;
+}
+mjx-container[jax="SVG"] path[data-c], mjx-container[jax="SVG"] use[data-c] {
+							stroke-width: 0;
+						} .typora-export li, .typora-export p, .typora-export,  .footnote-line {white-space: normal;}
 </style><title>kw_if</title>
 </head>
 <body class='typora-export'><div class='typora-export-content'>
-<div id='write'  class=''><h2 id='the-if-keyword'><span>The </span><strong><span>if</span></strong><span> keyword</span></h2><p><span>The </span><code>if</code><span> keyword is used to execute a block of code depending on the value of an expression. The generic form of </span><code>if</code><span> is:</span></p><pre class="md-fences md-end-block ty-contain-cm modeLoaded" spellcheck="false" lang=""><div class="CodeMirror cm-s-inner cm-s-null-scroll" lang=""><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 9.51801px; left: 7.99695px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 0px; min-width: 188.455px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines" role="presentation"><div role="presentation" style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code" role="presentation" style=""><div class="CodeMirror-activeline" style="position: relative;"><div class="CodeMirror-activeline-background CodeMirror-linebackground"></div><div class="CodeMirror-gutter-background CodeMirror-activeline-gutter" style="left: 0px; width: 0px;"></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">var i number</span></pre></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">let i = 4</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">if i == 4 do</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">  python script begin</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">    print(i)</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">  end</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">done</span></pre></div></div></div></div></div><div style="position: absolute; height: 0px; width: 1px; border-bottom: 0px solid transparent; top: 161px;"></div><div class="CodeMirror-gutters" style="display: none; height: 161px;"></div></div></div></pre><p><span>This will declare a variable</span><code>i</code><span>, and assign the value </span><code>4</code><span> to it, upon execution it will print the value to the output window:</span></p><pre class="md-fences md-end-block ty-contain-cm modeLoaded" spellcheck="false" lang=""><div class="CodeMirror cm-s-inner cm-s-null-scroll" lang=""><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 9.51801px; left: 7.99695px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 0px; min-width: 32.9208px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines" role="presentation"><div role="presentation" style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code" role="presentation"><div class="CodeMirror-activeline" style="position: relative;"><div class="CodeMirror-activeline-background CodeMirror-linebackground"></div><div class="CodeMirror-gutter-background CodeMirror-activeline-gutter" style="left: 0px; width: 0px;"></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">4.0</span></pre></div></div></div></div></div></div><div style="position: absolute; height: 0px; width: 1px; border-bottom: 0px solid transparent; top: 23px;"></div><div class="CodeMirror-gutters" style="display: none; height: 23px;"></div></div></div></pre><p><span>The </span><code>if</code><span> can have an </span><code>else</code><span> branch too:</span></p><pre class="md-fences md-end-block ty-contain-cm modeLoaded" spellcheck="false" lang="" style="break-inside: unset;"><div class="CodeMirror cm-s-inner cm-s-null-scroll" lang=""><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 9.51801px; left: 7.99695px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 0px; min-width: 369.911px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines" role="presentation"><div role="presentation" style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code" role="presentation" style=""><div class="CodeMirror-activeline" style="position: relative;"><div class="CodeMirror-activeline-background CodeMirror-linebackground"></div><div class="CodeMirror-gutter-background CodeMirror-activeline-gutter" style="left: 0px; width: 0px;"></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">set pixel size 4</span></pre></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">var ps list of points</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">var i number</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">function f(x) = x</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">let ps = points of f over (0, 1) counts 16</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">for i = 0 to 15 do</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="" cm-zwsp="">
-</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">  if i % 2 == 0 do</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">    set color red</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">  else</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">    set color blue</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">  done</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="" cm-zwsp="">
-</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">  plot ps[i]</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">done</span></pre></div></div></div></div></div><div style="position: absolute; height: 0px; width: 1px; border-bottom: 0px solid transparent; top: 346px;"></div><div class="CodeMirror-gutters" style="display: none; height: 346px;"></div></div></div></pre><p><span>This will generate the following plot:</span></p><p><img src="data:image/png;base64, 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" alt="image-20221012104843960" style="zoom: 33%;" /></p></div></div></body></html>
+<div id='write'  class=''><h2 id='the-if-keyword'>The <strong>if</strong> keyword</h2>
+<p>The <code>if</code> keyword is used to execute a block of code depending on the value of an expression. The generic form of <code>if</code> is:</p>
+<pre class="md-fences md-end-block" spellcheck="false" lang="">var i number
+let i = 4
+if i == 4 do
+  python script begin
+    print(i)
+  end
+done
+</pre>
+<p>This will declare a variable<code>i</code>, and assign the value <code>4</code> to it, upon execution it will print the value to the output window:</p>
+<pre class="md-fences md-end-block" spellcheck="false" lang="">4.0
+</pre>
+<p>The <code>if</code> can have an <code>else</code> branch too:</p>
+<pre class="md-fences md-end-block" spellcheck="false" lang="">set pixel size 4
+var ps list of points
+var i number
+function f(x) = x
+let ps = points of f over (0, 1) counts 16
+for i = 0 to 15 do
+
+  if i % 2 == 0 do
+    set color red
+  else
+    set color blue
+  done
+
+  plot ps[i]
+done
+</pre>
+<p>This will generate the following plot:</p>
+<img src="data:image/png;base64,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" alt="image-20221012104843960" style="zoom: 33%;" />
+</div></div>
+</body>
+</html>

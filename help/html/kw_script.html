@@ -3,7 +3,7 @@
 <head>
 <meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>
 
-<link href='https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext' rel='stylesheet' type='text/css' /><style type='text/css'>html {overflow-x: initial !important;}:root { --bg-color:#ffffff; --text-color:#333333; --select-text-bg-color:#B5D6FC; --select-text-font-color:auto; --monospace:"Lucida Console",Consolas,"Courier",monospace; --title-bar-height:20px; }
+<style type='text/css'>html {overflow-x: initial !important;}:root { --bg-color:#ffffff; --text-color:#333333; --select-text-bg-color:#B5D6FC; --select-text-font-color:auto; --monospace:"Lucida Console",Consolas,"Courier",monospace; --title-bar-height:20px; }
 .mac-os-11 { --title-bar-height:28px; }
 html { font-size: 14px; background-color: var(--bg-color); color: var(--text-color); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
 body { margin: 0px; padding: 0px; height: auto; inset: 0px; font-size: 1rem; line-height: 1.42857; overflow-x: hidden; background: inherit; tab-size: 4; }
@@ -288,7 +288,7 @@ span.cm-strikethrough { text-decoration: line-through; }
     --control-text-color: #777;
 }
 
-@include-when-export url(https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext);
+
 
 /* open-sans-regular - latin-ext_latin */
   /* open-sans-italic - latin-ext_latin */
@@ -596,7 +596,7 @@ code {
     opacity: 1;
 }
 
-.md-toc { 
+.md-toc {
     margin-top:20px;
     padding-bottom:20px;
 }
@@ -664,23 +664,257 @@ header, .context-menu, .megamenu-content, footer{
 
 .menu-item-container a.menu-style-btn {
     background-color: #f5f8fa;
-    background-image: linear-gradient( 180deg , hsla(0, 0%, 100%, 0.8), hsla(0, 0%, 100%, 0)); 
+    background-image: linear-gradient( 180deg , hsla(0, 0%, 100%, 0.8), hsla(0, 0%, 100%, 0));
 }
 
 
- .typora-export li, .typora-export p, .typora-export,  .footnote-line {white-space: normal;} 
+
+mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+  min-height: 1px;
+  min-width: 1px;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-assistive-mml {
+  position: absolute !important;
+  top: 0px;
+  left: 0px;
+  clip: rect(1px, 1px, 1px, 1px);
+  padding: 1px 0px 0px 0px !important;
+  border: 0px !important;
+  display: block !important;
+  width: auto !important;
+  overflow: hidden !important;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+mjx-assistive-mml[display="block"] {
+  width: 100% !important;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][display="true"][width="full"] {
+  display: flex;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line], svg[data-table] > g > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame], svg[data-table] > g > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed, svg[data-table] > g > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted, svg[data-table] > g > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > g > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] path[data-c], mjx-container[jax="SVG"] use[data-c] {
+  stroke-width: 3;
+}
+
+g[data-mml-node="xypic"] path {
+  stroke-width: inherit;
+}
+
+.MathJax g[data-mml-node="xypic"] path {
+  stroke-width: inherit;
+}
+mjx-container[jax="SVG"] path[data-c], mjx-container[jax="SVG"] use[data-c] {
+							stroke-width: 0;
+						} .typora-export li, .typora-export p, .typora-export,  .footnote-line {white-space: normal;}
 </style><title>kw_script</title>
 </head>
 <body class='typora-export'><div class='typora-export-content'>
-<div id='write'  class=''><h2 id='the-script-keyword'><span>The </span><strong><span>script</span></strong><span> keyword</span></h2><p><span>It is possible to embed python scripts in </span><strong><span>fũnkplot</span></strong><span> code. The following syntax is used to achieve this:</span></p><pre class="md-fences md-end-block ty-contain-cm modeLoaded" spellcheck="false" lang=""><div class="CodeMirror cm-s-inner cm-s-null-scroll" lang=""><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 9.51801px; left: 7.99695px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 0px; min-width: 179.818px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines" role="presentation"><div role="presentation" style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code" role="presentation" style=""><div class="CodeMirror-activeline" style="position: relative;"><div class="CodeMirror-activeline-background CodeMirror-linebackground"></div><div class="CodeMirror-gutter-background CodeMirror-activeline-gutter" style="left: 0px; width: 0px;"></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">python script begin</span></pre></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">#</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"># proper python code</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">#</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">end</span></pre></div></div></div></div></div><div style="position: absolute; height: 0px; width: 1px; border-bottom: 0px solid transparent; top: 115px;"></div><div class="CodeMirror-gutters" style="display: none; height: 115px;"></div></div></div></pre><p><span>The python script will have access to the variables defined in the </span><strong><span>fũnkplot</span></strong><span> code in the following manner:</span></p><ul><li><span>Variables with the type </span><code>number</code><span> will be treated as python floating point types.</span></li><li><span>For variables with type </span><code>point</code><span> a new type is created, called </span><code>Point</code><span> and it is introduced in the python propgram, having a simple structure with </span><code>x</code><span> and </span><code>y</code><span> members:</span></li></ul><pre class="md-fences md-end-block ty-contain-cm modeLoaded" spellcheck="false" lang="python"><div class="CodeMirror cm-s-inner cm-s-null-scroll" lang="python"><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 9.51801px; left: 7.99695px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 0px; min-width: 257.606px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines" role="presentation"><div role="presentation" style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code" role="presentation"><div class="CodeMirror-activeline" style="position: relative;"><div class="CodeMirror-activeline-background CodeMirror-linebackground"></div><div class="CodeMirror-gutter-background CodeMirror-activeline-gutter" style="left: 0px; width: 0px;"></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span class="cm-keyword">class</span> <span class="cm-def">Point</span>(<span class="cm-builtin">object</span>):</span></pre></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">    <span class="cm-keyword">def</span> <span class="cm-def">__init__</span>(<span class="cm-variable-2">self</span>, <span class="cm-variable">x</span>, <span class="cm-variable">y</span>):</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">        <span class="cm-variable-2">self</span>.<span class="cm-property">x</span> <span class="cm-operator">=</span> <span class="cm-variable">x</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">        <span class="cm-variable-2">self</span>.<span class="cm-property">y</span> <span class="cm-operator">=</span> <span class="cm-variable">y</span></span></pre></div></div></div></div></div><div style="position: absolute; height: 0px; width: 1px; border-bottom: 0px solid transparent; top: 92px;"></div><div class="CodeMirror-gutters" style="display: none; height: 92px;"></div></div></div></pre><ul><li><span>All the variables that are in the </span><strong><span>fũnkplot</span></strong><span> program are added as an extra codeline before the script is copied over.</span></li></ul><h3 id='example'><span>Example</span></h3><pre class="md-fences md-end-block ty-contain-cm modeLoaded" spellcheck="false" lang="" style="break-inside: unset;"><div class="CodeMirror cm-s-inner cm-s-null-scroll" lang=""><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 9.51801px; left: 7.99695px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 0px; min-width: 439.035px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines" role="presentation"><div role="presentation" style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code" role="presentation" style=""><div class="CodeMirror-activeline" style="position: relative;"><div class="CodeMirror-activeline-background CodeMirror-linebackground"></div><div class="CodeMirror-gutter-background CodeMirror-activeline-gutter" style="left: 0px; width: 0px;"></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">var i number</span></pre></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">var p point</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">var ps list of points</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">var ns list of numbers</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="" cm-zwsp="">
-</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">function f(x) = sin(x)</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="" cm-zwsp="">
-</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">let i = 0</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">let p = point at (1,2)</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">let ps = points of f counts 6</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">let ns = list [1,2,3,5,8,11]</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="" cm-zwsp="">
-</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">python script begin</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="" cm-zwsp="">
-</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">print("i=", i)</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">print("p=(", p.x, ",", p.y, ")")</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">l = 0</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">while l &lt; len(ps):</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">  print("ps[",l,"]=(", ps[l].x, ",", ps[l].y, ")")</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">  l += 1</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="" cm-zwsp="">
-</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">for l in range(len(ns)):</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">  print(ns[l])</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="" cm-zwsp="">
-</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">end</span></pre></div></div></div></div></div><div style="position: absolute; height: 0px; width: 1px; border-bottom: 0px solid transparent; top: 576px;"></div><div class="CodeMirror-gutters" style="display: none; height: 576px;"></div></div></div></pre><p><span>Will generate the following python script:</span></p><pre class="md-fences md-end-block ty-contain-cm modeLoaded" spellcheck="false" lang="python" style="break-inside: unset;"><div class="CodeMirror cm-s-inner cm-s-null-scroll" lang="python"><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 9.51801px; left: 7.99695px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 0px; min-width: 1441.5px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines" role="presentation"><div role="presentation" style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code" role="presentation" style=""><div class="CodeMirror-activeline" style="position: relative;"><div class="CodeMirror-activeline-background CodeMirror-linebackground"></div><div class="CodeMirror-gutter-background CodeMirror-activeline-gutter" style="left: 0px; width: 0px;"></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span class="cm-keyword">class</span> <span class="cm-def">Point</span>(<span class="cm-builtin">object</span>):</span></pre></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">    <span class="cm-keyword">def</span> <span class="cm-def">__init__</span>(<span class="cm-variable-2">self</span>, <span class="cm-variable">x</span>, <span class="cm-variable">y</span>):</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">        <span class="cm-variable-2">self</span>.<span class="cm-property">x</span> <span class="cm-operator">=</span> <span class="cm-variable">x</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">        <span class="cm-variable-2">self</span>.<span class="cm-property">y</span> <span class="cm-operator">=</span> <span class="cm-variable">y</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span class="cm-variable">ps</span><span class="cm-operator">=</span>[<span class="cm-variable">Point</span>(<span class="cm-operator">-</span><span class="cm-number">1.000000</span>, <span class="cm-operator">-</span><span class="cm-number">0.841471</span>),<span class="cm-variable">Point</span>(<span class="cm-operator">-</span><span class="cm-number">0.600000</span>, <span class="cm-operator">-</span><span class="cm-number">0.564642</span>),<span class="cm-variable">Point</span>(<span class="cm-operator">-</span><span class="cm-number">0.200000</span>, <span class="cm-operator">-</span><span class="cm-number">0.198669</span>),<span class="cm-variable">Point</span>(<span class="cm-number">0.200000</span>, <span class="cm-number">0.198669</span>),<span class="cm-variable">Point</span>(<span class="cm-number">0.600000</span>, <span class="cm-number">0.564642</span>),<span class="cm-variable">Point</span>(<span class="cm-number">1.000000</span>, <span class="cm-number">0.841471</span>)]</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span class="cm-variable">p</span><span class="cm-operator">=</span><span class="cm-variable">Point</span>(<span class="cm-number">1.000000</span>, <span class="cm-number">2.000000</span>)</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span class="cm-variable">ns</span><span class="cm-operator">=</span>[<span class="cm-number">1.000000</span>, <span class="cm-number">2.000000</span>, <span class="cm-number">3.000000</span>, <span class="cm-number">5.000000</span>, <span class="cm-number">8.000000</span>, <span class="cm-number">11.000000</span>]</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span class="cm-variable">i</span><span class="cm-operator">=</span><span class="cm-number">0.000000</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="" cm-zwsp="">
-</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span class="cm-builtin">print</span>(<span class="cm-string">"i="</span>, <span class="cm-variable">i</span>)</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span class="cm-builtin">print</span>(<span class="cm-string">"p=("</span>, <span class="cm-variable">p</span>.<span class="cm-property">x</span>, <span class="cm-string">","</span>, <span class="cm-variable">p</span>.<span class="cm-property">y</span>, <span class="cm-string">")"</span>)</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span class="cm-variable">l</span> <span class="cm-operator">=</span> <span class="cm-number">0</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span class="cm-keyword">while</span> <span class="cm-variable">l</span> <span class="cm-operator">&lt;</span> <span class="cm-builtin">len</span>(<span class="cm-variable">ps</span>):</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">  <span class="cm-builtin cm-error">print</span>(<span class="cm-string">"ps["</span>,<span class="cm-variable">l</span>,<span class="cm-string">"]=("</span>, <span class="cm-variable">ps</span>[<span class="cm-variable">l</span>].<span class="cm-property">x</span>, <span class="cm-string">","</span>, <span class="cm-variable">ps</span>[<span class="cm-variable">l</span>].<span class="cm-property">y</span>, <span class="cm-string">")"</span>)</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">  <span class="cm-variable">l</span> <span class="cm-operator">+=</span> <span class="cm-number">1</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="" cm-zwsp="">
-</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span class="cm-keyword">for</span> <span class="cm-variable">l</span> <span class="cm-keyword">in</span> <span class="cm-builtin">range</span>(<span class="cm-builtin">len</span>(<span class="cm-variable">ns</span>)):</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">  <span class="cm-builtin cm-error">print</span>(<span class="cm-variable">ns</span>[<span class="cm-variable">l</span>])</span></pre></div></div></div></div></div><div style="position: absolute; height: 0px; width: 1px; border-bottom: 0px solid transparent; top: 415px;"></div><div class="CodeMirror-gutters" style="display: none; height: 415px;"></div></div></div></pre><p><span>And the following output when executed:</span></p><pre class="md-fences md-end-block ty-contain-cm modeLoaded" spellcheck="false" lang="" style="break-inside: unset;"><div class="CodeMirror cm-s-inner cm-s-null-scroll" lang=""><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 9.51801px; left: 7.99695px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 0px; min-width: 248.942px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines" role="presentation"><div role="presentation" style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code" role="presentation" style=""><div class="CodeMirror-activeline" style="position: relative;"><div class="CodeMirror-activeline-background CodeMirror-linebackground"></div><div class="CodeMirror-gutter-background CodeMirror-activeline-gutter" style="left: 0px; width: 0px;"></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">i= 0.0</span></pre></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">p=( 1.0 , 2.0 )</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">ps[ 0 ]=( -1.0 , -0.841471 )</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">ps[ 1 ]=( -0.6 , -0.564642 )</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">ps[ 2 ]=( -0.2 , -0.198669 )</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">ps[ 3 ]=( 0.2 , 0.198669 )</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">ps[ 4 ]=( 0.6 , 0.564642 )</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">ps[ 5 ]=( 1.0 , 0.841471 )</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">1.0</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">2.0</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">3.0</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">5.0</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">8.0</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">11.0</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="" cm-zwsp="">
-</span></span></pre></div></div></div></div></div><div style="position: absolute; height: 0px; width: 1px; border-bottom: 0px solid transparent; top: 346px;"></div><div class="CodeMirror-gutters" style="display: none; height: 346px;"></div></div></div></pre><p>&nbsp;</p><p>&nbsp;</p></div></div>
+<div id='write'  class=''><h2 id='the-script-keyword'>The <strong>script</strong> keyword</h2>
+<p>It is possible to embed python scripts in <strong>fũnkplot</strong> code, if <strong>fũnkplot</strong> was built with python support (the <code>ENABLE_PYTHON</code> build option, which is on by default). The following syntax is used to insert a block of python scriptlets:</p>
+<pre class="md-fences md-end-block" spellcheck="false" lang="">python script begin
+#
+# proper python code
+#
+end
+</pre>
+<p>And the following is to run one line python commands:</p>
+<pre class="md-fences md-end-block" spellcheck="false" lang="">python do &lt;a valid python statement&gt;
+</pre>
+<p>The python script will have access to the variables defined in the <strong>fũnkplot</strong> code in the following manner:</p>
+<ul>
+<li>Variables with the type <code>number</code> will be treated as python floating point types.</li>
+<li>For variables with type <code>point</code> a new type is created, called <code>Point</code> and it is introduced in the python propgram, having a simple structure with <code>x</code> and <code>y</code> members:</li>
+</ul>
+<pre class="md-fences md-end-block" spellcheck="false" lang="">class Point(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+</pre>
+<ul>
+<li>All the variables that are in the <strong>fũnkplot</strong> program are added as an extra codeline before the script is copied over.</li>
+</ul>
+<h3 id='example'>Example</h3>
+<h4 id='python-block'>Python block</h4>
+<pre class="md-fences md-end-block" spellcheck="false" lang="">var i number
+var p point
+var ps list of points
+var ns list of numbers
+
+function f(x) = sin(x)
+
+let i = 0
+let p = point at (1,2)
+let ps = points of f counts 6
+let ns = list [1,2,3,5,8,11]
+
+python script begin
+
+print(&quot;i=&quot;, i)
+print(&quot;p=(&quot;, p.x, &quot;,&quot;, p.y, &quot;)&quot;)
+l = 0
+while l &lt; len(ps):
+  print(&quot;ps[&quot;,l,&quot;]=(&quot;, ps[l].x, &quot;,&quot;, ps[l].y, &quot;)&quot;)
+  l += 1
+
+for l in range(len(ns)):
+  print(ns[l])
+
+end
+</pre>
+<p>Will generate the following python script:</p>
+<pre class="md-fences md-end-block" spellcheck="false" lang="">class Point(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+ps=[Point(-1.000000, -0.841471),Point(-0.600000, -0.564642),Point(-0.200000, -0.198669),Point(0.200000, 0.198669),Point(0.600000, 0.564642),Point(1.000000, 0.841471)]
+p=Point(1.000000, 2.000000)
+ns=[1.000000, 2.000000, 3.000000, 5.000000, 8.000000, 11.000000]
+i=0.000000
+
+print(&quot;i=&quot;, i)
+print(&quot;p=(&quot;, p.x, &quot;,&quot;, p.y, &quot;)&quot;)
+l = 0
+while l &lt; len(ps):
+  print(&quot;ps[&quot;,l,&quot;]=(&quot;, ps[l].x, &quot;,&quot;, ps[l].y, &quot;)&quot;)
+  l += 1
+
+for l in range(len(ns)):
+  print(ns[l])
+</pre>
+<p>And the following output when executed:</p>
+<pre class="md-fences md-end-block" spellcheck="false" lang="">i= 0.0
+p=( 1.0 , 2.0 )
+ps[ 0 ]=( -1.0 , -0.841471 )
+ps[ 1 ]=( -0.6 , -0.564642 )
+ps[ 2 ]=( -0.2 , -0.198669 )
+ps[ 3 ]=( 0.2 , 0.198669 )
+ps[ 4 ]=( 0.6 , 0.564642 )
+ps[ 5 ]=( 1.0 , 0.841471 )
+1.0
+2.0
+3.0
+5.0
+8.0
+11.0
+
+</pre>
+<h4 id='one-line-python'>One line python</h4>
+<pre class="md-fences md-end-block" spellcheck="false" lang="">python do print(&quot;Hello Python&quot;) 
+</pre>
+<p>With the following output when executed:</p>
+<pre class="md-fences md-end-block" spellcheck="false" lang="">Hello Python
+</pre>
+</div></div>
 </body>
 </html>

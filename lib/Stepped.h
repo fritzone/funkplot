@@ -4,7 +4,7 @@
 #include <QSharedPointer>
 
 class Function;
-class Statement;
+struct Statement;
 
 /**
  * @brief The Stepped struct is representing something tha can be stepped, such

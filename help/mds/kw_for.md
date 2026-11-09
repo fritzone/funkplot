@@ -11,7 +11,7 @@ for i = 1 to 5 do
 done
 ```
 
-This will declare a variable`i`, and execute the body of the loop 5 times, which is calling a one line python script printing the value of i. The output should look like:
+This will declare a variable `i`, and execute the body of the loop 5 times, which is calling a one line python script printing the value of i. The loop variable has to be declared before the loop. The output should look like:
 
 ```
 1.0
@@ -19,6 +19,30 @@ This will declare a variable`i`, and execute the body of the loop 5 times, which
 3.0
 4.0
 5.0
+```
+
+By default the loop variable is increased by `1`, a different increment can be specified with the `step` keyword:
+
+```
+var i number
+var p point
+for i = 0 to 2 step 0.5 do
+  let p = point at (i, i)
+  plot p
+done
+```
+
+### Looping through a range
+
+The same numeric loop can be written with the `range` keyword, where the start and the end values are given in parentheses, optionally followed by a `step`:
+
+```
+var i number
+var p point
+for i in range (0, 5) step 1 do
+  let p = point at (i, i * i / 5)
+  plot p
+done
 ```
 
 ### Looping through a list
@@ -73,5 +97,5 @@ plot ps
 
 This will generate the following image:
 
-<img src="/home/fld/work/p/funkplot/help/mds/imgs/for_1.png" alt="image-20221006115636896" style="zoom:50%;" />
+<img src="imgs/for_1.png" alt="image-20221006115636896" style="zoom:50%;" />
 

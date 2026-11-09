@@ -13,6 +13,7 @@
                 <section title="A basic program" ref="html/program.html"></section>
             </section>
             <section title="Funkplot syntax reference" ref="html/keywords.html">
+                <section title="append keyword" ref="html/kw_append.html"></section>
                 <section title="for keyword" ref="html/kw_for.html"></section>
                 <section title="function keyword" ref="html/kw_function.html"></section>
                 <section title="if keyword" ref="html/kw_if.html"></section>
@@ -23,19 +24,27 @@
                 <section title="set keyword" ref="html/kw_set.html"></section>
                 <section title="var keyword" ref="html/kw_var.html"></section>
             </section>
-            <section title="Geometric objects" ref="html/geometry.html"></section>
+            <section title="Geometric objects" ref="html/geometry.html">
+                <section title="Label placement" ref="html/label_placement.html"></section>
+            </section>
             <section title="Miscellaneous" ref="html/misc.html">
         	<section title="Colours in funkplot" ref="html/colors.html"></section>
                 <section title="Palettes in funkplot" ref="html/palettes.html"></section>
                 <section title="Function database" ref="html/functions.html"></section>
+                <section title="Error messages" ref="html/error_messages.html"></section>
 	    </section>
         </toc>
         <keywords>
+            <keyword name="append" ref="html/kw_append.html"/>
+            <keyword name="draw" ref="html/geometry.html"/>
             <keyword name="for" ref="html/kw_for.html"/>
             <keyword name="function" ref="html/kw_function.html"/>
             <keyword name="if" ref="html/kw_if.html"/>
             <keyword name="let" ref="html/kw_let.html"/>
+            <keyword name="parametric" ref="html/kw_function.html"/>
             <keyword name="plot" ref="html/kw_plot.html"/>
+            <keyword name="polar" ref="html/kw_plot.html"/>
+            <keyword name="python" ref="html/kw_script.html"/>
             <keyword name="rotate" ref="html/kw_rotate.html"/>
             <keyword name="script" ref="html/kw_script.html"/>
             <keyword name="set" ref="html/kw_set.html"/>
@@ -52,6 +61,8 @@
             <file>html/gui.html</file>
             <file>html/intro.html</file>
             <file>html/keywords.html</file>
+            <file>html/label_placement.html</file>
+            <file>html/kw_append.html</file>
             <file>html/kw_for.html</file>
             <file>html/kw_function.html</file>
             <file>html/kw_if.html</file>

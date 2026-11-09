@@ -3,7 +3,7 @@
 <head>
 <meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>
 
-<link href='https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext' rel='stylesheet' type='text/css' /><style type='text/css'>html {overflow-x: initial !important;}:root { --bg-color:#ffffff; --text-color:#333333; --select-text-bg-color:#B5D6FC; --select-text-font-color:auto; --monospace:"Lucida Console",Consolas,"Courier",monospace; --title-bar-height:20px; }
+<style type='text/css'>html {overflow-x: initial !important;}:root { --bg-color:#ffffff; --text-color:#333333; --select-text-bg-color:#B5D6FC; --select-text-font-color:auto; --monospace:"Lucida Console",Consolas,"Courier",monospace; --title-bar-height:20px; }
 .mac-os-11 { --title-bar-height:28px; }
 html { font-size: 14px; background-color: var(--bg-color); color: var(--text-color); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
 body { margin: 0px; padding: 0px; height: auto; inset: 0px; font-size: 1rem; line-height: 1.42857; overflow-x: hidden; background: inherit; tab-size: 4; }
@@ -202,12 +202,93 @@ mark .md-meta { color: rgb(0, 0, 0); }
 mjx-container { break-inside: avoid; }
 
 
+.CodeMirror { height: auto; }
+.CodeMirror.cm-s-inner { background: inherit; }
+.CodeMirror-scroll { overflow: auto hidden; z-index: 3; }
+.CodeMirror-gutter-filler, .CodeMirror-scrollbar-filler { background-color: rgb(255, 255, 255); }
+.CodeMirror-gutters { border-right: 1px solid rgb(221, 221, 221); background: inherit; white-space: nowrap; }
+.CodeMirror-linenumber { padding: 0px 3px 0px 5px; text-align: right; color: rgb(153, 153, 153); }
+.cm-s-inner .cm-keyword { color: rgb(119, 0, 136); }
+.cm-s-inner .cm-atom, .cm-s-inner.cm-atom { color: rgb(34, 17, 153); }
+.cm-s-inner .cm-number { color: rgb(17, 102, 68); }
+.cm-s-inner .cm-def { color: rgb(0, 0, 255); }
+.cm-s-inner .cm-variable { color: rgb(0, 0, 0); }
+.cm-s-inner .cm-variable-2 { color: rgb(0, 85, 170); }
+.cm-s-inner .cm-variable-3 { color: rgb(0, 136, 85); }
+.cm-s-inner .cm-string { color: rgb(170, 17, 17); }
+.cm-s-inner .cm-property { color: rgb(0, 0, 0); }
+.cm-s-inner .cm-operator { color: rgb(152, 26, 26); }
+.cm-s-inner .cm-comment, .cm-s-inner.cm-comment { color: rgb(170, 85, 0); }
+.cm-s-inner .cm-string-2 { color: rgb(255, 85, 0); }
+.cm-s-inner .cm-meta { color: rgb(85, 85, 85); }
+.cm-s-inner .cm-qualifier { color: rgb(85, 85, 85); }
+.cm-s-inner .cm-builtin { color: rgb(51, 0, 170); }
+.cm-s-inner .cm-bracket { color: rgb(153, 153, 119); }
+.cm-s-inner .cm-tag { color: rgb(17, 119, 0); }
+.cm-s-inner .cm-attribute { color: rgb(0, 0, 204); }
+.cm-s-inner .cm-header, .cm-s-inner.cm-header { color: rgb(0, 0, 255); }
+.cm-s-inner .cm-quote, .cm-s-inner.cm-quote { color: rgb(0, 153, 0); }
+.cm-s-inner .cm-hr, .cm-s-inner.cm-hr { color: rgb(153, 153, 153); }
+.cm-s-inner .cm-link, .cm-s-inner.cm-link { color: rgb(0, 0, 204); }
+.cm-negative { color: rgb(221, 68, 68); }
+.cm-positive { color: rgb(34, 153, 34); }
+.cm-header, .cm-strong { font-weight: 700; }
+.cm-del { text-decoration: line-through; }
+.cm-em { font-style: italic; }
+.cm-link { text-decoration: underline; }
+.cm-error { color: red; }
+.cm-invalidchar { color: red; }
+.cm-constant { color: rgb(38, 139, 210); }
+.cm-defined { color: rgb(181, 137, 0); }
+div.CodeMirror span.CodeMirror-matchingbracket { color: rgb(0, 255, 0); }
+div.CodeMirror span.CodeMirror-nonmatchingbracket { color: rgb(255, 34, 34); }
+.cm-s-inner .CodeMirror-activeline-background { background: inherit; }
+.CodeMirror { position: relative; overflow: hidden; }
+.CodeMirror-scroll { height: 100%; outline: 0px; position: relative; box-sizing: content-box; background: inherit; }
+.CodeMirror-sizer { position: relative; }
+.CodeMirror-gutter-filler, .CodeMirror-hscrollbar, .CodeMirror-scrollbar-filler, .CodeMirror-vscrollbar { position: absolute; z-index: 6; display: none; outline: 0px; }
+.CodeMirror-vscrollbar { right: 0px; top: 0px; overflow: hidden; }
+.CodeMirror-hscrollbar { bottom: 0px; left: 0px; overflow: auto hidden; }
+.CodeMirror-scrollbar-filler { right: 0px; bottom: 0px; }
+.CodeMirror-gutter-filler { left: 0px; bottom: 0px; }
+.CodeMirror-gutters { position: absolute; left: 0px; top: 0px; padding-bottom: 10px; z-index: 3; overflow-y: hidden; }
+.CodeMirror-gutter { white-space: normal; height: 100%; box-sizing: content-box; padding-bottom: 30px; margin-bottom: -32px; display: inline-block; }
+.CodeMirror-gutter-wrapper { position: absolute; z-index: 4; background: 0px 0px !important; border: none !important; }
+.CodeMirror-gutter-background { position: absolute; top: 0px; bottom: 0px; z-index: 4; }
+.CodeMirror-gutter-elt { position: absolute; cursor: default; z-index: 4; }
+.CodeMirror-lines { cursor: text; }
+.CodeMirror pre { border-radius: 0px; border-width: 0px; background: 0px 0px; font-family: inherit; font-size: inherit; margin: 0px; white-space: pre; overflow-wrap: normal; color: inherit; z-index: 2; position: relative; overflow: visible; }
+.CodeMirror-wrap pre { overflow-wrap: break-word; white-space: pre-wrap; word-break: normal; }
+.CodeMirror-code pre { border-right: 30px solid transparent; width: fit-content; }
+.CodeMirror-wrap .CodeMirror-code pre { border-right: none; width: auto; }
+.CodeMirror-linebackground { position: absolute; inset: 0px; z-index: 0; }
+.CodeMirror-linewidget { position: relative; z-index: 2; overflow: auto; }
+.CodeMirror-wrap .CodeMirror-scroll { overflow-x: hidden; }
+.CodeMirror-measure { position: absolute; width: 100%; height: 0px; overflow: hidden; visibility: hidden; }
+.CodeMirror-measure pre { position: static; }
+.CodeMirror div.CodeMirror-cursor { position: absolute; visibility: hidden; border-right: none; width: 0px; }
+.CodeMirror div.CodeMirror-cursor { visibility: hidden; }
+.CodeMirror-focused div.CodeMirror-cursor { visibility: inherit; }
+.cm-searching { background: rgba(255, 255, 0, 0.4); }
+span.cm-underlined { text-decoration: underline; }
+span.cm-strikethrough { text-decoration: line-through; }
+.cm-tw-syntaxerror { color: rgb(255, 255, 255); background-color: rgb(153, 0, 0); }
+.cm-tw-deleted { text-decoration: line-through; }
+.cm-tw-header5 { font-weight: 700; }
+.cm-tw-listitem:first-child { padding-left: 10px; }
+.cm-tw-box { border-style: solid; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-color: inherit; border-top-width: 0px !important; }
+.cm-tw-underline { text-decoration: underline; }
+@media print {
+  .CodeMirror div.CodeMirror-cursor { visibility: hidden; }
+}
+
+
 :root {
     --side-bar-bg-color: #fafafa;
     --control-text-color: #777;
 }
 
-@include-when-export url(https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext);
+
 
 /* open-sans-regular - latin-ext_latin */
   /* open-sans-italic - latin-ext_latin */
@@ -515,7 +596,7 @@ code {
     opacity: 1;
 }
 
-.md-toc { 
+.md-toc {
     margin-top:20px;
     padding-bottom:20px;
 }
@@ -583,7 +664,7 @@ header, .context-menu, .megamenu-content, footer{
 
 .menu-item-container a.menu-style-btn {
     background-color: #f5f8fa;
-    background-image: linear-gradient( 180deg , hsla(0, 0%, 100%, 0.8), hsla(0, 0%, 100%, 0)); 
+    background-image: linear-gradient( 180deg , hsla(0, 0%, 100%, 0.8), hsla(0, 0%, 100%, 0));
 }
 
 
@@ -735,10 +816,330 @@ g[data-mml-node="xypic"] path {
 }
 mjx-container[jax="SVG"] path[data-c], mjx-container[jax="SVG"] use[data-c] {
 							stroke-width: 0;
-						} .typora-export li, .typora-export p, .typora-export,  .footnote-line {white-space: normal;} 
+						} .typora-export li, .typora-export p, .typora-export,  .footnote-line {white-space: normal;}
 </style><title>error_messages</title>
 </head>
 <body class='typora-export'><div class='typora-export-content'>
-<div id='write'  class=''><h2 id='error-messages'><span>Error messages</span></h2><p><span>The following error messages and associated codes are used in </span><strong><span>fũnkplot</span></strong><span>:</span></p><figure><table><thead><tr><th><span>ERROR</span></th><th><span>DESCRIPTION</span></th></tr></thead><tbody><tr><td><strong><span>0</span></strong></td><td><span>Erroneous looping conditions detected. A loop with a negative step value, but with the start value being smaller than the end might generate this error.</span></td></tr><tr><td><strong><span>1</span></strong></td><td><span>Invalid variable declaration. Not specifying the type of a variable might cause this error to pop up.</span></td></tr><tr><td><strong><span>2</span></strong></td><td><span>Invalid variable type. The list of valid variable types is </span><code>number</code><span>, </span><code>point</code><span> and </span><code>list</code><span>. Anything else will lead to this error.</span></td></tr><tr><td><strong><span>3</span></strong></td><td><span>Missing the keyword </span><b><span>of</span></b><span> in a statement.</span></td></tr><tr><td><strong><span>4</span></strong></td><td><span>Invalid list variable type.</span></td></tr><tr><td><strong><span>5</span></strong></td><td><span>Untyped lists are not supported.</span></td></tr><tr><td><strong><span>6</span></strong></td><td><span>Untyped lists are not supported</span></td></tr><tr><td><strong><span>7</span></strong></td><td><span>Index error</span></td></tr><tr><td><strong><span>8</span></strong></td><td><span>Variable was not declared</span></td></tr><tr><td><strong><span>9</span></strong></td><td><span>Invalid assignment (missing assignment operator)</span></td></tr><tr><td><strong><span>10</span></strong></td><td><span>Conflicting type assignment</span></td></tr><tr><td><strong><span>11</span></strong></td><td><span>Invalid point assignment</span></td></tr><tr><td><strong><span>12</span></strong></td><td><span>Conflicting type assignment: array assigned to a non array type</span></td></tr><tr><td><strong><span>13</span></strong></td><td><span>Invalid array assignment: missing </span><b><span>[</span></b><span> from the expression</span></td></tr><tr><td><strong><span>14</span></strong></td><td><span>Invalid assignment: arithmetic expression assigned to non numeric type</span></td></tr><tr><td><strong><span>15</span></strong></td><td><span>Invalid data to plot (not a point, not an indexed point, not a function)</span></td></tr><tr><td><strong><span>16</span></strong></td><td><span>Invalid function definition. Missing assignment in body</span></td></tr><tr><td><strong><span>17</span></strong></td><td><span>Improper parametrization of the given function.</span></td></tr><tr><td><strong><span>18</span></strong></td><td><span>Possible error in a statement. No data before a certain position.</span></td></tr><tr><td><strong><span>19</span></strong></td><td><span>Possible error in a statement. No data after a certain position</span></td></tr><tr><td><strong><span>20</span></strong></td><td><span>Syntax error in a statement. Unmatched empty parenthesis.</span></td></tr><tr><td><strong><span>21</span></strong></td><td><span>Error in a statement. Not found enclosing parenthesis</span></td></tr><tr><td><strong><span>22</span></strong></td><td><span>Possible error in a statement. No parameters were found for a function.</span></td></tr><tr><td><strong><span>23</span></strong></td><td><span>Possible error in statement. Meaningless use of a function.</span></td></tr><tr><td><strong><span>24</span></strong></td><td><span>Possible error in statement. No parameters for a function.</span></td></tr><tr><td><strong><span>25</span></strong></td><td><span>Invalid plotting interval</span></td></tr><tr><td><strong><span>26</span></strong></td><td><span>Possible error in statement. Improper power expression.</span></td></tr><tr><td><strong><span>27</span></strong></td><td><span>Possible error in formula. Looks like an invalid statement.</span></td></tr><tr><td><strong><span>28</span></strong></td><td><span>Possible error in a statement. No data before a certain position.</span></td></tr><tr><td><strong><span>29</span></strong></td><td><span>Possible error in a statement. No data after a certain position.</span></td></tr><tr><td><strong><span>30</span></strong></td><td><span>Possible error in a statement. The statement is not fully understood.</span></td></tr><tr><td><strong><span>31</span></strong></td><td><span>Unknown pixel property</span></td></tr><tr><td><strong><span>32</span></strong></td><td><span>Wrong palette indexing</span></td></tr><tr><td><strong><span>33</span></strong></td><td><span>Invalid color to set.</span></td></tr><tr><td><strong><span>34</span></strong></td><td><span>Cannot identify the object assigning from</span></td></tr><tr><td><strong><span>35</span></strong></td><td><span>Invalid statement</span></td></tr><tr><td><strong><span>36</span></strong></td><td><span>Syntax error: unsupported </span><b><span>set</span></b><span> target.</span></td></tr><tr><td><strong><span>37</span></strong></td><td><span>Undeclared variables cannot be used in for loops.</span></td></tr><tr><td><strong><span>38</span></strong></td><td><b><span>for</span></b><span> statement with direct assignment does not contain the to keyword</span></td></tr><tr><td><strong><span>39</span></strong></td><td><span>Invalid for statement.</span></td></tr><tr><td><strong><span>40</span></strong></td><td><b><span>for</span></b><span> statement does not contain the do keyword.</span></td></tr><tr><td><strong><span>41</span></strong></td><td><span>Internal error from the underlying libraries</span></td></tr><tr><td><strong><span>42</span></strong></td><td><span>Invalid expression</span></td></tr><tr><td><strong><span>43</span></strong></td><td><b><span>for</span></b><span> body does not end with </span><b><span>done</span></b><span>.</span></td></tr><tr><td><strong><span>44</span></strong></td><td><span>rotate statement tries to rotate undeclared variable</span></td></tr><tr><td><strong><span>45</span></strong></td><td><span>rotate statement does not contain </span><b><span>with</span></b><span> keyword</span></td></tr><tr><td><strong><span>46</span></strong></td><td><span>Rotation unit must be either degree or radians (default)</span></td></tr><tr><td><strong><span>47</span></strong></td><td><span>Unknown keyword in rotation.</span></td></tr><tr><td><strong><span>48</span></strong></td><td><span>Invalid reference: (missing </span><strong><span>at</span></strong><span> keyword)</span></td></tr><tr><td><strong><span>49</span></strong></td><td><span>A value was declared and used but not defined to hold a value</span></td></tr><tr><td><strong><span>50</span></strong></td><td><span>Cannot plot a number</span></td></tr><tr><td><strong><span>51</span></strong></td><td><span>Invalid assignment missing of keyword</span></td></tr><tr><td><strong><span>52</span></strong></td><td><span>No such function</span></td></tr><tr><td><strong><span>53</span></strong></td><td><span>Invalid keyword</span></td></tr><tr><td><strong><span>54</span></strong></td><td><span>Something messy with an index</span></td></tr><tr><td><strong><span>55</span></strong></td><td><span>Index out of bounds</span></td></tr><tr><td><strong><span>56</span></strong></td><td><span>Invalid index (ie: the resulted index is </span><mjx-container class="MathJax" jax="SVG" style="position: relative;"><svg xmlns="http://www.w3.org/2000/svg" width="3.52ex" height="1.597ex" role="img" focusable="false" viewBox="0 -666 1555.8 706" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" style="vertical-align: -0.09ex;"><defs><path id="MJX-2-TEX-N-3C" d="M694 -11T694 -19T688 -33T678 -40Q671 -40 524 29T234 166L90 235Q83 240 83 250Q83 261 91 266Q664 540 678 540Q681 540 687 534T694 519T687 505Q686 504 417 376L151 250L417 124Q686 -4 687 -5Q694 -11 694 -19Z"></path><path id="MJX-2-TEX-N-30" d="M96 585Q152 666 249 666Q297 666 345 640T423 548Q460 465 460 320Q460 165 417 83Q397 41 362 16T301 -15T250 -22Q224 -22 198 -16T137 16T82 83Q39 165 39 320Q39 494 96 585ZM321 597Q291 629 250 629Q208 629 178 597Q153 571 145 525T137 333Q137 175 145 125T181 46Q209 16 250 16Q290 16 318 46Q347 76 354 130T362 333Q362 478 354 524T321 597Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mo"><use data-c="3C" xlink:href="#MJX-2-TEX-N-3C"></use></g><g data-mml-node="mn" transform="translate(1055.8,0)"><use data-c="30" xlink:href="#MJX-2-TEX-N-30"></use></g></g></g></svg><mjx-assistive-mml unselectable="on" display="inline"><math xmlns="http://www.w3.org/1998/Math/MathML"><mo>&lt;</mo><mn>0</mn></math></mjx-assistive-mml></mjx-container><script type="math/tex">< 0</script><span>).</span></td></tr><tr><td><strong><span>57</span></strong></td><td><span>Cannot identify the object to assign to.</span></td></tr><tr><td><strong><span>58</span></strong></td><td><span>Incompatible assignment types don&#39;t match.</span></td></tr><tr><td><strong><span>59</span></strong></td><td><span>Append statement does not contain the TO keyword</span></td></tr><tr><td><strong><span>60</span></strong></td><td><span>No function for </span><strong><span>points of</span></strong><span> assignment</span></td></tr><tr><td><strong><span>61</span></strong></td><td><span>Cannot assign a non numeric value to a numeric variable</span></td></tr><tr><td><strong><span>62</span></strong></td><td><span>Cannot identify the object assigning from</span></td></tr><tr><td><strong><span>64</span></strong></td><td><span>Cannot identify the assignment source</span></td></tr><tr><td><strong><span>65</span></strong></td><td><span>Cannot use a point type variable in that context</span></td></tr></tbody></table></figure></div></div>
+<div id='write'  class=''><h2 id='error-messages'>Error messages</h2>
+<p>The following error messages and associated codes are used in <strong>fũnkplot</strong>:</p>
+<figure class='table-figure'><table>
+<thead>
+<tr>
+<th>ERROR</th>
+<th>DESCRIPTION</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>0</strong></td>
+<td>Erroneous looping conditions detected. A loop with a negative step value, but with the start value being smaller than the end might generate this error.</td>
+</tr>
+<tr>
+<td><strong>1</strong></td>
+<td>Invalid variable declaration. Not specifying the type of a variable might cause this error to pop up.</td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td>Invalid variable type. The list of valid variable types is <code>number</code>, <code>point</code>, <code>segment</code>, <code>line</code>, <code>angle</code> and <code>list</code>. Anything else will lead to this error.</td>
+</tr>
+<tr>
+<td><strong>3</strong></td>
+<td>Missing the keyword <b>of</b> in a statement.</td>
+</tr>
+<tr>
+<td><strong>4</strong></td>
+<td>Invalid list variable type.</td>
+</tr>
+<tr>
+<td><strong>5</strong></td>
+<td>Untyped lists are not supported.</td>
+</tr>
+<tr>
+<td><strong>6</strong></td>
+<td>Untyped lists are not supported</td>
+</tr>
+<tr>
+<td><strong>7</strong></td>
+<td>Index error</td>
+</tr>
+<tr>
+<td><strong>8</strong></td>
+<td>Variable was not declared</td>
+</tr>
+<tr>
+<td><strong>9</strong></td>
+<td>Invalid assignment (missing assignment operator)</td>
+</tr>
+<tr>
+<td><strong>10</strong></td>
+<td>Conflicting type assignment</td>
+</tr>
+<tr>
+<td><strong>11</strong></td>
+<td>Invalid point assignment</td>
+</tr>
+<tr>
+<td><strong>12</strong></td>
+<td>Conflicting type assignment: array assigned to a non array type</td>
+</tr>
+<tr>
+<td><strong>13</strong></td>
+<td>Invalid array assignment: missing <b>[</b> from the expression</td>
+</tr>
+<tr>
+<td><strong>14</strong></td>
+<td>Invalid assignment: arithmetic expression assigned to non numeric type</td>
+</tr>
+<tr>
+<td><strong>15</strong></td>
+<td>Invalid data to plot (not a point, not an indexed point, not a function)</td>
+</tr>
+<tr>
+<td><strong>16</strong></td>
+<td>Invalid function definition. Missing assignment in body</td>
+</tr>
+<tr>
+<td><strong>17</strong></td>
+<td>Improper parametrization of the given function.</td>
+</tr>
+<tr>
+<td><strong>18</strong></td>
+<td>Possible error in a statement. No data before a certain position.</td>
+</tr>
+<tr>
+<td><strong>19</strong></td>
+<td>Possible error in a statement. No data after a certain position</td>
+</tr>
+<tr>
+<td><strong>20</strong></td>
+<td>Syntax error in a statement. Unmatched empty parenthesis.</td>
+</tr>
+<tr>
+<td><strong>21</strong></td>
+<td>Error in a statement. Not found enclosing parenthesis</td>
+</tr>
+<tr>
+<td><strong>22</strong></td>
+<td>Possible error in a statement. No parameters were found for a function.</td>
+</tr>
+<tr>
+<td><strong>23</strong></td>
+<td>Possible error in statement. Meaningless use of a function.</td>
+</tr>
+<tr>
+<td><strong>24</strong></td>
+<td>Possible error in statement. No parameters for a function.</td>
+</tr>
+<tr>
+<td><strong>25</strong></td>
+<td>Invalid plotting interval</td>
+</tr>
+<tr>
+<td><strong>26</strong></td>
+<td>Possible error in statement. Improper power expression.</td>
+</tr>
+<tr>
+<td><strong>27</strong></td>
+<td>Possible error in formula. Looks like an invalid statement.</td>
+</tr>
+<tr>
+<td><strong>28</strong></td>
+<td>Possible error in a statement. No data before a certain position.</td>
+</tr>
+<tr>
+<td><strong>29</strong></td>
+<td>Possible error in a statement. No data after a certain position.</td>
+</tr>
+<tr>
+<td><strong>30</strong></td>
+<td>Possible error in a statement. The statement is not fully understood.</td>
+</tr>
+<tr>
+<td><strong>31</strong></td>
+<td>Unknown pixel property, or the expression is nested too deeply (maximum recursion depth exceeded).</td>
+</tr>
+<tr>
+<td><strong>32</strong></td>
+<td>Wrong palette indexing</td>
+</tr>
+<tr>
+<td><strong>33</strong></td>
+<td>Invalid color to set.</td>
+</tr>
+<tr>
+<td><strong>34</strong></td>
+<td>Cannot identify the object assigning from</td>
+</tr>
+<tr>
+<td><strong>35</strong></td>
+<td>Invalid statement. The line does not start with a known keyword, or the statement is malformed.</td>
+</tr>
+<tr>
+<td><strong>36</strong></td>
+<td>Syntax error: unsupported <b>set</b> target.</td>
+</tr>
+<tr>
+<td><strong>37</strong></td>
+<td>Undeclared variables cannot be used in for loops.</td>
+</tr>
+<tr>
+<td><strong>38</strong></td>
+<td><b>for</b> statement with direct assignment does not contain the to keyword</td>
+</tr>
+<tr>
+<td><strong>39</strong></td>
+<td>Invalid for statement.</td>
+</tr>
+<tr>
+<td><strong>40</strong></td>
+<td><b>for</b> statement does not contain the do keyword.</td>
+</tr>
+<tr>
+<td><strong>41</strong></td>
+<td>Internal error from the underlying libraries</td>
+</tr>
+<tr>
+<td><strong>42</strong></td>
+<td>Invalid expression</td>
+</tr>
+<tr>
+<td><strong>43</strong></td>
+<td><b>for</b> body does not end with <b>done</b>.</td>
+</tr>
+<tr>
+<td><strong>44</strong></td>
+<td>rotate statement tries to rotate undeclared variable</td>
+</tr>
+<tr>
+<td><strong>45</strong></td>
+<td>rotate statement does not contain <b>with</b> keyword</td>
+</tr>
+<tr>
+<td><strong>46</strong></td>
+<td>Rotation unit must be either degree or radians (default)</td>
+</tr>
+<tr>
+<td><strong>47</strong></td>
+<td>Unknown keyword in rotation.</td>
+</tr>
+<tr>
+<td><strong>48</strong></td>
+<td>Invalid reference: (missing <strong>at</strong> keyword)</td>
+</tr>
+<tr>
+<td><strong>49</strong></td>
+<td>A value was declared and used but not defined to hold a value. Also reported when a segment or a line is used before its defining <code>let</code> statement was executed, or when its definition could not be computed.</td>
+</tr>
+<tr>
+<td><strong>50</strong></td>
+<td>Cannot plot a number</td>
+</tr>
+<tr>
+<td><strong>51</strong></td>
+<td>Invalid assignment missing of keyword</td>
+</tr>
+<tr>
+<td><strong>52</strong></td>
+<td>No such function</td>
+</tr>
+<tr>
+<td><strong>53</strong></td>
+<td>Invalid or missing keyword, such as a missing <code>and</code> in a line or intersection definition.</td>
+</tr>
+<tr>
+<td><strong>54</strong></td>
+<td>A keyword is missing from a geometric definition, such as <code>to</code>, <code>at</code>, <code>length</code> or <code>across</code>.</td>
+</tr>
+<tr>
+<td><strong>55</strong></td>
+<td>Index out of bounds</td>
+</tr>
+<tr>
+<td><strong>56</strong></td>
+<td>Invalid index (ie: the resulted index is negative).</td>
+</tr>
+<tr>
+<td><strong>57</strong></td>
+<td>Cannot identify the object to assign to.</td>
+</tr>
+<tr>
+<td><strong>58</strong></td>
+<td>Incompatible assignment types don't match.</td>
+</tr>
+<tr>
+<td><strong>59</strong></td>
+<td>Append statement does not contain the TO keyword</td>
+</tr>
+<tr>
+<td><strong>60</strong></td>
+<td>No function for <strong>points of</strong> assignment</td>
+</tr>
+<tr>
+<td><strong>61</strong></td>
+<td>Cannot assign a non numeric value to a numeric variable</td>
+</tr>
+<tr>
+<td><strong>62</strong></td>
+<td>Cannot identify the object assigning from</td>
+</tr>
+<tr>
+<td><strong>63</strong></td>
+<td>Unsupported list domain in an <code>append</code> statement (only <code>numbers</code> and <code>points</code> are supported)</td>
+</tr>
+<tr>
+<td><strong>64</strong></td>
+<td>Cannot identify the assignment source</td>
+</tr>
+<tr>
+<td><strong>65</strong></td>
+<td>Cannot use a point type variable in that context</td>
+</tr>
+<tr>
+<td><strong>66</strong></td>
+<td>Missing <b>begin</b> keyword from <code>python</code> scriptlet</td>
+</tr>
+<tr>
+<td><strong>67</strong></td>
+<td>Missing the <b>script</b> or <b>do</b> keyword from <code>python</code> scriptlet</td>
+</tr>
+<tr>
+<td><strong>68</strong></td>
+<td>Internal error of the python interpreter</td>
+</tr>
+<tr>
+<td><strong>69</strong></td>
+<td>Invalid parametric function definition: missing <code>function</code> keyword or parenthesis</td>
+</tr>
+<tr>
+<td><strong>70</strong></td>
+<td>Invalid parametric function definition: only the coordinates <code>x</code> and <code>y</code> are supported</td>
+</tr>
+<tr>
+<td><strong>71</strong></td>
+<td>Invalid parametric function definition: missing <code>=</code> sign</td>
+</tr>
+<tr>
+<td><strong>72</strong></td>
+<td>Missing keyword <code>to</code> in a <code>point on … nearest to</code> assignment</td>
+</tr>
+<tr>
+<td><strong>73</strong></td>
+<td>Missing keyword <code>from</code> in a <code>point on … at distance</code> or percentage assignment</td>
+</tr>
+<tr>
+<td><strong>74</strong></td>
+<td>Expected a percentage (e.g. <code>25%</code>) in a point-on-segment assignment</td>
+</tr>
+<tr>
+<td><strong>75</strong></td>
+<td>Expected <code>at</code> or <code>nearest</code> in a point-on-segment assignment</td>
+</tr>
+<tr>
+<td><strong>76</strong></td>
+<td>Missing keyword <code>of</code> in a <code>midpoint</code> assignment</td>
+</tr>
+</tbody>
+</table></figure>
+</div></div>
 </body>
 </html>

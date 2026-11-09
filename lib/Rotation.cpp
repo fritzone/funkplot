@@ -107,6 +107,12 @@ QVector<QSharedPointer<Statement> > Rotation::create(int ln, const QString &code
 
     QString rotation_amount = extract_proper_expression(r_decl, fnai, {' '}, QSet<QString>{QString("degrees"), QString("radians"), "around"} );
     QString rotation_unit = getDelimitedId(r_decl);
+    // the unit is optional, the next word might be the around keyword already
+    if(rotation_unit == Keywords::KW_AROUND)
+    {
+        r_decl = rotation_unit + " " + r_decl;
+        rotation_unit = "";
+    }
 
     QSharedPointer<Rotation> result;
     result.reset(new Rotation(ln, codeline));

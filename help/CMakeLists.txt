@@ -10,6 +10,9 @@ add_custom_command(
   COMMENT "Generating Function Database HTML"
 )
 
+# The help pages are regenerated from mds/ with gen_html.py, see the comment at its beginning
+file(GLOB HELP_HTML_PAGES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/html/*.html")
+
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/funkplot.qhc ${CMAKE_CURRENT_BINARY_DIR}/funkplot.qch
   COMMAND ${CMAKE_COMMAND} -E make_directory ${HTML_DIR}
@@ -21,6 +24,7 @@ add_custom_command(
   COMMAND qhelpgenerator funkplot.qhcp -o ${CMAKE_CURRENT_BINARY_DIR}/funkplot.qhc
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/img_baser.py" ${CMAKE_CURRENT_BINARY_DIR}/functions.html
+          "${CMAKE_CURRENT_SOURCE_DIR}/funkplot.qhp" "${CMAKE_CURRENT_SOURCE_DIR}/funkplot.qhcp" ${HELP_HTML_PAGES}
   COMMENT "Generating help"
 )
 

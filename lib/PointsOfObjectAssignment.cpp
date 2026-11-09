@@ -101,6 +101,11 @@ bool PointsOfObjectAssignment::execute(RuntimeProvider *rp)
 
 QString PointsOfObjectAssignment::providedFunction()
 {
+    // the points of a literal line or segment are calculated in execute, there is no function behind them
+    if (ofWhat == Keywords::KW_LINE || ofWhat == Keywords::KW_SEGMENT)
+    {
+        return "";
+    }
     return ofWhat;
 }
 

@@ -3,7 +3,7 @@
 It is possible to rotate some of the objects found in **fũnkplot** applications. The following syntax is used to achieve this:
 
 ```
-rotate <object> with <V> [degrees|radians]
+rotate <object> with <V> [degrees|radians] [around point at (x, y)]
 ```
 
 Where
@@ -11,6 +11,14 @@ Where
 - `object` is the object that needs to be rotated. It can be either a point or a list of points.
 - `V` is the value we are rotating the object with
 - It is possible to optionally specify whether the given value is `radians` or `degrees`. If nothing is specified, the default is `degrees`.
+- By default the rotation happens around the origin of the coordinate system. With `around point at (x, y)` the object is rotated around the given point:
+
+```
+var p point
+let p = point at (1, 0)
+rotate p with 90 degrees around point at (2, 2)
+plot p
+```
 
 The following program:
 
@@ -40,7 +48,7 @@ done
 
 Generates the following plot:
 
-<img src="/home/fld/work/p/funkplot/help/mds/imgs/rotate_1.png" alt="image-20221114103953276" style="zoom:50%;" />
+<img src="imgs/rotate_1.png" alt="image-20221114103953276" style="zoom:50%;" />
 
 While the following program:
 
@@ -59,4 +67,4 @@ done
 
 Generates the following plot:
 
-<img src="/home/fld/work/p/funkplot/help/mds/imgs/rotate_2.png" alt="image-20230105124209908" style="zoom:33%;" />
+<img src="imgs/rotate_2.png" alt="image-20230105124209908" style="zoom:33%;" />

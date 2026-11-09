@@ -794,3 +794,337 @@ TEST_CASE("Pixel Size State", "[pixel]")
     }
 }
 
+
+TEST_CASE("Security and Robustness", "[security]")
+{
+    RuntimeProvider rp{RuntimeProviderParameterProvider()};
+    registerClasses();
+
+    SECTION("Empty parenthesis underflow (f(x) = ())") {
+        // This used to cause a buffer underflow expr2[-1]
+        REQUIRE_THROWS_AS(Function("f(x) = ()", nullptr), funkplot::syntax_error_exception);
+    }
+
+    SECTION("Single parenthesis underflow (f(x) = ( )") {
+        REQUIRE_THROWS_AS(Function("f(x) = (", nullptr), funkplot::syntax_error_exception);
+    }
+
+    SECTION("Maximum recursion depth in interpreter") {
+        // Test deep nesting to ensure recursion guard works
+        std::string deep = "f(x) = ";
+        for(int i=0; i<200; i++) deep += "(";
+        deep += "x";
+        for(int i=0; i<200; i++) deep += ")";
+        
+        // Should either parse or throw depth exceeded, but NOT crash
+        try {
+            Function f(deep.c_str(), nullptr);
+            SUCCEED("Parsed deep nesting");
+        } catch (const funkplot::syntax_error_exception& e) {
+            SUCCEED("Caught expected depth or syntax error: " << e.what());
+        }
+    }
+}
+
+TEST_CASE("Fuzz-like Syntax Tests", "[security][syntax]")
+{
+    RuntimeProvider rp{RuntimeProviderParameterProvider()};
+    registerClasses();
+
+    auto test_syntax = [](const std::string& input) {
+        try {
+            Function f(input.c_str(), nullptr);
+            return false; // Should have thrown
+        } catch (const funkplot::syntax_error_exception& e) {
+            return true; // Correctly caught
+        } catch (...) {
+            return false; // Threw wrong thing or crashed
+        }
+    };
+
+    SECTION("Malformed Function Definitions") {
+        CHECK(test_syntax("f(x) x*x"));          // Missing '='
+        CHECK(test_syntax("f = x*x"));            // Missing parameters
+        CHECK(test_syntax("f() = x*x"));          // Empty parameters
+        CHECK(test_syntax("f(x,) = x"));          // Trailing comma
+        CHECK(test_syntax("f(,y) = y"));          // Leading comma
+        CHECK(test_syntax("f(x y) = x"));         // Missing comma in params
+    }
+
+    SECTION("Malformed Expressions") {
+        CHECK(test_syntax("f(x) = x +"));         // Trailing operator
+        CHECK(test_syntax("f(x) = * x"));         // Leading operator
+        CHECK(test_syntax("f(x) = x / / 2"));     // Double operator
+        CHECK(test_syntax("f(x) = x(y)"));        // Unknown function/variable x used as function
+        CHECK(test_syntax("f(x) = 1.2.3"));       // Invalid number format
+        CHECK(test_syntax("f(x) = (x + 1"));      // Unclosed parenthesis
+        CHECK(test_syntax("f(x) = x + 1)"));      // Extra closing parenthesis
+        CHECK(test_syntax("f(x) = [x+1]"));       // Square brackets without array
+    }
+
+    SECTION("Function Power Syntax Errors") {
+        CHECK(test_syntax("f(x) = sin^(x)"));     // Power without argument
+        CHECK(test_syntax("f(x) = sin^2"));       // Power without argument
+        CHECK(test_syntax("f(x) = sin^() (x)"));  // Empty power
+    }
+
+    SECTION("Indexed Access Errors") {
+        CHECK(test_syntax("f(x) = a[]"));         // Empty index
+        CHECK(test_syntax("f(x) = a[1"));         // Unclosed index
+        CHECK(test_syntax("f(x) = a1]"));         // Unopened index
+    }
+
+    SECTION("Logic and Comparison Errors") {
+        CHECK(test_syntax("f(x) = x and"));       // Trailing logic op
+        CHECK(test_syntax("f(x) = and x"));       // Leading logic op
+        CHECK(test_syntax("f(x) = x == == 1"));   // Double comparison
+    }
+
+    SECTION("Extreme/Strange Inputs") {
+        CHECK(test_syntax("f(x) = ,,,"));         // Only commas
+        CHECK(test_syntax("f(x) = ...."));        // Only dots
+        CHECK(test_syntax("f(x) = \t\n\r"));      // Only whitespace in body
+        CHECK(test_syntax(""));                   // Empty string
+        CHECK(test_syntax("="));                  // Only equals
+    }
+}
+
+TEST_CASE("Logic operators are whole words", "[functions][logic]")
+{
+    RuntimeProvider rp{RuntimeProviderParameterProvider()};
+    registerClasses();
+
+    SECTION("Identifiers containing 'or' and 'and' are not split") {
+        std::unique_ptr<Function> f { new Function("f(origin, band) = origin * band", nullptr) };
+        f->SetVariable("origin", 2);
+        f->SetVariable("band", 3);
+        REQUIRE_THAT(f->Calculate(), Catch::Matchers::WithinRel(6.0, 0.001));
+    }
+
+    SECTION("Logic operators still work between operands") {
+        std::unique_ptr<Function> f { new Function("f(x) = x > 0 and x < 1 or x == 2", nullptr) };
+        f->SetVariable(X, 0.5);
+        REQUIRE(f->Calculate() != 0);
+        f->SetVariable(X, 2);
+        REQUIRE(f->Calculate() != 0);
+        f->SetVariable(X, 1.5);
+        REQUIRE(f->Calculate() == 0);
+    }
+}
+
+TEST_CASE("Segments without computed endpoints", "[geometry][segments]")
+{
+    QVector<int> errors;
+    int lines = 0;
+    auto params = RuntimeProviderParameterProvider();
+    std::get<0>(params) = [&errors](int, int c, QString) { errors.append(c); };
+    std::get<3>(params) = [&lines](double, double, double, double, int) { lines ++; };
+    RuntimeProvider rp{params};
+    registerClasses();
+
+    auto run = [&rp](const QString& s) {
+        QStringList codelines = s.split("\n");
+        rp.parse(codelines);
+        rp.execute();
+    };
+
+    SECTION("Extended segment drawn after its definition") {
+        run(R"(
+            var s1 s2 segment
+            var p point
+            let p = point at (1, 1)
+            let s1 = segment from p length 3 at 30 degrees
+            let s2 = segment through p parallel to s1 length 2
+            draw segment s1
+            draw segment s2
+        )");
+        REQUIRE(errors.isEmpty());
+        REQUIRE(lines >= 2);
+    }
+
+    SECTION("Extended segment drawn before its definition") {
+        run(R"(
+            var s1 segment
+            var p point
+            let p = point at (1, 1)
+            draw segment s1
+            let s1 = segment from p length 3 at 30 degrees
+        )");
+        REQUIRE(errors == QVector<int>{49});
+    }
+
+    SECTION("Extended segment referencing an unknown segment") {
+        run(R"(
+            var s2 segment
+            var p point
+            let p = point at (1, 1)
+            let s2 = segment through p parallel to nosuch length 3
+            draw segment s2
+        )");
+        REQUIRE(errors == QVector<int>{49});
+    }
+}
+
+TEST_CASE("Comparison operators", "[functions][comparison]")
+{
+    RuntimeProvider rp{RuntimeProviderParameterProvider()};
+    registerClasses();
+
+    auto check = [](const char* def, std::vector<double> expected) {
+        std::unique_ptr<Function> f { new Function(def, nullptr) };
+        std::vector<double> got;
+        for(double v : {0.0, 1.0, 2.0})
+        {
+            f->SetVariable(X, v);
+            got.push_back(f->Calculate());
+        }
+        INFO(def);
+        REQUIRE(got == expected);
+    };
+
+    check("f(x) = x < 1",  {1, 0, 0});
+    check("f(x) = x <= 1", {1, 1, 0});
+    check("f(x) = x > 1",  {0, 0, 1});
+    check("f(x) = x >= 1", {0, 1, 1});
+    check("f(x) = x == 1", {0, 1, 0});
+    check("f(x) = x != 1", {1, 0, 1});
+}
+
+TEST_CASE("Draw line and segment through two points", "[geometry][draw]")
+{
+    QVector<int> errors;
+    QVector<QLineF> lines;
+    auto params = RuntimeProviderParameterProvider();
+    std::get<0>(params) = [&errors](int, int c, QString) { errors.append(c); };
+    std::get<3>(params) = [&lines](double x1, double y1, double x2, double y2, int) { lines.append({x1, y1, x2, y2}); };
+    QVector<QPointF> points;
+    std::get<2>(params) = [&points](double x, double y, int) { points.append({x, y}); };
+    RuntimeProvider rp{params};
+    registerClasses();
+
+    auto run = [&rp](const QString& s) {
+        QStringList codelines = s.split("\n");
+        rp.parse(codelines);
+        rp.execute();
+    };
+
+    SECTION("through ... and ... draws the same segment as from ... to ...") {
+        run(R"(
+            var p1 p2 point
+            let p1 = point at (0, 0)
+            let p2 = point at (2, 1)
+            draw segment through p1 and p2
+            draw segment from p1 to p2
+        )");
+        REQUIRE(errors.isEmpty());
+        REQUIRE(lines.size() == 2);
+        REQUIRE(lines[0] == lines[1]);
+    }
+
+    SECTION("a stop word later in the line does not confuse the point names") {
+        run(R"(
+            var p1 p2 point
+            let p1 = point at (0, 0)
+            let p2 = point at (4, 0)
+            draw segment through p1 and p2 counts 5
+        )");
+        REQUIRE(errors.isEmpty());
+        REQUIRE(points.size() == 5);
+        REQUIRE(points.first() == QPointF(0, 0));
+        REQUIRE(points.last() == QPointF(4, 0));
+    }
+}
+
+TEST_CASE("Expression parsing", "[functions][parsing]")
+{
+    RuntimeProvider rp{RuntimeProviderParameterProvider()};
+    registerClasses();
+
+    auto eval = [](const char* def, double x) {
+        std::unique_ptr<Function> f { new Function(def, nullptr) };
+        f->SetVariable(X, x);
+        return f->Calculate();
+    };
+
+    SECTION("Comparisons and logic operators inside parentheses") {
+        REQUIRE(eval("f(x) = (x % 2 == 0) + 1", 4) == 2);
+        REQUIRE(eval("f(x) = (x % 2 == 0) + 1", 3) == 1);
+        REQUIRE(eval("f(x) = (x > 0 and x < 1) * 5", 0.5) == 5);
+        REQUIRE(eval("f(x) = (x > 0 or x < -1) * 5", -0.5) == 0);
+    }
+
+    SECTION("Logical negation") {
+        REQUIRE(eval("f(x) = not(x > 0)", 1) == 0);
+        REQUIRE(eval("f(x) = not(x > 0)", -1) == 1);
+        REQUIRE(eval("f(x) = not x > 0", -1) == 1);
+        REQUIRE(eval("f(x) = x > 0 and not x > 2", 1) == 1);
+        REQUIRE(eval("f(x) = x > 0 and not x > 2", 3) == 0);
+        REQUIRE(eval("f(x) = (not x == 1) + 1", 1) == 1);
+        REQUIRE(eval("f(x) = (x % 2 == 0) * 10 + not(x > 5)", 4) == 11); // the example of the help
+        REQUIRE(eval("f(x) = (x % 2 == 0) * 10 + not(x > 5)", 7) == 0);
+    }
+
+    SECTION("Negative operands after operators") {
+        REQUIRE(eval("f(x) = x > -1", 0) == 1);
+        REQUIRE(eval("f(x) = x * -2", 3) == -6);
+        REQUIRE_THAT(eval("f(x) = 2 ^ -x * 3", 1), Catch::Matchers::WithinRel(1.5, 0.0001));
+        REQUIRE_THAT(eval("f(x) = 2 ^ -(x + 1)", 1), Catch::Matchers::WithinRel(0.25, 0.0001));
+        REQUIRE(eval("f(x) = -x + 1", 3) == -2);
+        REQUIRE(eval("f(x) = x - 1", 3) == 2);
+    }
+
+    SECTION("Constants") {
+        REQUIRE_THAT(eval("f(x) = e", 0), Catch::Matchers::WithinRel(M_E, 0.000001));
+        REQUIRE_THAT(eval("f(x) = e^x", 1), Catch::Matchers::WithinRel(M_E, 0.000001));
+        REQUIRE_THAT(eval("f(x) = pi", 0), Catch::Matchers::WithinRel(M_PI, 0.000001));
+        std::unique_ptr<Function> withParameterE { new Function("f(e) = e * 2", nullptr) };
+        withParameterE->SetVariable("e", 3);
+        REQUIRE(withParameterE->Calculate() == 6); // a parameter called e is not the constant
+        std::unique_ptr<Function> withSpin { new Function("f(spin) = spin + 1", nullptr) };
+        withSpin->SetVariable("spin", 2);
+        REQUIRE(withSpin->Calculate() == 3); // the pi in spin is not the constant
+    }
+}
+
+TEST_CASE("Plotting lists of points", "[plot]")
+{
+    QVector<int> errors;
+    auto params = RuntimeProviderParameterProvider();
+    std::get<0>(params) = [&errors](int, int c, QString) { errors.append(c); };
+    RuntimeProvider rp{params};
+    registerClasses();
+
+    auto run = [&rp](const QString& s) {
+        QStringList codelines = s.split("\n");
+        rp.parse(codelines);
+        rp.execute();
+    };
+
+    // plot uses the assignment found by name, and draws its points if they are flagged as precalculated
+    auto plottedPoints = [&rp]() -> QVector<QPointF> {
+        QSharedPointer<Assignment> a;
+        rp.getNameFunctionOrAssignment("ps", a);
+        if(!a || !a->precalculatedSetForce) return {};
+        return a->getPrecalculatedPoints();
+    };
+
+    SECTION("A list of points from a literal") {
+        run(R"(
+            var ps list of points
+            let ps = list [(1,2);(3,4)]
+        )");
+        REQUIRE(errors.isEmpty());
+        REQUIRE(plottedPoints() == QVector<QPointF>{{1, 2}, {3, 4}});
+    }
+
+    SECTION("The points of a literal segment") {
+        run(R"(
+            var ps list of points
+            let ps = points of segment from (0,0) to (4,0) counts 5
+        )");
+        REQUIRE(errors.isEmpty());
+        auto pts = plottedPoints();
+        REQUIRE(pts.size() == 5);
+        REQUIRE(pts.last() == QPointF(4, 0));
+    }
+}

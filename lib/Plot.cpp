@@ -3,6 +3,8 @@
 #include "RuntimeProvider.h"
 #include "Function.h"
 
+#include <QRegularExpression>
+
 Plot::Plot(int ln, const QString &s) : Statement(ln, s)
 {}
 
@@ -54,56 +56,40 @@ QVector<QSharedPointer<Statement> > Plot::create(int ln, const QString &codeline
 
             // let's see if we are plotting a single point of a series of plots: plot ps[2]
 
-            auto tempFun = Function::temporaryFunction(funToPlot, plotData.get());
+            // the variable of the plotted expression: plot <expression> for <variable> over ...
+            QString funVar = X;
             if(fnai == Keywords::KW_FOR)
             {
                 QString tmpCodeline = codeline;
                 tmpCodeline = tmpCodeline.mid(tmpCodeline.indexOf(fnai) + Keywords::KW_FOR.length());
                 consumeSpace(tmpCodeline);
-                QString funVar = getDelimitedId(tmpCodeline);
-                tempFun.get()->add_variable(funVar.toStdString().c_str()); // mostly the plots happen with X
+                funVar = getDelimitedId(tmpCodeline);
 
                 // making it consume the rest of the codeline too
                 plot_body = tmpCodeline;
             }
 
-            tempFun->Calculate();
+            // make the funToPlot look acceptable by applying the built-in functions written without
+            // parameters to the variable, such as: sin * x -> sin(x) * x. Whole words only (so the sin
+            // in asin or sinh is left alone), and not when they are applied already or raised to a power
+            QString funToPlotFinal = funToPlot.simplified();
+            funToPlotFinal.replace(" (", "(");
+            for(const auto& f : supported_functions)
+            {
+                if(f.standalone_plottable)
+                {
+                    QRegularExpression bare("\\b" + QRegularExpression::escape(QString::fromStdString(f.name)) + "\\b(?!\\s*[\\(\\^])");
+                    funToPlotFinal.replace(bare, QString::fromStdString(f.name) + "(" + funVar + ")");
+                }
+            }
 
+            auto tempFun = Function::temporaryFunction(funToPlotFinal, plotData.get());
+            tempFun.get()->add_variable(funVar.toStdString().c_str());
+            tempFun->Calculate();
 
             QSharedPointer<FunctionDefinition> fd;
             fd.reset(new FunctionDefinition(ln, codeline) );
-            QString plgfn = "plot_fn_" +QString::number(RuntimeProvider::get()->getFunctions().size()) + "(x) =";
-
-            // make the funToPlot look acceptable by adding (x) to each builtin function if any
-            QString funToPlotFinal = funToPlot.simplified();
-            // firstly remove the space before each parenthesis if found
-            funToPlotFinal.replace(" (", "(");
-            // then each func(x) will be replaced with func to not to have (x)(x)
-            for(const auto& f : supported_functions)
-            {
-                if(f.standalone_plottable)
-                {
-                    funToPlotFinal.replace(QString::fromStdString(f.name) + "(x)", QString::fromStdString(f.name));
-                }
-            }
-
-            for(const auto& f : supported_functions)
-            {
-                if(f.standalone_plottable)
-                {
-                    funToPlotFinal.replace(QString::fromStdString(f.name) + "(", QString::fromStdString(f.name) + "#");
-                }
-            }
-
-            // and the other way around to make it legal
-            for(const auto& f : supported_functions)
-            {
-                if(f.standalone_plottable)
-                {
-                    funToPlotFinal.replace(QString::fromStdString(f.name), QString::fromStdString(f.name) + "(x)");
-                }
-            }
-            funToPlotFinal.replace("(x)#", "(");
+            QString plgfn = "plot_fn_" +QString::number(RuntimeProvider::get()->getFunctions().size()) + "(" + funVar + ") =";
 
             qDebug() << funToPlotFinal;
 

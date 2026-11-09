@@ -49,8 +49,9 @@ static void parseEndpoint(QString& body, QSharedPointer<Function>& x, QSharedPoi
         x = Function::temporaryFunction(sx, s);
         y = Function::temporaryFunction(sy, s);
     } else {
-        QString fnai;
-        QString pointExpr = extract_proper_expression(body, fnai, {' '}, {Keywords::KW_TO, Keywords::KW_COUNTS, Keywords::KW_OVER}, false);
+        // Point names are single identifiers; getDelimitedId stops at the first space
+        // without being confused by stop-words appearing later in the string.
+        QString pointExpr = getDelimitedId(body);
         x = Function::temporaryFunction(pointExpr + ".x", s);
         y = Function::temporaryFunction(pointExpr + ".y", s);
     }
@@ -69,13 +70,16 @@ QVector<QSharedPointer<Statement>> Draw::create(int ln, const QString &codeline,
         body = body.mid(body.startsWith(Keywords::KW_LINE) ? Keywords::KW_LINE.length() : Keywords::KW_SEGMENT.length());
         consumeSpace(body);
 
-        if (body.startsWith(Keywords::KW_FROM)) {
-            body = body.mid(Keywords::KW_FROM.length());
+        // "from P to Q", or "through P and Q" as in the let statement of a line
+        bool through = body.startsWith(Keywords::KW_THROUGH + " ");
+        if (body.startsWith(Keywords::KW_FROM + " ") || through) {
+            body = body.mid(through ? Keywords::KW_THROUGH.length() : Keywords::KW_FROM.length());
             consumeSpace(body);
             parseEndpoint(body, drawStmt->x1, drawStmt->y1, drawStmt.data());
             consumeSpace(body);
-            if (body.startsWith(Keywords::KW_TO)) {
-                body = body.mid(Keywords::KW_TO.length());
+            const QString& separator = through ? Keywords::KW_AND : Keywords::KW_TO;
+            if (body.startsWith(separator + " ")) {
+                body = body.mid(separator.length());
                 consumeSpace(body);
             }
             parseEndpoint(body, drawStmt->x2, drawStmt->y2, drawStmt.data());
@@ -293,11 +297,13 @@ bool Draw::execute(RuntimeProvider *rp)
             if (a) {
                 auto la = qSharedPointerDynamicCast<LineAssignment>(a);
                 if (la) {
+                    la->requireEndpoints();
                     vx1 = la->x1->Calculate(); vy1 = la->y1->Calculate();
                     vx2 = la->x2->Calculate(); vy2 = la->y2->Calculate();
                 } else {
                     auto sa = qSharedPointerDynamicCast<SegmentAssignment>(a);
                     if (sa) {
+                        sa->requireEndpoints();
                         vx1 = sa->x1->Calculate(); vy1 = sa->y1->Calculate();
                         vx2 = sa->x2->Calculate(); vy2 = sa->y2->Calculate();
                         drawnSa = sa;
@@ -476,6 +482,8 @@ bool Draw::execute(RuntimeProvider *rp)
             auto sa1 = rp->getAssignmentAs<SegmentAssignment>(targetVar);
             auto sa2 = rp->getAssignmentAs<SegmentAssignment>(targetVar2);
             if (!sa1 || !sa2) return true;
+            sa1->requireEndpoints();
+            sa2->requireEndpoints();
 
             double s1x1 = sa1->x1->Calculate(), s1y1 = sa1->y1->Calculate();
             double s1x2 = sa1->x2->Calculate(), s1y2 = sa1->y2->Calculate();

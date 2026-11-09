@@ -54,7 +54,9 @@ bool PointDefinitionAssignmentToOtherPoint::execute(RuntimeProvider *rp)
                 // last resort
                 if(!otherPoint.isEmpty())
                 {
-                    IndexedAccess* ia_m = nullptr; Assignment* a1 = nullptr;
+                    IndexedAccess* ia_m = nullptr;
+                    ScopedDelete<IndexedAccess> ia_m_guard(ia_m);
+                    Assignment* a1 = nullptr;
                     auto tempFun = Function::temporaryFunction(otherPoint, this);
                     auto v1 = tempFun->Calculate(rp, ia_m, a1);
                     // if this is an indexed something ...
@@ -62,7 +64,6 @@ bool PointDefinitionAssignmentToOtherPoint::execute(RuntimeProvider *rp)
                     {
                         // same logic as in RuntimeProvider.h
                         dealWithIndexedAssignmentToSomething(rp, ia_m);
-                        delete ia_m;
                         return true;
                     }
 

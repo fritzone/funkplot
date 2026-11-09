@@ -75,6 +75,7 @@ bool ExtendedSegmentAssignment::execute(RuntimeProvider* rp)
         if (!lengthFromSegmentName.isEmpty()) {
             auto sa = rp->getAssignmentAs<SegmentAssignment>(lengthFromSegmentName);
             if (!sa) return false;
+            sa->requireEndpoints();
             double lx1 = sa->x1->Calculate(), ly1 = sa->y1->Calculate();
             double lx2 = sa->x2->Calculate(), ly2 = sa->y2->Calculate();
             L = std::sqrt((lx2-lx1)*(lx2-lx1) + (ly2-ly1)*(ly2-ly1));

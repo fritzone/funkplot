@@ -11,6 +11,113 @@
 #include <charconv>
 #include <optional>
 
+#define _CRT_SECURE_NO_WARNINGS
+
+namespace
+{
+
+// returns true if every ( and [ in s is closed by the matching ) or ]
+bool parenthesesAreBalanced(const std::string& s)
+{
+    std::string stack;
+    for(char c : s)
+    {
+        if(c == '(' || c == '[')
+        {
+            stack += c;
+        }
+        else
+        if(c == ')' || c == ']')
+        {
+            if(stack.empty() || stack.back() != (c == ')' ? '(' : '['))
+            {
+                return false;
+            }
+            stack.pop_back();
+        }
+    }
+    return stack.empty();
+}
+
+bool isIdentifierChar(char c)
+{
+    return isalnum(static_cast<unsigned char>(c)) || c == '_' || c == '$';
+}
+
+// a number, with at least one digit and at most one decimal point
+bool isWellFormedNumber(const std::string& s)
+{
+    int dots = 0, digits = 0;
+    for(char c : s)
+    {
+        if(c == '.') dots ++;
+        else if(isdigit(static_cast<unsigned char>(c))) digits ++;
+        else return false;
+    }
+    return digits > 0 && dots <= 1;
+}
+
+// the leaves of the expression tree are numbers, variables, indexed variables (a[i])
+// and member accesses of them (p.x, ps[i].x)
+bool isWellFormedLeaf(const std::string& s)
+{
+    if(s.empty())
+    {
+        return false;
+    }
+
+    if(isdigit(static_cast<unsigned char>(s[0])) || s[0] == '.')
+    {
+        return isWellFormedNumber(s);
+    }
+
+    size_t i = 0;
+    bool expectIdentifier = true;
+    while(i < s.length())
+    {
+        if(expectIdentifier)
+        {
+            size_t start = i;
+            while(i < s.length() && isIdentifierChar(s[i])) i++;
+            if(!isValidIdentifier(s.substr(start, i - start)))
+            {
+                return false;
+            }
+            expectIdentifier = false;
+        }
+        else
+        if(s[i] == '[')
+        {
+            int level = 0;
+            size_t start = i;
+            do
+            {
+                if(s[i] == '[') level ++;
+                if(s[i] == ']') level --;
+                i++;
+            } while(i < s.length() && level > 0);
+
+            if(level != 0 || i - start == 2) // unclosed or empty index
+            {
+                return false;
+            }
+        }
+        else
+        if(s[i] == '.')
+        {
+            i++;
+            expectIdentifier = true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    return !expectIdentifier;
+}
+
+}
+
 Function::Function(const char *pexpr, Statement* s)
 {
     QString qs = normalize(pexpr);
@@ -46,23 +153,31 @@ Function::Function(const char *pexpr, Statement* s)
         throw funkplot::syntax_error_exception(ERRORCODE(17), "Improper parametrization of the given function: <b>%s</b> (missing closing parenthesis)", expr_p1);
     }
     ppar[pparc - ppar] = 0;
+
+    auto addParameter = [this, expr_p1](const char* p)
+    {
+        std::string sst(p);
+        std::string vn = strim(sst);
+        if(!isValidIdentifier(vn))
+        {
+            delete[] expr_p1;
+            throw funkplot::syntax_error_exception(ERRORCODE(17), "Improper parametrization of the given function: <b>%s</b> (invalid parameter name: <b>%s</b>)", m_name, vn);
+        }
+        vars[vn] = std::numeric_limits<double>::quiet_NaN();
+    };
+
     while (ppar)
     {
         char* pve = strchr(ppar, ',');
         if (pve != nullptr)
         {
             ppar[pve - ppar] = 0;
-            std::string sst(ppar);
-            std::string vn = strim(sst);
-            vars[vn] = std::numeric_limits<double>::quiet_NaN();
+            addParameter(ppar);
             ppar = pve + 1;
         }
         else
         {
-            std::string sst(ppar);
-
-            std::string ujv = strim(sst);
-            vars[ujv] = std::numeric_limits<double>::quiet_NaN();
+            addParameter(ppar);
             ppar = nullptr;
         }
     }
@@ -70,6 +185,12 @@ Function::Function(const char *pexpr, Statement* s)
     // now begin translating the part two of the formula
     char* expr_p2 = after(eqpos, expr);
     std::string sc = preverify_formula(expr_p2);
+    delete[] expr_p2;
+    if(!parenthesesAreBalanced(sc))
+    {
+        delete[] expr_p1;
+        throw funkplot::syntax_error_exception(ERRORCODE(21), "Error in function definition: <b>%s</b>. Unbalanced parentheses or brackets", funBody.toStdString());
+    }
     preverified = sc;
     char* cexpr_p2 = strdup(sc.c_str());
     // first: a new tree will be created
@@ -78,11 +199,19 @@ Function::Function(const char *pexpr, Statement* s)
     root->right = nullptr;
     root->stmt = s;
 
-    interpret(cexpr_p2, root, RuntimeProvider::get());
-    free(reinterpret_cast<void*>(cexpr_p2));
     delete[] expr_p1;
-    delete[] expr_p2;
-
+    try
+    {
+        interpret(cexpr_p2, root, RuntimeProvider::get());
+    }
+    catch(...)
+    {
+        free(reinterpret_cast<void*>(cexpr_p2));
+        free_tree(root);
+        root = nullptr;
+        throw;
+    }
+    free(reinterpret_cast<void*>(cexpr_p2));
 }
 
 Function::~Function()
@@ -155,6 +284,23 @@ std::string Function::preverify_formula(char* expr)
     std::string s;
     auto l = strlen(expr);
     for (int i = 0; i < l; i++) {
+        // the logic operators are kept as words, separated with spaces from their operands
+        if(isalpha(static_cast<unsigned char>(expr[i])) && (i == 0 || !isIdentifierChar(expr[i - 1])))
+        {
+            int j = i;
+            std::string word;
+            while(j < l && isIdentifierChar(expr[j]))
+            {
+                word += expr[j++];
+            }
+            if(islogicop(word))
+            {
+                s += " " + word + " ";
+                i = j - 1;
+                continue;
+            }
+        }
+
         if (expr[i] == ',' || expr[i] == '$' || isalnum(expr[i]) || isoperator(expr[i]) || isparenthesis(expr[i]))
         {
             if (expr[i] != '-')
@@ -163,14 +309,42 @@ std::string Function::preverify_formula(char* expr)
             }
             else
             {
-                if(s.empty() || s[s.length() - 1] == '(')
+                // a unary minus: at the beginning, after an opening parenthesis, a comma, an operator or a logic word
+                char prev = s.empty() ? 0 : s.back();
+                bool unary = prev == 0 || prev == ' ' || prev == '(' || prev == '[' || prev == ',' || (isoperator(prev) && prev != '.');
+                if(unary && prev == '^')
                 {
-                    s += "(0-1)*";
+                    // the power binds stronger than the multiplication, so negate only the operand: 2^-x is 2^(0-x)
+                    int k = i + 1;
+                    while(k < l && isspace(expr[k])) k++;
+                    int start = k;
+                    auto skipGroup = [&k, l, expr]() {
+                        int level = 0;
+                        do
+                        {
+                            if(expr[k] == '(' || expr[k] == '[') level++;
+                            if(expr[k] == ')' || expr[k] == ']') level--;
+                            k++;
+                        } while(k < l && level > 0);
+                    };
+                    if(k < l && expr[k] == '(')
+                    {
+                        skipGroup();
+                    }
+                    else
+                    {
+                        while(k < l && (isIdentifierChar(expr[k]) || expr[k] == '.')) k++;
+                        while(k < l && (expr[k] == '(' || expr[k] == '[')) skipGroup();
+                    }
+                    if(k > start)
+                    {
+                        std::string operand(expr + start, expr + k);
+                        s += "(0-" + preverify_formula(operand.data()) + ")";
+                        i = k - 1;
+                        continue;
+                    }
                 }
-                else
-                {
-                    s += "+(0-1)*";
-                }
+                s += unary ? "(0-1)*" : "+(0-1)*";
             }
         }
         if (expr[i] == '{')
@@ -180,24 +354,6 @@ std::string Function::preverify_formula(char* expr)
         if (expr[i] == '}')
         {
             s += ")";
-        }
-
-        if(std::isspace(expr[i]))
-        {
-            // peek forward, see if we have a keyword there
-            int j = i;
-            while(isspace(expr[j])) j++;
-            std::string peekWord;
-            while(isalnum(expr[j]) || isoperator(expr[j]))
-            {
-                peekWord += expr[j]; j++;
-            }
-            if(islogicop(peekWord))
-            {
-                s += " " + peekWord + " ";
-                i = j - 1;
-            }
-
         }
     }
     return s;
@@ -217,6 +373,11 @@ void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
         ~DepthGuard() { rp->decrementRecursionDepth(); }
     } guard(rp);
 
+    if(std::all_of(expr, expr + strlen(expr), [](char c){ return isspace(static_cast<unsigned char>(c)); }))
+    {
+        throw funkplot::syntax_error_exception(ERRORCODE(42), "Invalid expression in <b>%s</b>: missing operand", funBody.toStdString());
+    }
+
     // or check comes before "and" check, because and has higher priority
     if(breakUpAsLogicOps(expr, node, "or", rp))
     {
@@ -226,6 +387,23 @@ void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
     if(breakUpAsLogicOps(expr, node, "and", rp))
     {
         return;
+    }
+
+    // logical negation: not <expression>, it binds weaker than the comparisons
+    {
+        const char* negated = expr;
+        while(isspace(static_cast<unsigned char>(*negated))) negated++;
+        if(strncmp(negated, "not", 3) == 0 && (isspace(static_cast<unsigned char>(negated[3])) || negated[3] == '('))
+        {
+            negated += 3;
+            while(isspace(static_cast<unsigned char>(*negated))) negated++;
+            node->info = "not";
+            node->right = nullptr;
+            node->left = new tree;
+            node->left->parent = node;
+            interpret(negated, node->left, rp);
+            return;
+        }
     }
 
     std::string zlcmpOp;
@@ -453,6 +631,10 @@ void Function::interpret(const char* expr, tree* node, RuntimeProvider* rp)
                     }
                     else
                     {
+                        if(!isWellFormedLeaf(expr))
+                        {
+                            throw funkplot::syntax_error_exception(ERRORCODE(42), "Invalid expression in <b>%s</b>: <b>%s</b> is not understood", funBody.toStdString(), expr);
+                        }
                         node->info = expr;
                         node->left = nullptr;
                         node->right = nullptr;
@@ -476,7 +658,7 @@ int Function::l0cmp(const char *expr, std::string& zlop)
         for(const std::string& op : comp_operators)
         {
 
-            if(expr[i] == op[0])
+            if(expr[i] == op[0] && level == 0)
             {
                 if(op.length() > 1)
                 {
@@ -521,7 +703,8 @@ int Function::l0logic(const char *expr, std::string & zlop, const std::string& r
         for(const std::string& op : logic_operators)
         {
 
-            if(expr[i] == op[0])
+            // the operator must be a full word, not part of an identifier, such as "or" in "origin"
+            if(expr[i] == op[0] && level == 0 && i + op.length() <= strlen(expr) && (i == 0 || !isIdentifierChar(expr[i - 1])) && !isIdentifierChar(expr[i + op.length()]))
             {
                 bool found = true;
                 for(int j=1; j<op.length(); j++)
@@ -761,6 +944,12 @@ int Function::defd(const std::string& s, RuntimeProvider* rp, Assignment*& assig
         return 1;
     }
 
+    // the Euler constant, unless something else is called e
+    if(s == "e")
+    {
+        return 1;
+    }
+
     return 0;
 }
 
@@ -780,6 +969,11 @@ double Function::value(const std::string& s, RuntimeProvider* rp)
     if(rp->defd(s, assig))
     {
         return rp->value(s);
+    }
+
+    if(s == "e")
+    {
+        return M_E;
     }
 
     return std::numeric_limits<double>::quiet_NaN();

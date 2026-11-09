@@ -262,6 +262,7 @@ bool RuntimeProvider::resolveAsIndexedPlotDrawing(QSharedPointer<Plot> plot, QSh
     // try it as an indexed, hopefully that will work
     auto tf = Function::temporaryFunction(plot->plotTarget, assignment.get());
     IndexedAccess* ia = nullptr; Assignment* a = nullptr;
+    ScopedDelete<IndexedAccess> ia_guard(ia);
     auto v = tf->Calculate(this, ia, a);
 
     if(!v.has_value() && !ia)

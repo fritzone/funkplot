@@ -17,10 +17,10 @@
 
 #include <string>
 
-class Parametric;
+struct Parametric;
 class CodeEngine;
 class Set;
-class FunctionDefinition;
+struct FunctionDefinition;
 
 /**
  * @brief The RuntimeProvider class is responsible for keeping track of the existing objects/variables

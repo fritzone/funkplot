@@ -10,6 +10,8 @@ The following values can be set:
 | palette        | Sets the palette to be used for drawing the scene.           |
 | coordinates    | Sets the properties of the coordinate system.                |
 | pixel          | Sets the properties of the next pixel to be drawn.           |
+| labels         | Turns the drawing of labels `on` or `off`.                   |
+| label          | Sets the placement of the labels drawn next to named points and segment endpoints. |
 
 ### Setting the colour
 
@@ -39,6 +41,17 @@ Using the syntax `set colour #<value>` will allow you to directly set the red, g
 - six digit colour code **RRGGBB**: `set colour #112233`. Will set the specified colour with the alpha channel set to 255.
 - eight digit colour code **RRGGBBAA**: `set colour #11223344`. Will set the specified colour with the specified alpha value.
 
+#### By red, green and blue values
+
+Using the syntax `set colour r, g, b` sets the colour from its red, green and blue components, and `set colour r, g, b, a` also sets the alpha value. The components can be any expression. Values between `0` and `255` are used as they are, while values smaller than `1` are considered to be a fraction of `255`, so `set colour 0.5, 0.5, 0` is the same as `set colour 127, 127, 0`. For the alpha value, `1` also means fully opaque.
+
+```
+var i number
+for i = 0 to 5 step 0.1 do
+  set color i * 25, i * 10, i * 10
+done
+```
+
 ### Setting the palette
 
 The syntax `set palette name` sets the palette that can be accessed in a `set color palette[index]` statement. A list of available palettes can be found in the Miscellaneous section of this help system.
@@ -63,6 +76,25 @@ Due to the way the presentation of data is handled in the application, the state
 ### Setting the pixel properties
 
 For the moment it is possible to set the size of a pixel with the command `set pixel size X` where X denotes an expression that will be evaluated.
+
+### Setting the labels
+
+Points and segment endpoints can be given a name with `as "NAME"`, which is drawn next to them. The drawing of these labels can be turned off and on again with:
+
+```
+set labels off
+set labels on
+```
+
+The position of the labels can be changed with the `set label` statement:
+
+| Statement                                            | Description                                                  |
+| ---------------------------------------------------- | ------------------------------------------------------------ |
+| `set label position <direction>`                     | Sets where the label is drawn relative to the point. The direction is one of `before`, `after`, `above`, `below` (or `under`), or `angle <value>`, optionally followed by `degrees` (the default) or `radians`. |
+| `set label distance close` / `far`                   | Draws the labels closer to (6 pixels), or farther from (22 pixels) the point. The default distance is 12 pixels. |
+| `set label first <direction> second <direction>`     | Sets the position of the labels of the two endpoints of the segments drawn with `draw segment`. |
+
+The Label placement section of this help describes these settings in detail.
 
 ### Example
 
@@ -93,4 +125,4 @@ done
 
 Resulting in the following plot:
 
-<img src="/home/fld/work/p/funkplot/help/mds/imgs/set_1.png" alt="image-20221019145527702" style="zoom:33%;" />
+<img src="imgs/set_1.png" alt="image-20221019145527702" style="zoom:33%;" />

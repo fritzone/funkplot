@@ -15,6 +15,16 @@ struct LineAssignment : public Assignment
     }
 
     QSharedPointer<Function> x1, y1, x2, y2;
+
+    // The defining points of the extended forms are computed only when the defining let statement runs,
+    // so they are null if the line is used before that, or if its definition could not be resolved
+    void requireEndpoints() const
+    {
+        if(!x1 || !y1 || !x2 || !y2)
+        {
+            throw funkplot::syntax_error_exception(ERRORCODE(49), "Line <b>%s</b> is used before it is known (it was not assigned yet, or its definition could not be computed)", varName.toStdString());
+        }
+    }
 };
 
 #endif // LINEASSIGNMENT_H

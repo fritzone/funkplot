@@ -59,7 +59,28 @@ let p = point on s at 25% from start as "A"
 let q = point on s at t 0.5         as "M"
 let r = point on s at x 3           as "R1"
 let i = point at intersection of s1 and s2 as "I"
+let m = midpoint of s as "M"
+let q = point p reflected across s as "Q"
 ```
+
+#### Copying a point
+
+A point can be assigned from another point, or from an element of a list of points. The coordinates of a point can be used in arithmetic expressions with `.x` and `.y`:
+
+```
+var p q point
+var ps list of points
+var a number
+function f(x) = x * x
+let ps = points of f over (-2, 2) counts 10
+let p = ps[3]
+let q = p
+let a = q.x + q.y
+```
+
+#### Geometric constructions
+
+Many more point, segment, line and number assignments are available for geometric constructions, such as the point on a segment, the intersection of two lines, the reflection of a point, the distance between two points or the length of a segment. These are described in the Geometric objects section of this help.
 
 ### The points of a function
 
@@ -76,13 +97,13 @@ plot ps
 
 and running it will result in the following drawing:
 
-![image-20220519143757398](/home/fld/work/p/funkplot/help/mds/imgs/let_1.png)
+![image-20220519143757398](imgs/let_1.png)
 
-The algorithm operating on the default interval $[-1, 1]$ is a simple iterative one, that starts $x$ from the first point in the default drawing interval (`-1`) till the end of the default drawing interval (`1`) and will use a default step of `0.01` for advancing the function drawing, while calculating the value $f(x)$ as per the mathematical formula of the function.
+The algorithm operating on the default interval `[-1, 1]` is a simple iterative one, that starts `x` from the first point in the default drawing interval (`-1`) till the end of the default drawing interval (`1`) and will use a default step of `0.01` for advancing the function drawing, while calculating the value `f(x)` as per the mathematical formula of the function.
 
 #### Advanced points assignment
 
-Since there can be situations where we want to plot functions outside of the default $[-1, 1]$ interval, the `let` keyword accepts extra parameters too, specifying the interval, the number of points or segments we want to draw and whether we want to plot using points of function or a continuous drawing.
+Since there can be situations where we want to plot functions outside of the default `[-1, 1]` interval, the `let` keyword accepts extra parameters too, specifying the interval, the number of points or segments we want to draw and whether we want to plot using points of function or a continuous drawing.
 
 ##### Specifying the interval
 
@@ -97,7 +118,7 @@ plot ps
 
 and results in the following plot:
 
-![image-20220519144309975](/home/fld/work/p/funkplot/help/mds/imgs/let_2.png)
+![image-20220519144309975](imgs/let_2.png)
 
 ##### Specifying the number of points in a plot
 
@@ -112,7 +133,7 @@ plot ps
 
 and results in the following plot:
 
-<img src="/home/fld/work/p/funkplot/help/mds/imgs/let_3.png" alt="image-20221005133909496" style="zoom:50%;" />
+<img src="imgs/let_3.png" alt="image-20221005133909496" style="zoom:50%;" />
 
 This approach will calculate the step value considering the length of the interval to obtain the required number of points.
 
@@ -129,20 +150,32 @@ plot ps
 
 and results in the following plot:
 
-<img src="/home/fld/work/p/funkplot/help/mds/imgs/let_4.png" alt="image-20221005141804680" style="zoom:50%;" />
+<img src="imgs/let_4.png" alt="image-20221005141804680" style="zoom:50%;" />
 
 Since the step is calculated based on the number of points, it is not possible to specify both the steps and the number of points.
 
+The points of parametric functions, segments and lines can be assigned the same way, for example `let ps = points of s counts 10` for a segment `s`. For lines, which are infinite, the interval has to be specified with `over`.
+
+### A list of numbers
+
+A list of numbers is assigned with the `list` keyword, followed by the numbers in square brackets. Individual elements can be changed by indexing the variable, the index of the first element is `0`:
+
+```
+var xs list of numbers
+let xs = list [1, 2, 3, 4]
+let xs[2] = 9
+```
+
 ### A list of points
 
-The `let` keyword can be used to make an assignment to a list of points by using predefined values.
+The `let` keyword can be used to make an assignment to a list of points by using predefined values. The points can be separated by `;` or `,`.
 
 ```
 var ps list of points
 let ps = list [(1,2);(3,4)]
 ```
 
-This will assign the two points at $(1,2)$ and $(3,4)$ to the `ps` variable.
+This will assign the two points at `(1,2)` and `(3,4)` to the `ps` variable. An empty list can be created with `let ps = list[]`, and points can be added to it later with the `append` keyword.
 
 ### Assigning an Angle
 
@@ -194,4 +227,4 @@ let p3 = point at (3, 4)
 let beta = angle p1 p2 p3
 ```
 
-This uses the dot-product formula: $\arccos\!\left(\dfrac{\overrightarrow{v_1}\cdot\overrightarrow{v_2}}{|\overrightarrow{v_1}||\overrightarrow{v_2}|}\right)$ where $\overrightarrow{v_1} = p_1 - p_2$ and $\overrightarrow{v_2} = p_3 - p_2$.
+This uses the dot-product formula: `arccos((v1 · v2) / (|v1| |v2|))` where `v1 = p1 − p2` and `v2 = p3 − p2`.

@@ -3,7 +3,7 @@
 #include <RuntimeProvider.h>
 
 #include <QCommandLineParser>
-#include <QCoreApplication>
+#include <QGuiApplication>
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -23,9 +23,8 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     case QtInfoMsg:
         break;
     case QtWarningMsg:
+        // warnings do not stop the compilation, the errors of the program are reported separately
         fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), file, context.line, function);
-        fflush(stdout);
-        exit(1);
         break;
     case QtCriticalMsg:
         fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), file, context.line, function);
@@ -43,7 +42,18 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 int main(int argc, char* argv[])
 {
 
-    QCoreApplication app(argc, argv);
+    // Drawing text needs fonts, which only a QGuiApplication provides. The offscreen platform
+    // gives us one without a display (CI, ssh, scripts/builtins.py). An explicit QT_QPA_PLATFORM wins.
+    // On Windows the native platform plugin works without a visible window, and windeployqt
+    // does not ship the offscreen plugin by default.
+#ifndef Q_OS_WIN
+    if(qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM"))
+    {
+        qputenv("QT_QPA_PLATFORM", "offscreen");
+    }
+#endif
+
+    QGuiApplication app(argc, argv);
     QCoreApplication::setApplicationName("funkplot - command line compiler");
     QCoreApplication::setApplicationVersion("1.0");
     QCoreApplication::setOrganizationName("The Unauthorized Frog");
@@ -126,7 +136,11 @@ int main(int argc, char* argv[])
 
     RuntimeProvider* rp = nullptr;
     rp = new RuntimeProvider{
-        [](int l, int c, QString e) { qWarning() << "ERROR" << c << "AT" << l << e;},
+        [](int l, int c, QString e) {
+            // an error in the program stops the compilation, no image is saved
+            fprintf(stderr, "ERROR %d AT %d \"%s\"\n", c, l, e.toLocal8Bit().constData());
+            exit(1);
+        },
         [](QString s) {},
         [imgDrawer, &p, &size](double x, double y, int s) { imgDrawer->addPoint({x, y}, p, s); },
         [imgDrawer, &p, &size](double x1, double y1, double x2, double y2, int s) { imgDrawer->addLine(QLineF{x1, y1, x2, y2}, p, s); },
@@ -169,7 +183,6 @@ int main(int argc, char* argv[])
         }
     }
 
-    rp->parse(codelines);
     rp->execute();
 
     imgDrawer->drawCoordinateSystem();

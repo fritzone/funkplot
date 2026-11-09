@@ -163,13 +163,10 @@ if(BUILD_GUI)
   add_subdirectory(ribbon)
 endif()
 
-if(NOT WIN32)
-
-  if(BUILD_COMPILER)
-    add_subdirectory(compiler)
-  endif()
-
+if(BUILD_COMPILER)
+  add_subdirectory(compiler)
 endif()
+
 
 if(BUILD_GUI)
   add_subdirectory(gui)
@@ -180,8 +177,9 @@ if(BUILD_WEB)
 	set(ENABLE_PYTHON FALSE)
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -save-temps")
-
+if(NOT WIN32)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -save-temps")
+endif()
 
 add_subdirectory(lib)
 
@@ -209,7 +207,7 @@ if(NOT WIN32)
 SET(PROJECT_NAME_SHORT   "fũnkplot")
 SET(PROJECT_NAME_LONG    "fũnkplot")
 SET(PROJECT_DESCRIPTION  "fũnkplot - A mathematical drawing and plotting application")
-SET(PROJECT_COPYRIGHT    "Copyright (c) 2022 - 2023 The Unauthorized Frog")
+SET(PROJECT_COPYRIGHT    "Copyright (c) 2022 - 2026 The Unauthorized Frog")
 SET(PROJECT_CONTACT      "fritzone@gmail.com")
 SET(PROJECT_VENDOR       "The Unauthorized Frog")
 SET(ORG_WEBSITE          "https://funkplot.sh/")

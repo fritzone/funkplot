@@ -30,6 +30,19 @@ let s = segment from p1 to p2
 let l = line through p1 and (5, 5)
 ```
 
+#### Two-point names
+
+When a segment is the one between two named point variables, such as `A` and `B`, it can be referred to simply as `AB`, without declaring a segment variable. This works everywhere a segment name is expected: `draw segment AB`, `point on AB at t 0.5`, `midpoint of AB`, `length of AB`, `parallel to AB`, `reflected across AB`, and so on. Each name in the pair is one letter optionally followed by digits, so `P1Q2` is the segment between `P1` and `Q2`.
+
+```
+var A B M point
+let A = point at (-3, 0)
+let B = point at (3, 2)
+let M = midpoint of AB as "M"
+draw segment AB
+plot M
+```
+
 #### Naming the endpoints of a segment
 
 Any segment form where the endpoints are not already named point variables can have `as "XY"` appended. The string is split into two labels — the first label names the start endpoint, the second names the end endpoint. Each label is one letter optionally followed by digits (`A`, `B`, `P1`, `Q2`, …). When the segment is drawn both endpoints are automatically drawn as dots (using the current pixel size and color) and their labels are rendered in the same italic serif font used for point names, with digit subscripts.
@@ -69,8 +82,21 @@ draw line through p1 and p2
 ```
 
 #### Drawing Points
+
+A point can be drawn from coordinates or from a point variable, optionally with a label:
+
 ```
 draw point at (3, 4)
+draw point at p as "P"
+```
+
+#### Tick marks on segments
+
+Congruent segments are conventionally marked with the same number of small tick marks across them. `ticks N` draws `N` such marks at the middle of the segment, optionally followed by a colour name and `double` (twice as thick) or `single`:
+
+```
+draw segment s1 ticks 1
+draw segment s2 ticks 2 red double
 ```
 
 ### Discrete Point Generation
@@ -95,6 +121,9 @@ plot ps
 
 # For an infinite line, specify a range
 let ps = points of l over (-10, 10) counts 256
+
+# The segment or the line can also be given directly
+let ps = points of segment from (0, 0) to (4, 0) counts 5
 ```
 
 ### Intersection of Two Segments or Lines
@@ -148,10 +177,10 @@ let p = point on s at 25% from start
 let p = point on s at 75% from end
 ```
 
-The percentage value may be any arithmetic expression:
+The percentage value may be an arithmetic expression, as long as it is written without spaces and parentheses:
 
 ```
-let p = point on s at (100/3)% from start
+let p = point on s at 100/3% from start
 ```
 
 `from start` counts from the first endpoint toward the second; `from end` counts from the second endpoint toward the first. Both clamp to `[0, 1]` so an out-of-range percentage lands on the nearest endpoint rather than escaping the segment.
@@ -180,13 +209,13 @@ This makes programs that carry geometric meaning self-documenting — referring 
 
 #### Parametric Parameter t
 
-Places a point at parameter $t \in [0, 1]$ along the segment, where $t = 0$ is the start and $t = 1$ is the end. This is the most direct form — all other positional syntaxes reduce to this internally.
+Places a point at parameter `t` in `[0, 1]` along the segment, where `t = 0` is the start and `t = 1` is the end. This is the most direct form — all other positional syntaxes reduce to this internally.
 
 ```
 let p = point on s at t 0.333
 ```
 
-Values outside $[0, 1]$ are clamped. The expression after `t` can be any arithmetic expression.
+Values outside `[0, 1]` are clamped. The expression after `t` can be any arithmetic expression.
 
 ---
 
@@ -356,14 +385,14 @@ plot pj
 
 Running this program produces the following output:
 
-<img src="/home/fld/work/p/funkplot/help/mds/imgs/points.png" alt="Point-on-segment demo output" style="zoom:50%;" />
+<img src="imgs/points.png" alt="Point-on-segment demo output" style="zoom:50%;" />
 
 #### What each point represents
 
 The table below lists every plotted variable, the syntax that produced it, and the exact coordinates that result from the geometry.
 
-`s1` runs from `p1 = (-8, -4)` to `p2 = (8, 4)`, giving a total length of $\sqrt{16^2+8^2} \approx 17.89$.
-`s2` runs from `(-3, -7)` to `(3, 7)`, giving a total length of $\sqrt{6^2+14^2} \approx 15.23$.
+`s1` runs from `p1 = (-8, -4)` to `p2 = (8, 4)`, giving a total length of √(16² + 8²) ≈ 17.89.
+`s2` runs from `(-3, -7)` to `(3, 7)`, giving a total length of √(6² + 14²) ≈ 15.23.
 
 | Variable | Colour | Syntax | Result | Notes |
 |---|---|---|---|---|
@@ -375,12 +404,12 @@ The table below lists every plotted variable, the syntax that produced it, and t
 | `pc` | lime | `point on s1 at 25% from p1` | `(-4, -2)` | Same as `pa` — named endpoint form |
 | `pd` | deepskyblue | `point on s1 at 25% from p2` | `(4, 2)` | Same as `pb` — named endpoint form |
 | `pm` | yellow | `midpoint of s1` | `(0, 0)` | Exact centre of s1 |
-| `pe` | magenta | `point on s1 at distance 7 from start` | `≈ (-1.74, -0.87)` | $t \approx 0.391$ |
-| `pf` | deeppink | `point on s1 at distance 7 from end` | `≈ (1.74, 0.87)` | $t \approx 0.609$ |
+| `pe` | magenta | `point on s1 at distance 7 from start` | `≈ (-1.74, -0.87)` | t ≈ 0.391 |
+| `pf` | deeppink | `point on s1 at distance 7 from end` | `≈ (1.74, 0.87)` | t ≈ 0.609 |
 | `pg` | coral | `point on s1 at t 0.15` | `(-5.6, -2.8)` | 15 % along s1 |
 | `ph` | hotpink | `point on s1 nearest to q` | `≈ (2, 1)` | Projection of `q=(5,-5)` onto s1 |
-| `pi` | gold | `point on s2 at x 2` | `≈ (2, 4.67)` | Where s2 crosses $x = 2$ |
-| `pj` | springgreen | `point on s2 at y -3` | `≈ (-1.29, -3)` | Where s2 crosses $y = -3$ |
+| `pi` | gold | `point on s2 at x 2` | `≈ (2, 4.67)` | Where s2 crosses x = 2 |
+| `pj` | springgreen | `point on s2 at y -3` | `≈ (-1.29, -3)` | Where s2 crosses y = -3 |
 
 Points `pc` and `pd` are plotted at size 5 on top of `pa` (size 10) and `pb` (size 10) respectively, to visually confirm that the named-endpoint and positional forms produce the same coordinates.
 
@@ -429,9 +458,9 @@ let gamma = angle p1 p2 p3
 
 ### Extended Segment Definitions
 
-In addition to `segment from P to Q`, **fũnkplot** provides four extended forms that let you define a segment by its position, length, and orientation without having to compute the second endpoint by hand.
+In addition to `segment from P to Q`, **fũnkplot** provides several extended forms that let you define a segment by its position, length, and orientation without having to compute the second endpoint by hand.
 
-All four forms accept an angle variable or a literal angle value (with an optional `degrees`/`radians` unit; default is degrees). They also accept a length expression.
+Where an angle is needed, the forms accept an angle variable or a literal angle value (with an optional `degrees`/`radians` unit; default is degrees). The word `angle` is optional, so `at angle 30 degrees` and `at 30 degrees` are the same. The length can be any expression.
 
 #### 1. From a point, given length and angle
 
@@ -476,6 +505,44 @@ let s = segment through P perpendicular to refSeg length 5
 
 The angle is `atan2(refSeg) + π/2`. The resulting segment is centered on `P`.
 
+#### 5. From a point, perpendicular to a segment
+
+Creates the segment from `P` to the foot of the perpendicular dropped from `P` onto the line of `refSeg` (the altitude from `P`):
+
+```
+let s = segment from P perpendicular to refSeg
+```
+
+#### 6. From a point, through another point, given length
+
+Starts at `A` and extends in the direction of `B` for the given length, which can be shorter or longer than the distance between the two points:
+
+```
+let s = segment from A through B length 5
+```
+
+#### 7. Congruent to another segment
+
+A segment can be created with the same length as an existing segment, by placing it at a point (`from`) or centering it on a point (`centered at`), and giving its direction as an angle or as parallel or perpendicular to a segment:
+
+```
+let s2 = segment congruent to s1 from (-8, 1) parallel to s1
+let s3 = segment congruent to s1 from (-1, -1) perpendicular to s1
+let s4 = segment congruent to s1 centered at (5, 3) at angle 60
+let s5 = segment congruent to s3 centered at (5, 0) parallel to s3
+let s6 = segment congruent to s1 centered at (5, -4) perpendicular to s1
+let s7 = segment congruent to s1 from P at angle alpha
+```
+
+Combined with `ticks`, this makes it easy to draw figures with congruent segments:
+
+```
+draw segment s1 ticks 1
+draw segment s2 ticks 1
+```
+
+All extended forms can be followed by `as "XY"` to name the endpoints.
+
 #### Extended segment example
 
 ```
@@ -506,4 +573,89 @@ draw segment s2
 draw segment s3
 draw segment s4
 draw segment s5
+```
+
+---
+
+### Extended Line Definitions
+
+Besides `line through P and Q`, a line can be defined in relation to other objects. In all forms the reference can be a `segment` or a `line` variable, or a two-point name such as `AB`.
+
+| Syntax | Meaning |
+|---|---|
+| `let l = line through P parallel to ref` | The line through `P`, parallel to `ref` |
+| `let l = line through P perpendicular to ref` | The line through `P`, perpendicular to `ref` |
+| `let l = perpendicular bisector of s` | The line perpendicular to `s`, through its midpoint |
+| `let l = angle bisector A B C` | The bisector of the angle at `B` formed by the points `A`, `B` and `C` |
+
+```
+var A B C point
+var s segment
+var l1 l2 l3 line
+let A = point at (-4, -2)
+let B = point at (4, -2)
+let C = point at (1, 4)
+let s = segment from A to B
+let l1 = line through C parallel to s
+let l2 = perpendicular bisector of s
+let l3 = angle bisector A B C
+draw segment s
+draw line l1
+draw line l2
+draw line l3
+```
+
+---
+
+### Reflection of a Point
+
+`reflected across` creates the mirror image of a point across a segment or a line. The words `segment` and `line` before the name of the mirror are optional:
+
+```
+let q = point p reflected across s as "Q"
+let r = point p reflected across line l
+let t = point p reflected across AB
+```
+
+---
+
+### Measurements
+
+The distance between two points and the length of a segment can be assigned to `number` variables:
+
+```
+var d len number
+let d = distance from A to B
+let len = length of segment s
+let len = length of AB
+```
+
+The word `segment` after `length of` is optional.
+
+---
+
+### Drawing Angles
+
+The `draw angle` statement marks an angle with an arc and writes its value in degrees next to it. A right angle is marked with a small square instead of an arc. The arms of the angle are not drawn, use `draw segment` for them. The angle can be given in the following ways:
+
+| Syntax | Meaning |
+|---|---|
+| `draw angle A B C` | The angle at `B` (the middle point) between `A` and `C` |
+| `draw angle ABC` | The same, using a compact name of three point names |
+| `draw angle at V between A and C` | The angle at `V` between the directions of `A` and `C`; the points can also be coordinates, such as `(0, 0)` |
+| `draw angle between s1 and s2` | The angle between two segments which have a common endpoint |
+
+The following options can be added at the end, in this order: `arcs N` draws `N` concentric arcs (conventionally used to mark equal angles), a colour name sets the colour of the arcs, `double` makes them twice as thick, and `as "ABC"` draws the three points with the given labels.
+
+```
+var A B C point
+let A = point at (5, 1)
+let B = point at (1, 2)
+let C = point at (4, 3)
+
+set color steelblue
+draw angle A B C
+
+draw angle BAC arcs 3 red double
+draw angle ACB as "ACB"
 ```

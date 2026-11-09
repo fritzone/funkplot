@@ -1,6 +1,6 @@
 ## The **script** keyword
 
-It is possible to embed python scripts in **fũnkplot** code. The following syntax is used to insert a block of python scriptlets:
+It is possible to embed python scripts in **fũnkplot** code, if **fũnkplot** was built with python support (the `ENABLE_PYTHON` build option, which is on by default). The following syntax is used to insert a block of python scriptlets:
 
 ```
 python script begin

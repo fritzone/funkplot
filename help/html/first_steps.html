@@ -3,7 +3,7 @@
 <head>
 <meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>
 
-<link href='https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext' rel='stylesheet' type='text/css' /><style type='text/css'>html {overflow-x: initial !important;}:root { --bg-color:#ffffff; --text-color:#333333; --select-text-bg-color:#B5D6FC; --select-text-font-color:auto; --monospace:"Lucida Console",Consolas,"Courier",monospace; --title-bar-height:20px; }
+<style type='text/css'>html {overflow-x: initial !important;}:root { --bg-color:#ffffff; --text-color:#333333; --select-text-bg-color:#B5D6FC; --select-text-font-color:auto; --monospace:"Lucida Console",Consolas,"Courier",monospace; --title-bar-height:20px; }
 .mac-os-11 { --title-bar-height:28px; }
 html { font-size: 14px; background-color: var(--bg-color); color: var(--text-color); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
 body { margin: 0px; padding: 0px; height: auto; inset: 0px; font-size: 1rem; line-height: 1.42857; overflow-x: hidden; background: inherit; tab-size: 4; }
@@ -288,7 +288,7 @@ span.cm-strikethrough { text-decoration: line-through; }
     --control-text-color: #777;
 }
 
-@include-when-export url(https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext);
+
 
 /* open-sans-regular - latin-ext_latin */
   /* open-sans-italic - latin-ext_latin */
@@ -668,8 +668,169 @@ header, .context-menu, .megamenu-content, footer{
 }
 
 
- .typora-export li, .typora-export p, .typora-export,  .footnote-line {white-space: normal;}
+
+mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+  min-height: 1px;
+  min-width: 1px;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-assistive-mml {
+  position: absolute !important;
+  top: 0px;
+  left: 0px;
+  clip: rect(1px, 1px, 1px, 1px);
+  padding: 1px 0px 0px 0px !important;
+  border: 0px !important;
+  display: block !important;
+  width: auto !important;
+  overflow: hidden !important;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+mjx-assistive-mml[display="block"] {
+  width: 100% !important;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][display="true"][width="full"] {
+  display: flex;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line], svg[data-table] > g > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame], svg[data-table] > g > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed, svg[data-table] > g > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted, svg[data-table] > g > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > g > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] path[data-c], mjx-container[jax="SVG"] use[data-c] {
+  stroke-width: 3;
+}
+
+g[data-mml-node="xypic"] path {
+  stroke-width: inherit;
+}
+
+.MathJax g[data-mml-node="xypic"] path {
+  stroke-width: inherit;
+}
+mjx-container[jax="SVG"] path[data-c], mjx-container[jax="SVG"] use[data-c] {
+							stroke-width: 0;
+						} .typora-export li, .typora-export p, .typora-export,  .footnote-line {white-space: normal;}
 </style><title>first_steps</title>
 </head>
 <body class='typora-export'><div class='typora-export-content'>
-<div id='write'  class=''><h2 id='first-steps'><span>First steps</span></h2><p><span>After the installation when you have started </span><strong><span>fũnkplot</span></strong><span> it will be possible to load a few samples (from the samples directory) or just type in and run your program to see the generated plot in the plotting area.</span></p><h3 id='the-fũnkplot-programming-language'><span>The </span><strong><span>fũnkplot</span></strong><span> programming language</span></h3><p><strong><span>fũnkplot</span></strong><span> uses its own programming language influenced by </span><strong><span>basic</span></strong><span> in its simplicity, with some extensions to allow more complex mathematical notions to be easily handled, and having a decent enough verbosity to feel like a natural language.</span></p><p><span>The process of creating a plot is very straightforward, just write a small program and run it. One of the most simple ones would take up just the following 2 lines:</span></p><pre class="md-fences md-end-block ty-contain-cm modeLoaded" spellcheck="false" lang=""><div class="CodeMirror cm-s-inner cm-s-null-scroll" lang=""><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 9.51801px; left: 7.99695px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 0px; min-width: 197.097px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines" role="presentation"><div role="presentation" style="position: relative; outline: none;"><div class="CodeMirror-measure"></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code" role="presentation"><div class="CodeMirror-activeline" style="position: relative;"><div class="CodeMirror-activeline-background CodeMirror-linebackground"></div><div class="CodeMirror-gutter-background CodeMirror-activeline-gutter" style="left: 0px; width: 0px;"></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">function f(x) = sin(x)</span></pre></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">plot f over (-5, 5)</span></pre></div></div></div></div></div><div style="position: absolute; height: 0px; width: 1px; border-bottom: 0px solid transparent; top: 46px;"></div><div class="CodeMirror-gutters" style="display: none; height: 46px;"></div></div></div></pre><p><span>And this will generate the following plot:</span></p><p><img src="data:image/png;base64, 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eUZOuuFKiSK3r+PevFbEXS0Tz5x0wzUSRW5fr7154zgOw7DPIja6yNV51XsC8BLa3stxHF/svtXzPO+8iM15me6p4CpYKbIXL3mRxn4uwPgU7Q5w1otcBVFkR17mIg1FfJ8uci1EkX1prfrj1ouK+CG6yFUQRXanrRf/iC46ePbb2gFdXWTLRJE9mqapnQDyXNcv1lqda/opnI/KxokiO9Wu0zidTk9/g57nWRE/nS6yZaLIrj3xDbotEGuty7Io4qebpun+/n4cR2lka0SRvTufevN736DPC8RlWfZ2F7ena89bKWWeZ2lkO0QRyjRN7Q36cDh89A26nUJ5OBwsEJ+uHdwtn5ZGH0fFCzis69p7DrAh7a251toWf/f39+3PT6dTe1Nu32qnsD7xsWqt7cc+y0+7du1DmI/H4/lP7u/vT6dTKaV91MlzPe3wG0QRft154dJaOAxDC+Qzvim345HtB77Y/ec2rv2iUH6xLmzPvBbyMkQRenKxP2yKY4oAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEId1XXvPAXbqcDict70SYQtEEXqa57mUMk1T74kApdh9CgBnoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQh3Vde88BdupwOJy3vRJhC0QReprnuZQyTVPviQCl2H0KAGeiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCvek8A9mscx1JKrbXWuixL7+kAVorQzzRNpZTj8dg2gO6sFKGbYRhOp1Pb6D0XoBQrRQA4E0UACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQCIV70nAPs1z3OttW1P09R3MkCxUgSAMytF6Oa8OrRMhI2wUgSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUYRuaq3ta9sAujus69p7DrBT4zjWWodhKKUsy9J7OoAoQlfzPJdSpmnqPRGgFLtPAeBMFAEgRBEAQhQBIEQRAEIUASBEEQBCFAEgRBEAQhQBIEQRAEIUASBEEQBCFAEgRBEAQhQBIEQRAEIUASBEEQBCFAEgRBEAQhQBIEQRAEIUASBEEbqptbavbQPo7rCua+85wE6N41hrHYahlLIsS+/pAKIIXc3zXEqZpqn3RIBS7D4FgDNRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAIjDuq695wA7dTgcztteibAFogg9zfNcSpmmqfdEgFLsPgWAM1EEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUAiFe9JwD7NY5jKaXWWmtdlqX3dAArRehnmqZSyvF4bBtAd1aK0M0wDKfTqW30ngtQipUiAJyJIgCEKAJAiCIAhCgCQIgiAIQoAkCIIgCEKAJAiCIAhCgCQIgiAIQoAkCIIgCEKAJAiCIAhCgCQIgiAIQoAkCIIgCEKAJAiCIAhCgCQIgiAIQoAkAc1nXtPQcA2AQrRQAIUQSA+F/MnW7jelehWgAAAABJRU5ErkJggg==" referrerpolicy="no-referrer" alt="image-20220425144408774"></p><p><strong><span>fũnkplot</span></strong><span> supports a range of built-in mathematical functions, most of the default operators and has syntax for changing the color, line and rotation of the current plot.</span></p></div></div></body></html>
+<div id='write'  class=''><h2 id='first-steps'>First steps</h2>
+<p>After the installation when you have started <strong>fũnkplot</strong> it will be possible to load a few samples (from the samples directory) or just type in and run your program to see the generated plot in the plotting area.</p>
+<h3 id='the-fũnkplot-programming-language'>The <strong>fũnkplot</strong> programming language</h3>
+<p><strong>fũnkplot</strong> uses its own programming language influenced by <strong>basic</strong> in its simplicity, with some extensions to allow more complex mathematical notions to be easily handled, and having a decent enough verbosity to feel like a natural language.</p>
+<p>The process of creating a plot is very straightforward, just write a small program and run it. One of the most simple ones would take up just the following 2 lines:</p>
+<pre class="md-fences md-end-block" spellcheck="false" lang="">function f(x) = sin(x)
+plot f over (-5, 5)
+</pre>
+<p>And this will generate the following plot:</p>
+<p><img src="data:image/png;base64,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eUZOuuFKiSK3r+PevFbEXS0Tz5x0wzUSRW5fr7154zgOw7DPIja6yNV51XsC8BLa3stxHF/svtXzPO+8iM15me6p4CpYKbIXL3mRxn4uwPgU7Q5w1otcBVFkR17mIg1FfJ8uci1EkX1prfrj1ouK+CG6yFUQRXanrRf/iC46ePbb2gFdXWTLRJE9mqapnQDyXNcv1lqda/opnI/KxokiO9Wu0zidTk9/g57nWRE/nS6yZaLIrj3xDbotEGuty7Io4qebpun+/n4cR2lka0SRvTufevN736DPC8RlWfZ2F7ena89bKWWeZ2lkO0QRyjRN7Q36cDh89A26nUJ5OBwsEJ+uHdwtn5ZGH0fFCzis69p7DrAh7a251toWf/f39+3PT6dTe1Nu32qnsD7xsWqt7cc+y0+7du1DmI/H4/lP7u/vT6dTKaV91MlzPe3wG0QRft154dJaOAxDC+Qzvim345HtB77Y/ec2rv2iUH6xLmzPvBbyMkQRenKxP2yKY4oAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEId1XXvPAXbqcDict70SYQtEEXqa57mUMk1T74kApdh9CgBnoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQh3Vde88BdupwOJy3vRJhC0QReprnuZQyTVPviQCl2H0KAGeiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCiCAAhigAQoggAIYoAEKIIACGKABCvek8A9mscx1JKrbXWuixL7+kAVorQzzRNpZTj8dg2gO6sFKGbYRhOp1Pb6D0XoBQrRQA4E0UACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQCIV70nAPs1z3OttW1P09R3MkCxUgSAMytF6Oa8OrRMhI2wUgSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUYRuaq3ta9sAujus69p7DrBT4zjWWodhKKUsy9J7OoAoQlfzPJdSpmnqPRGgFLtPAeBMFAEgRBEAQhQBIEQRAEIUASBEEQBCFAEgRBEAQhQBIEQRAEIUASBEEQBCFAEgRBEAQhQBIEQRAEIUASBEEQBCFAEgRBEAQhQBIEQRAEIUASBEEbqptbavbQPo7rCua+85wE6N41hrHYahlLIsS+/pAKIIXc3zXEqZpqn3RIBS7D4FgDNRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAIjDuq695wA7dTgcztteibAFogg9zfNcSpmmqfdEgFLsPgWAM1EEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUACFEEgBBFAAhRBIAQRQAIUQSAEEUAiFe9JwD7NY5jKaXWWmtdlqX3dAArRehnmqZSyvF4bBtAd1aK0M0wDKfTqW30ngtQipUiAJyJIgCEKAJAiCIAhCgCQIgiAIQoAkCIIgCEKAJAiCIAhCgCQIgiAIQoAkCIIgCEKAJAiCIAhCgCQIgiAIQoAkCIIgCEKAJAiCIAhCgCQIgiAIQoAkAc1nXtPQcA2AQrRQAIUQSA+F/MnW7jelehWgAAAABJRU5ErkJggg==" alt="image-20220425144408774"></p>
+<p><strong>fũnkplot</strong> supports a range of built-in mathematical functions, most of the default operators and has syntax for changing the color, line and rotation of the current plot.</p>
+</div></div>
+</body>
+</html>

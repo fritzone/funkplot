@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <QString>
+#include <QRegularExpression>
 
 std::string random_string(size_t length, random_string_class cls)
 {
@@ -115,6 +116,22 @@ int isnumber(const char *s)
         }
     }
     return 1;
+}
+
+bool isValidIdentifier(const std::string& s)
+{
+    if (s.empty()) return false;
+    
+    auto is_alpha = [](char c) {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+    };
+
+    if (!is_alpha(s[0]) && s[0] != '_' && s[0] != '$') return false;
+    for (size_t i = 1; i < s.length(); ++i)
+    {
+        if (!is_alpha(s[i]) && !((s[i] >= '0' && s[i] <= '9')) && s[i] != '_' && s[i] != '$') return false; 
+    }
+    return true;
 }
 
 std::string c2str(char c)
@@ -513,7 +530,9 @@ QString normalize(const QString &s)
 
     result = result.replace("ℯ", "2.718281828459045");
     result = result.replace("²", "^2");
-    result = result.replace("pi", "3.141592653589793");
+    // only the whole word, not the pi in spin or pivot
+    static const QRegularExpression piWord("\\bpi\\b");
+    result = result.replace(piWord, "3.141592653589793");
     result = result.replace("π", "3.141592653589793");
 
     return result;

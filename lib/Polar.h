@@ -6,7 +6,7 @@
 #include "Stepped.h"
 #include "StatementHandler.h"
 
-class Plot;
+struct Plot;
 /**
  * @brief The Polar struct represents a "Polar" statement.
  */

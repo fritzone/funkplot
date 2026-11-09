@@ -33,6 +33,7 @@ bool AngleAssignment::execute(RuntimeProvider* rp)
     {
         auto sa = rp->getAssignmentAs<SegmentAssignment>(segmentName);
         if (!sa) return false;
+        sa->requireEndpoints();
         double dx = sa->x2->Calculate() - sa->x1->Calculate();
         double dy = sa->y2->Calculate() - sa->y1->Calculate();
         radians = std::atan2(dy, dx);

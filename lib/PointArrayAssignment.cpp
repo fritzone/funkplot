@@ -56,7 +56,8 @@ void PointArrayAssignment::resolvePrecalculatedPointsForIndexedAccessWithList(QS
 
     if(allPoints.size() > 0)
     {
-        setPrecalculatedPoints(allPoints);
+        // a plain list of points, it is plotted from these points
+        forceSetPrecalculatedPoints(allPoints);
     }
 
 }

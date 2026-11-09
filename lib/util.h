@@ -21,6 +21,8 @@
 #include <string>
 #include <stdexcept> // runtime_error
 #include <memory> // unique_ptr
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include <cmath>
 #include <sstream>
 
@@ -53,11 +55,11 @@ struct fun_desc_solve
 static const std::vector<fun_desc_solve> supported_functions
 {
      {"==", "Equality of elements", [](double v, double v2) -> double { return static_cast<double>(std::fabs(v - v2) < 0.000001); }, false, false },
-     {"<=", "Equality of elements", [](double v, double v2) -> double { return static_cast<double>(v >= v2); }, false, false },
+     {"<=", "Equality of elements", [](double v, double v2) -> double { return static_cast<double>(v <= v2); }, false, false },
      {">=", "Equality of elements", [](double v, double v2) -> double { return static_cast<double>(v >= v2); }, false, false },
      {"<", "Equality of elements", [](double v, double v2) -> double { return static_cast<double>(v < v2); }, false, false },
      {">", "Equality of elements", [](double v, double v2) -> double { return static_cast<double>(v > v2); }, false, false },
-     {">=", "Equality of elements", [](double v, double v2) -> double { return static_cast<double>(v != v2); }, false, false },
+     {"!=", "Equality of elements", [](double v, double v2) -> double { return static_cast<double>(v != v2); }, false, false },
 
      // basic stuff
      {"^", "Power of an element", [](double v, double v2) -> double { return pow(v, v2); }, false, false },
@@ -192,14 +194,16 @@ std::string format(std::string const& formatString, Args&&... args)
 class syntax_error_exception : public std::exception
 {
 public:
+#ifndef _MSC_VER
     template<class ... Args>
     syntax_error_exception(int en, const char* fmt, Args& ...args) : errst(format(fmt, std::forward<Args>(args)...)), error_number(en)
     {
         //doPrint(std::cout, std::forward<Args>(args)...);
     }
+#endif
 
     template<class ... Args>
-    syntax_error_exception(int en, const char* fmt, const Args& ...args) : errst(format(fmt, std::forward<const Args>(args)...)), error_number(en)
+    syntax_error_exception(int en, const char* fmt, const Args& ...args) : errst(funkplot::format(fmt, std::forward<const Args>(args)...)), error_number(en)
     {
         //doPrint(std::cout, std::forward<const Args>(args)...);
     }
@@ -254,6 +258,9 @@ int isparenthesis(char c);
 //returns true if s is a number
 int isnumber(const char *s);
 
+// returns true if s is a valid identifier (starts with alpha, followed by alnum)
+bool isValidIdentifier(const std::string& s);
+
 //transforms a character to a string
 std::string c2str(char c);
 
@@ -278,6 +285,27 @@ std::string strim(std::string &s);
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
+
+/**
+ * @brief The ScopedDelete class is a simple RAII wrapper that deletes a pointer when it goes out of scope.
+ * It tracks a reference to a pointer, allowing it to handle cases where the pointer is assigned 
+ * inside a function call (e.g., via a reference to a pointer parameter).
+ */
+template <typename T>
+class ScopedDelete {
+public:
+    explicit ScopedDelete(T*& ptr) : m_ptr(ptr) {}
+    ~ScopedDelete() {
+        delete m_ptr;
+        m_ptr = nullptr;
+    }
+    // Prevent copying and assignment to ensure unique ownership of the tracked reference
+    ScopedDelete(const ScopedDelete&) = delete;
+    ScopedDelete& operator=(const ScopedDelete&) = delete;
+
+private:
+    T*& m_ptr;
+};
 
 void consumeSpace(QString &s);
 QString getDelimitedId(QString&, QSet<char>, char &delim);
