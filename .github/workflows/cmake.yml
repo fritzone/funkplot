@@ -85,10 +85,6 @@ jobs:
           -extra-plugins=iconengines,platformthemes/libqgtk3.so,platforms \
           -appimage --appimage-extract-and-run
 
-    - name: Run Builtins Generator
-      run: |
-        python3 path/to/builtins.py
-
     - name: Upload AppImage
       uses: actions/upload-artifact@v4
       with:
