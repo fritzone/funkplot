@@ -7,6 +7,31 @@
 
 static bool exited = false;
 
+namespace
+{
+
+// Undoes what python_runner::run() sets up, on every path out of it: the stdout
+// redirection holds a reference to a local of that function, and the GIL has to go
+// back to where it was even when the script failed to compile or raised.
+struct python_run_cleanup
+{
+    explicit python_run_cleanup(PyGILState_STATE state) : m_state(state) {}
+
+    ~python_run_cleanup()
+    {
+        emb::reset_stdout();
+        PyGILState_Release(m_state);
+    }
+
+    python_run_cleanup(const python_run_cleanup&) = delete;
+    python_run_cleanup& operator=(const python_run_cleanup&) = delete;
+
+private:
+    PyGILState_STATE m_state;
+};
+
+} // namespace
+
 static int python_exiter(void*)
 {
 
@@ -32,11 +57,20 @@ int python_quit(void *)
 
 python_runner::python_runner()
 {
-    PyImport_AppendInittab("emb", emb::PyInit_emb);
+    // The table of built-in modules outlives Py_Finalize(), so "emb" is appended
+    // once per process however many runners get created.
+    static bool embRegistered = false;
+    if(!embRegistered)
+    {
+        PyImport_AppendInittab("emb", emb::PyInit_emb);
+        embRegistered = true;
+    }
+
     Py_Initialize();
 
-    pymodule = PyImport_ImportModule("emb");
-    main = PyImport_AddModule("__main__");
+    pymodule = PyImport_ImportModule("emb");    // new reference
+    main = PyImport_AddModule("__main__");      // borrowed
+    Py_XINCREF(main);                           // ours from here until the destructor
 }
 
 std::string python_runner::formatPythonException(PyObject *exceptionObj, PyObject *valueObj, PyObject *tracebackObj)
@@ -95,13 +129,14 @@ std::string python_runner::formatPythonException(PyObject *exceptionObj, PyObjec
     for (Py_ssize_t i = 0; i < tbls; ++i)
     {
         PyObject* obj = PyList_GET_ITEM(fg, i);  // borrowed
-        char* data = nullptr;
-        Py_ssize_t len;
-        PyObject *exception_string    = NULL;
-        exception_string = PyObject_Str(obj);
-        data = (char*)PyUnicode_AsUTF8(exception_string);
 
-        if(data) out += data;
+        PyObjectHandle exception_string(PyObject_Str(obj));
+        if(exception_string)
+        {
+            // points into exception_string, so it must not outlive the handle
+            const char* data = PyUnicode_AsUTF8(exception_string.get());
+            if(data) out += data;
+        }
     }
 
     return out;
@@ -134,17 +169,17 @@ std::string python_runner::pyObjectToString(PyObject *b)
             if(PyDict_Check(b))
             {
                 std::string result;
-                PyObject* keys = PyDict_Keys(b);
-                int s = PyList_Size(keys);
+                PyObjectHandle keys(PyDict_Keys(b));
+                int s = PyList_Size(keys.get());
                 for (int i = 0; i < s; ++i)
                 {
-                    PyObject* a = PyList_GetItem(keys, i);
+                    PyObject* a = PyList_GetItem(keys.get(), i);
                     if(a)
                     {
-                        PyObject* keyname_a = PyUnicode_AsEncodedString( a, "UTF-8", "strict" );
+                        PyObjectHandle keyname_a(PyUnicode_AsEncodedString( a, "UTF-8", "strict" ));
                         if(keyname_a)
                         {
-                            std::string k = PyBytes_AS_STRING( keyname_a );
+                            std::string k = PyBytes_AS_STRING( keyname_a.get() );
                             PyObject* b_b = PyDict_GetItem(b, a);
                             std::string v = pyObjectToString(b_b);
                             result += k + ":" + v;
@@ -161,10 +196,10 @@ std::string python_runner::pyObjectToString(PyObject *b)
         else
             if(!strcmp(Py_TYPE(b)->tp_name, "str"))
             {
-                PyObject* temp_bytes_b = PyUnicode_AsEncodedString( b, "UTF-8", "strict" );
+                PyObjectHandle temp_bytes_b(PyUnicode_AsEncodedString( b, "UTF-8", "strict" ));
                 if (temp_bytes_b)
                 {
-                    std::string v = PyBytes_AS_STRING( temp_bytes_b );
+                    std::string v = PyBytes_AS_STRING( temp_bytes_b.get() );
                     return v;
                 }
             }
@@ -191,11 +226,17 @@ std::string python_runner::pyObjectToString(PyObject *b)
 std::string python_runner::run(const std::map<std::string, std::string> &kps, std::string between, std::map<std::string, std::string> &all_variables)
 {
     exited = false;
+
+    // Declared before the cleanup object below so that it outlives it: the stdout
+    // redirection writes into this buffer and the cleanup is what uninstalls it.
+    std::string buffer;
+
     PyGILState_STATE state = PyGILState_Ensure();
 
-    std::string buffer;
     emb::stdout_write_type write = [&buffer] (const std::string& s) { buffer += s; };
     emb::set_stdout(write);
+
+    const python_run_cleanup cleanup(state);
 
     // generate a list of assignments to kp/kv values from the kps vector
     std::set<std::string> set_variables;
@@ -228,7 +269,11 @@ std::string python_runner::run(const std::map<std::string, std::string> &kps, st
         }
     }
 
-    PyObjectHandle globals (PyModule_GetDict(main));
+    // PyModule_GetDict returns a borrowed reference. Taking it without the INCREF
+    // made this handle decref __main__'s dict on the way out without ever owning
+    // it, leaving the dict one reference short; Py_Finalize()'s collection then
+    // freed it while the module still pointed at it and crashed walking it.
+    PyObjectHandle globals (PyObjectHandle::INCREF, PyModule_GetDict(main));
     PyObjectHandle ret(PyEval_EvalCode(co.get(), globals.get(), globals.get()));
 
     if (PyErr_Occurred())
@@ -239,21 +284,19 @@ std::string python_runner::run(const std::map<std::string, std::string> &kps, st
         return formatPythonException(ptype, pvalue, ptraceback);
     }
 
-    emb::reset_stdout();
-
     if(globals)
     {
-        PyObject* keys = PyDict_Keys(globals.get());
-        int s = PyList_Size(keys);
+        PyObjectHandle keys(PyDict_Keys(globals.get()));
+        int s = PyList_Size(keys.get());
         for (int i = 0; i < s; ++i)
         {
-            PyObject* a = PyList_GetItem(keys, i);
+            PyObject* a = PyList_GetItem(keys.get(), i);
             if(a)
             {
-                PyObject* keyname_a = PyUnicode_AsEncodedString( a, "UTF-8", "strict" );
+                PyObjectHandle keyname_a(PyUnicode_AsEncodedString( a, "UTF-8", "strict" ));
                 if(keyname_a)
                 {
-                    std::string k = PyBytes_AS_STRING( keyname_a );
+                    std::string k = PyBytes_AS_STRING( keyname_a.get() );
 
                     PyObject*b = PyDict_GetItem(globals.get(), a);
 
@@ -300,13 +343,16 @@ std::string python_runner::run(const std::map<std::string, std::string> &kps, st
 
     }
 
-    PyGILState_Release(state);
-
     return buffer;
 }
 
 python_runner::~python_runner()
 {
+    // Py_Initialize() left the GIL held by this thread, so the interpreter is still
+    // ours to touch here.
+    Py_CLEAR(pymodule);
+    Py_CLEAR(main);
+
     qDebug() << "Finalizing";
     Py_Finalize();
 }

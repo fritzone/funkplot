@@ -41,11 +41,13 @@ if(BUILD_GUI AND BUILD_WEB)
 	message( FATAL_ERROR "Cannot build both WEB and GUI in the same run, turn off one of those")
 endif()
 
+# set(USE_QT6 TRUE)
+
 if(USE_QT6)
   if(NOT WIN32)
 	set(CMAKE_PREFIX_PATH "/home/fld/Qt/6.4.2/gcc_64/lib/cmake")
   else()
-    set(CMAKE_PREFIX_PATH "d:/work/Qt6/6.2.1/msvc2019_64/lib/cmake")
+    # set(CMAKE_PREFIX_PATH "d:/work/Qt6/6.2.1/msvc2019_64/lib/cmake")
   endif()  
 
   find_package(QT NAMES Qt6
@@ -85,7 +87,7 @@ if(USE_QT6)
 else()
 
   if(WIN32)
-    set(CMAKE_PREFIX_PATH "D:/Qt/5.15.2/msvc2019_64")
+    set(CMAKE_PREFIX_PATH "C:/Qt/5.15.2/msvc2019_64")
   endif()  
 
 

@@ -36,6 +36,13 @@ PyObject* Stdout_write(PyObject* self, PyObject* args);
 
 PyObject* Stdout_flush(PyObject* /*self*/, PyObject* /*args*/);
 
+// Stdout carries a std::function, so the object needs its member constructed on
+// allocation and destroyed on deallocation. tp_alloc only hands out zeroed memory
+// and tp_free only hands it back, so neither happens on its own.
+PyObject* Stdout_new(PyTypeObject* type, PyObject* args, PyObject* kwds);
+
+void Stdout_dealloc(PyObject* self);
+
 static PyMethodDef Stdout_methods[] =
 {
     {"write", Stdout_write, METH_VARARGS, "sys.stdout.write"},
